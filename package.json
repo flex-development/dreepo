@@ -1,0 +1,123 @@
+{
+  "name": "@flex-development/rtd-repos",
+  "description": "Repository API for Firebase Realtime Database",
+  "version": "1.0.0-beta",
+  "keywords": [
+    "firebase",
+    "realtime database",
+    "repository api",
+    "typescript"
+  ],
+  "homepage": "https://github.com/flex-development/rtd-repos",
+  "repository": "git://github.com/flex-development/rtd-repos.git",
+  "bugs": {
+    "url": "https://github.com/flex-development/rtd-repos/issues",
+    "email": "developers@flexdevelopment.llc"
+  },
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Lexus Drumgold",
+    "email": "lex@flexdevlopment.llc",
+    "url": "https://flexdevelopment.llc"
+  },
+  "publishConfig": {
+    "access": "public",
+    "directory": "./dist",
+    "registry": "https://npm.pkg.github.com"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rm -rf node_modules || true",
+    "clear:jest": "jest --clearCache",
+    "postinstall": "husky-run install",
+    "format": "prettier --write \"./\"",
+    "lint": "eslint . --ext js,ts --fix --cache",
+    "test": "zsh ./scripts/jest.sh",
+    "precompile": "rm -rf ./dist || true",
+    "compile": "ttsc -p tsconfig.prod.json",
+    "postcompile": "node ./scripts/js/fix-node-module-paths",
+    "release": "zsh ./scripts/release.sh",
+    "prepublishOnly": "yarn compile",
+    "postpublish": "git ch next; git rebase origin/main; git pnv"
+  },
+  "dependencies": {
+    "axios": "latest",
+    "googleapis": "latest",
+    "lodash": "latest",
+    "runtypes": "latest"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "latest",
+    "@babel/plugin-proposal-decorators": "latest",
+    "@babel/plugin-proposal-export-default-from": "latest",
+    "@babel/plugin-proposal-export-namespace-from": "latest",
+    "@babel/plugin-proposal-throw-expressions": "latest",
+    "@babel/plugin-syntax-dynamic-import": "latest",
+    "@babel/plugin-transform-runtime": "latest",
+    "@babel/preset-env": "latest",
+    "@babel/preset-typescript": "latest",
+    "@commitlint/cli": "latest",
+    "@commitlint/config-conventional": "latest",
+    "@commitlint/format": "latest",
+    "@firebase/rules-unit-testing": "latest",
+    "@types/debug": "latest",
+    "@types/faker": "latest",
+    "@types/jest": "latest",
+    "@types/lodash": "latest",
+    "@typescript-eslint/eslint-plugin": "latest",
+    "@typescript-eslint/parser": "latest",
+    "@zerollup/ts-transform-paths": "latest",
+    "debug": "latest",
+    "dotenv-cli": "latest",
+    "eslint": "latest",
+    "eslint-config-prettier": "latest",
+    "eslint-plugin-import": "latest",
+    "eslint-plugin-jest": "latest",
+    "eslint-plugin-jsdoc": "latest",
+    "eslint-plugin-node": "latest",
+    "eslint-plugin-prettier": "latest",
+    "faker": "latest",
+    "fs-extra": "latest",
+    "husky": "4.3.8",
+    "jest": "27.0.0-next.8",
+    "lint-staged": "latest",
+    "npm": "latest",
+    "npm-run-all": "latest",
+    "prettier": "latest",
+    "replace-in-file": "latest",
+    "simplytyped": "latest",
+    "standard-version": "latest",
+    "ts-jest": "27.0.0-next.9",
+    "ts-node": "latest",
+    "ttypescript": "latest",
+    "typescript": "4.3.0-dev.20210306",
+    "underscore-cli": "latest",
+    "yarn": "latest"
+  },
+  "peerDependencies": {
+    "@types/lodash": "latest",
+    "simplytyped": "latest"
+  },
+  "peerDependenciesMeta": {
+    "@types/lodash": {
+      "optional": true
+    },
+    "simplytyped": {
+      "optional": true
+    }
+  },
+  "resolutions": {
+    "**/typescript": "4.3.0-dev.20210306"
+  },
+  "release": {
+    "allowBranch": "main"
+  },
+  "required-env": [
+    "FIREBASE_CLIENT_EMAIL",
+    "FIREBASE_DATABASE_URL",
+    "FIREBASE_PRIVATE_KEY",
+    "FIREBASE_PROJECT_ID",
+    "FIREBASE_RTD_REPOS_VALIDATE_MODELS"
+  ]
+}
