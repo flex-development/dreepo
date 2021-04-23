@@ -38,8 +38,8 @@
     "compile": "ttsc -p tsconfig.prod.json",
     "postcompile": "node ./scripts/js/fix-node-module-paths",
     "release": "zsh ./scripts/release.sh",
-    "prepublishOnly": "yarn compile",
-    "postpublish": "git ch next; git rebase origin/main; git pnv"
+    "prepublishOnly": "pinst -d; yarn compile",
+    "postpublish": "pinst -e; git ch next; git rebase origin/main; git pnv"
   },
   "dependencies": {
     "axios": "latest",
@@ -87,6 +87,7 @@
     "lint-staged": "latest",
     "npm": "latest",
     "npm-run-all": "latest",
+    "pinst": "latest",
     "prettier": "latest",
     "replace-in-file": "latest",
     "simplytyped": "latest",
