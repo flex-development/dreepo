@@ -65,6 +65,9 @@
     "@types/faker": "latest",
     "@types/jest": "latest",
     "@types/lodash": "latest",
+    "@types/node": "latest",
+    "@types/urijs": "latest",
+    "@types/validator": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "@zerollup/ts-transform-paths": "latest",
@@ -93,14 +96,20 @@
     "ttypescript": "latest",
     "typescript": "4.3.0-dev.20210306",
     "underscore-cli": "latest",
+    "urijs": "latest",
+    "validator": "latest",
     "yarn": "latest"
   },
   "peerDependencies": {
     "@types/lodash": "latest",
+    "@types/node": "latest",
     "simplytyped": "latest"
   },
   "peerDependenciesMeta": {
     "@types/lodash": {
+      "optional": true
+    },
+    "@types/node": {
       "optional": true
     },
     "simplytyped": {
@@ -118,6 +127,6 @@
     "FIREBASE_DATABASE_URL",
     "FIREBASE_PRIVATE_KEY",
     "FIREBASE_PROJECT_ID",
-    "FIREBASE_RTD_REPOS_VALIDATE_MODELS"
+    "FIREBASE_RTD_REPOS_VALIDATE"
   ]
 }

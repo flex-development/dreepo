@@ -65,7 +65,7 @@ module.exports = {
     'jsdoc/no-undefined-types': [
       1,
       {
-        definedTypes: ['AppException']
+        definedTypes: ['Exception', 'NodeJS']
       }
     ],
     'jsdoc/require-hyphen-before-param-description': 1,
