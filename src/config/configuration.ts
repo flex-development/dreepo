@@ -1,6 +1,6 @@
 import type { EnvironmentVariables } from '@/lib/interfaces'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
-import { Exception } from '@flex-development/exceptions/exceptions'
+import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import isBoolean from 'lodash/isBoolean'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'

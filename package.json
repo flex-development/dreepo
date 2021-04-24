@@ -102,6 +102,7 @@
     "ts-jest": "27.0.0-next.9",
     "ts-node": "latest",
     "ttypescript": "latest",
+    "type-plus": "latest",
     "typescript": "4.3.0-dev.20210306",
     "underscore-cli": "latest",
     "urijs": "latest",
