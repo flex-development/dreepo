@@ -1,3 +1,5 @@
+import type { PlainObject } from 'simplytyped'
+
 /**
  * @file Globals - Type Definitions
  * @module lib/types
@@ -22,6 +24,11 @@ export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
 export type NumberString = number | string
 
 /**
+ * Type that accepts one piece of data or an array of data.
+ */
+export type OneOrMany<T = ANY> = T | Array<T>
+
+/**
  * Represents data returned by a function, or the return type of a function that
  * never returns a value because an error was thrown.
  */
@@ -42,3 +49,8 @@ export type PartialBy<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>
  */
 export type PartialByRequired<T, K extends keyof T> = Pick<T, K> &
   Partial<Omit<T, K>>
+
+/**
+ * Type allowing all properties of T or some properties of T.
+ */
+export type PartialOr<T = PlainObject> = T | Partial<T>
