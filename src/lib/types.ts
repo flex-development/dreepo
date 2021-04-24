@@ -1,5 +1,3 @@
-import type { PlainObject } from 'simplytyped'
-
 /**
  * @file Globals - Type Definitions
  * @module lib/types
@@ -17,22 +15,6 @@ export type ANY = any
  * can only be updated internally by the `EntityRepository` class.
  */
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
-
-/**
- * Base data transfer object for entities.
- */
-export type EntityDTO<
-  E extends PlainObject = PlainObject,
-  P extends string = EntityReadonlyProps
-> = PartialBy<E, P>
-
-/**
- * Base data transfer object with required properties for entities.
- */
-export type EntityDTOR<
-  E extends PlainObject = PlainObject,
-  P extends string = EntityReadonlyProps
-> = PartialByRequired<E, P>
 
 /**
  * Type representing a `number` or `string`.
