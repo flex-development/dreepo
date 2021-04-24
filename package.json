@@ -27,6 +27,12 @@
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "LICENSE.md",
+    "README.md"
+  ],
   "scripts": {
     "clean": "rm -rf node_modules || true",
     "clear:jest": "jest --clearCache",
@@ -38,8 +44,8 @@
     "compile": "ttsc -p tsconfig.prod.json",
     "postcompile": "node ./scripts/js/fix-node-module-paths",
     "release": "zsh ./scripts/release.sh",
-    "prepublishOnly": "pinst -d; yarn compile",
-    "postpublish": "pinst -e; git ch next; git rebase origin/main; git pnv"
+    "prepublishOnly": "zsh ./scripts/prepublishOnly.sh",
+    "postpublish": "zsh ./scripts/postpublish.sh"
   },
   "dependencies": {
     "axios": "latest",
