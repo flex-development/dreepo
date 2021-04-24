@@ -1,4 +1,3 @@
-import { ExceptionStatus } from '@rtd-repos/lib/enums'
 import type { PlainObject } from 'simplytyped'
 
 /**
@@ -18,26 +17,6 @@ export type ANY = any
  * can only be updated internally by the `EntityRepository` class.
  */
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
-
-/**
- * Shape of `ExceptionJSON` `errors` property.
- */
-export type ExceptionErrors = PlainObject | (PlainObject | string)[] | null
-
-/**
- * Possible exception names.
- */
-export type ExceptionName = keyof typeof ExceptionStatus
-
-/**
- * Type representing an empty object.
- */
-export type EmptyObject = Record<never, never>
-
-/**
- * Type representing an empty string.
- */
-export type EmptyString = '' | ' '
 
 /**
  * Base data transfer object for entities.

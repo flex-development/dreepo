@@ -2,7 +2,7 @@ import type { NumberToString } from 'simplytyped'
 
 /**
  * @file Global Inteface - IEntity
- * @module app/subdomains/interfaces/Entity
+ * @module lib/interfaces/Entity
  */
 
 export interface IEntity {

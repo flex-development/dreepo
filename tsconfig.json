@@ -20,14 +20,19 @@
     "noUnusedParameters": false,
     "outDir": "dist",
     "paths": {
-      "@rtd-repos": ["src/index.ts"],
-      "@rtd-repos/*": ["src/*"],
+      "@flex-development/exceptions": [
+        "node_modules/@flex-development/exceptions/dist/index.ts"
+      ],
+      "@flex-development/exceptions/*": [
+        "node_modules/@flex-development/exceptions/dist/*"
+      ],
+      "@": ["src/index.ts"],
+      "@/*": ["src/*"],
       "@tests/fixtures/*": ["__tests__/__fixtures__/*"],
       "@tests/*": ["__tests__/*"]
     },
     "preserveConstEnums": true,
     "pretty": true,
-    "removeComments": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "sourceMap": true,

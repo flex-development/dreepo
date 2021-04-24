@@ -48,6 +48,7 @@
     "postpublish": "zsh ./scripts/postpublish.sh"
   },
   "dependencies": {
+    "@flex-development/exceptions": "1.0.0",
     "axios": "latest",
     "googleapis": "latest",
     "lodash": "latest",

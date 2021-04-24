@@ -1336,6 +1336,14 @@
   resolved "https://registry.yarnpkg.com/@firebase/webchannel-wrapper/-/webchannel-wrapper-0.4.1.tgz#600f2275ff54739ad5ac0102f1467b8963cd5f71"
   integrity sha512-0yPjzuzGMkW1GkrC8yWsiN7vt1OzkMIi9HgxRmKREZl2wnNPOKo/yScTjXf/O57HM8dltqxPF6jlNLFVtc2qdw==
 
+"@flex-development/exceptions@1.0.0":
+  version "1.0.0"
+  resolved "https://npm.pkg.github.com/download/@flex-development/exceptions/1.0.0/31d5894236f835fab8f3345e736303da833e241e537bd518cb4fe8f9aa271248#05f7e87e5d1616cc7c8370e08d338b1207783e17"
+  integrity sha512-QzAcrysJRWyBlt344QLEpJVN/mdts9bRMABEsvGNTR9awMSAaPO/o9tza5efJzxlA1aJbujOJ+O4u9u3SWwubg==
+  dependencies:
+    lodash.isplainobject latest
+    lodash.omit latest
+
 "@grpc/grpc-js@^1.0.0":
   version "1.2.12"
   resolved "https://registry.yarnpkg.com/@grpc/grpc-js/-/grpc-js-1.2.12.tgz#0153f27512acf69184bb52c0a1035ca91d6c14b0"
@@ -5560,6 +5568,16 @@ lodash.ismatch@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/lodash.ismatch/-/lodash.ismatch-4.4.0.tgz#756cb5150ca3ba6f11085a78849645f188f85f37"
   integrity sha1-dWy1FQyjum8RCFp4hJZF8Yj4Xzc=
+
+lodash.isplainobject@latest:
+  version "4.0.6"
+  resolved "https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-4.0.6.tgz#7c526a52d89b45c45cc690b88163be0497f550cb"
+  integrity sha1-fFJqUtibRcRcxpC4gWO+BJf1UMs=
+
+lodash.omit@latest:
+  version "4.5.0"
+  resolved "https://registry.yarnpkg.com/lodash.omit/-/lodash.omit-4.5.0.tgz#6eb19ae5a1ee1dd9df0b969e66ce0b7fa30b5e60"
+  integrity sha1-brGa5aHuHdnfC5aeZs4Lf6MLXmA=
 
 lodash.truncate@^4.4.2:
   version "4.4.2"

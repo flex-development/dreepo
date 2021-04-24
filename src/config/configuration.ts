@@ -1,6 +1,6 @@
-import { ExceptionStatus as Status } from '@rtd-repos/lib/enums'
-import { Exception } from '@rtd-repos/lib/exceptions'
-import type { EnvironmentVariables } from '@rtd-repos/lib/interfaces'
+import type { EnvironmentVariables } from '@/lib/interfaces'
+import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
+import { Exception } from '@flex-development/exceptions/exceptions'
 import isBoolean from 'lodash/isBoolean'
 import isPlainObject from 'lodash/isPlainObject'
 import isString from 'lodash/isString'
@@ -46,14 +46,14 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     const message = 'FIREBASE_CLIENT_EMAIL is not a valid email'
     const data = { errors: { FIREBASE_CLIENT_EMAIL } }
 
-    throw new Exception(Status.UNAUTHORIZED, message, data)
+    throw new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
   }
 
   if (!isURL(FIREBASE_DATABASE_URL)) {
     const message = 'FIREBASE_DATABASE_URL is not a valid URL'
     const data = { errors: { FIREBASE_DATABASE_URL } }
 
-    throw new Exception(Status.BAD_REQUEST, message, data)
+    throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
   }
 
   const { hostname: DB_HOSTNAME = '' } = URI.parse(FIREBASE_DATABASE_URL)
@@ -62,14 +62,14 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     const message = `Database hostname not included in ${DB_HOSTNAMES}`
     const data = { errors: { FIREBASE_DATABASE_URL, hostname: DB_HOSTNAME } }
 
-    throw new Exception(Status.BAD_REQUEST, message, data)
+    throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
   }
 
   if (!isString(FIREBASE_PRIVATE_KEY) || !FIREBASE_PRIVATE_KEY.length) {
     const message = `FIREBASE_PRIVATE_KEY invalid`
     const data = { errors: { FIREBASE_PRIVATE_KEY } }
 
-    throw new Exception(Status.UNAUTHORIZED, message, data)
+    throw new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
   }
 
   return {
