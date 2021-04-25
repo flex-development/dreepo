@@ -1,3 +1,4 @@
+import type { AxiosRequestConfig } from 'axios'
 import type { PlainObject } from 'simplytyped'
 
 /**
@@ -54,3 +55,10 @@ export type PartialByRequired<T, K extends keyof T> = Pick<T, K> &
  * Type allowing all properties of T or some properties of T.
  */
 export type PartialOr<T = PlainObject> = T | Partial<T>
+
+/**
+ * HTTP client used to make requests to the Firebase Database REST API.
+ */
+export type RepoHttpClient<T = any> = {
+  (config: AxiosRequestConfig): Promise<{ data: T }>
+}
