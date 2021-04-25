@@ -1,7 +1,7 @@
 import type { NumberToString } from 'simplytyped'
 
 /**
- * @file Global Inteface - IEntity
+ * @file Interface - IEntity
  * @module lib/interfaces/Entity
  */
 

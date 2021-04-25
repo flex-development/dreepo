@@ -2,7 +2,7 @@ import type { IEntity } from '@/lib/interfaces'
 import type { EntityReadonlyProps, PartialBy } from '@/lib/types'
 
 /**
- * @file Global DTOs - EntityDTO
+ * @file Data Transfer Objects - EntityDTO
  * @module lib/dto/EntityDTO
  */
 

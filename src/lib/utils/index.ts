@@ -1,5 +1,5 @@
 /**
- * @file Entry Point - Global Utilities
+ * @file Entry Point - Utilities
  * @module lib/utils
  */
 

@@ -1,5 +1,5 @@
 /**
- * @file Global Interface - EnvironmentVariables
+ * @file Interface - EnvironmentVariables
  * @module lib/interfaces/EnvironmentVariables
  */
 
