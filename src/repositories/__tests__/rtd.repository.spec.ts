@@ -1,5 +1,9 @@
 import configuration from '@/config/configuration'
-import { JWT } from 'google-auth-library'
+import type { NullishString } from '@/lib/types'
+import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
+import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { JWT } from 'google-auth-library'
+import pick from 'lodash/pick'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../rtd.repository'
@@ -14,6 +18,8 @@ import { Car, REPO_PATH_CARS } from './__fixtures__/cars.fixture'
 describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
 
+  const getSubject = () => new TestSubject<CarEntity>(REPO_PATH_CARS, Car)
+
   describe('exports', () => {
     it('should export class by default', () => {
       expect(TestSubject).toBeDefined()
@@ -23,7 +29,7 @@ describe('unit:repositories/RTDRepository', () => {
 
   describe('constructor', () => {
     it('should initialize instance properties', () => {
-      const Subject = new TestSubject<CarEntity>(REPO_PATH_CARS, Car)
+      const Subject = getSubject()
 
       expect(Subject.DATABASE_URL).toBe(FIREBASE_DATABASE_URL)
       expect(Subject.http).toBeDefined()
@@ -31,6 +37,68 @@ describe('unit:repositories/RTDRepository', () => {
       expect(isType<RuntypeBase<CarEntity>>(Subject.model as any)).toBeTruthy()
       expect(Subject.path).toBe(REPO_PATH_CARS)
       expect(Subject.validate).toBe(FIREBASE_RTD_REPOS_VALIDATE)
+    })
+  })
+
+  describe('#accessToken', () => {
+    const Subject = getSubject()
+
+    it('should generate google oauth2 token', async () => {
+      const access_token: any = await Subject.accessToken()
+
+      expect(isType<NullishString>(access_token)).toBeTruthy()
+    })
+
+    it('should throw Exception if #jwt.authorize throws', async () => {
+      // @ts-expect-error testing invocation
+      const spy = jest.spyOn(Subject.jwt, 'authorizeAsync')
+
+      const error = new Error('Test error message')
+      const jwtd = pick(Subject.jwt, ['email', 'key', 'scopes'])
+
+      spy.mockReturnValueOnce(Promise.reject(error))
+
+      let exception = {} as Exception
+
+      try {
+        await Subject.accessToken()
+      } catch (error) {
+        exception = error
+      }
+
+      const ejson = exception.toJSON()
+
+      expect(exception.stack).toBe(error.stack)
+
+      expect(ejson.code).toBe(ExceptionStatusCode.UNAUTHORIZED)
+      expect(ejson.data).toMatchObject(jwtd)
+      expect(ejson.message).toBe(error.message)
+    })
+  })
+
+  describe('#request', () => {
+    const Subject = getSubject()
+
+    const spy_accessToken = jest.spyOn(Subject, 'accessToken')
+    const spy_http = jest.spyOn(Subject, 'http')
+
+    beforeEach(async () => {
+      spy_http.mockReturnValue(Promise.resolve({ data: [] }))
+      await Subject.request()
+    })
+
+    it('should set config.url to #DATABASE_URL', () => {
+      expect(spy_http).toBeCalledTimes(1)
+      expect(spy_http.mock.calls[0][0].baseURL).toBe(Subject.DATABASE_URL)
+    })
+
+    it('should make authenticated request', () => {
+      expect(spy_accessToken).toBeCalledTimes(1)
+    })
+
+    it('should append `.json` to the end of config.url', () => {
+      expect(spy_http).toBeCalledTimes(1)
+      expect(spy_http.mock.calls[0][0].url).toBe(`/.json`)
     })
   })
 })

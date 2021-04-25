@@ -25,6 +25,11 @@ export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
 export type NumberString = number | string
 
 /**
+ * Type representing any string that can also be null.
+ */
+export type NullishString = string | null
+
+/**
  * Type that accepts one piece of data or an array of data.
  */
 export type OneOrMany<T = ANY> = T | Array<T>

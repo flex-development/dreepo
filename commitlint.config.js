@@ -71,7 +71,7 @@ module.exports = {
         })
       }
 
-      return [2, 'always', [...directories(readdirSync(SRC))]]
+      return [2, 'always', [...directories(readdirSync(SRC)), 'rtd-repo']]
     }
   }
 }

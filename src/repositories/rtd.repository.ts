@@ -2,10 +2,18 @@ import axios from '@/config/axios'
 import configuration from '@/config/configuration'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
 import type { DBRequestConfig, IEntity, IRTDRepository } from '@/lib/interfaces'
-import type { OneOrMany, PartialOr, RTDRepoHttpClient } from '@/lib/types'
+import type {
+  NullishString,
+  OneOrMany,
+  PartialOr,
+  RTDRepoHttpClient
+} from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { AxiosRequestConfig } from 'axios'
 import { JWT } from 'google-auth-library'
+import isPlainObject from 'lodash/isPlainObject'
+import pick from 'lodash/pick'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { PlainObject } from 'simplytyped'
 
@@ -104,6 +112,37 @@ export default class RTDRepository<
     this.model = model
     this.path = path
     this.validate = validate
+  }
+
+  /**
+   * Generates a Google OAuth2 access token with the following scopes:
+   *
+   * - `https://www.googleapis.com/auth/firebase.database`
+   * - `https://www.googleapis.com/auth/userinfo.email`
+   *
+   * The token can be used to send authenticated, admin-level requests to the
+   * Firebase Database REST API.
+   *
+   * References:
+   *
+   * - https://firebase.google.com/docs/database/rest/auth
+   *
+   * @async
+   * @return {Promise<NullishString>} Promise with access token or null
+   * @throws {Exception}
+   */
+  async accessToken(): Promise<NullishString> {
+    try {
+      // @ts-expect-error prefer to use async method
+      return (await this.jwt.authorizeAsync()).access_token || null
+    } catch ({ message, stack }) {
+      throw new Exception(
+        ExceptionStatusCode.UNAUTHORIZED,
+        message,
+        pick(this.jwt, ['email', 'key', 'scopes']),
+        stack
+      )
+    }
   }
 
   /**
@@ -286,10 +325,18 @@ export default class RTDRepository<
    * @throws {Exception}
    */
   async request<T = any>(config: DBRequestConfig = {}): Promise<T> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+    const $config: AxiosRequestConfig = {
+      ...config,
+      baseURL: this.DATABASE_URL,
+      params: {
+        ...(isPlainObject(config.params) ? config.params : {}),
+        access_token: await this.accessToken(),
+        print: 'pretty'
+      },
+      url: `/${config.url || ''}.json`
+    }
+
+    return (await this.http($config)).data as T
   }
 
   /**
