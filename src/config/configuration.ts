@@ -14,7 +14,7 @@ import isURL from 'validator/lib/isURL'
  */
 
 /**
- * @property {string[]} DB_HOSTNAMES - Valid Firebase RTD hosts
+ * @property {string[]} DB_HOSTNAMES - Valid Firebase RTD hosts suffixes
  * @see https://firebase.google.com/docs/projects/locations#rtdb-locations
  */
 const DB_HOSTNAMES = ['firebaseio.com', 'europe-west1.firebasedatabase.app']
@@ -42,34 +42,41 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     NODE_ENV = 'development'
   } = isPlainObject(env) ? (env as typeof process['env']) : process.env
 
+  let exception: Exception | null = null
+
   if (!isEmail(FIREBASE_CLIENT_EMAIL)) {
     const message = 'FIREBASE_CLIENT_EMAIL is not a valid email'
     const data = { errors: { FIREBASE_CLIENT_EMAIL } }
 
-    throw new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
+    exception = new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
   }
 
   if (!isURL(FIREBASE_DATABASE_URL)) {
     const message = 'FIREBASE_DATABASE_URL is not a valid URL'
     const data = { errors: { FIREBASE_DATABASE_URL } }
 
-    throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
+    exception = new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
   }
 
   const { hostname: DB_HOSTNAME = '' } = URI.parse(FIREBASE_DATABASE_URL)
 
-  if (!DB_HOSTNAMES.includes(DB_HOSTNAME)) {
-    const message = `Database hostname not included in ${DB_HOSTNAMES}`
+  if (!DB_HOSTNAMES.some(h => DB_HOSTNAME.includes(h))) {
+    const message = `Database hostname match not included in [${DB_HOSTNAMES}]`
     const data = { errors: { FIREBASE_DATABASE_URL, hostname: DB_HOSTNAME } }
 
-    throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
+    exception = new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
   }
 
   if (!isString(FIREBASE_PRIVATE_KEY) || !FIREBASE_PRIVATE_KEY.length) {
     const message = `FIREBASE_PRIVATE_KEY invalid`
     const data = { errors: { FIREBASE_PRIVATE_KEY } }
 
-    throw new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
+    exception = new Exception(ExceptionStatusCode.UNAUTHORIZED, message, data)
+  }
+
+  if (exception) {
+    console.error(exception)
+    throw exception
   }
 
   return {

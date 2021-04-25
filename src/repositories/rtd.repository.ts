@@ -1,9 +1,11 @@
 import axios from '@/config/axios'
+import configuration from '@/config/configuration'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
 import type { DBRequestConfig, IEntity, IRTDRepository } from '@/lib/interfaces'
-import type { OneOrMany, PartialOr, RepoHttpClient } from '@/lib/types'
+import type { OneOrMany, PartialOr, RTDRepoHttpClient } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import { JWT } from 'google-auth-library'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { PlainObject } from 'simplytyped'
 
@@ -14,6 +16,7 @@ import type { PlainObject } from 'simplytyped'
 
 /**
  * Repository API for Firebase Realtime Database.
+ * Uses the Firebase Database REST API to perform CRUD operations.
  *
  * A Realtime Database repository is a JSON object located at a database path.
  *
@@ -27,21 +30,80 @@ export default class RTDRepository<
   P extends PlainObject = PlainObject
 > implements IRTDRepository {
   /**
+   * @readonly
+   * @instance
+   * @property {string} DATABASE_URL - Firebase Realtime Database URL
+   */
+  readonly DATABASE_URL: string
+
+  /**
+   * @readonly
+   * @instance
+   * @property {RTDRepoHttpClient} http - HTTP client used to request REST API
+   */
+  readonly http: RTDRepoHttpClient
+
+  /**
+   * @readonly
+   * @instance
+   * @property {JWT} jwt - JWT client authenticated with service account
+   */
+  readonly jwt: JWT
+
+  /**
+   * @readonly
+   * @instance
+   * @property {RuntypeBase<E>} model - Entity schema model
+   */
+  readonly model: RuntypeBase<E>
+
+  /**
+   * @readonly
+   * @instance
+   * @property {string} path - Repository database path
+   */
+  readonly path: string
+
+  /**
+   * @readonly
+   * @instance
+   * @property {boolean} validate - If `true`, validate DTOs before creating or
+   * updating an entity. Otherwise, perform operation without validating schema
+   */
+  readonly validate: boolean
+
+  /**
    * Instantiates a new Realtime Database repository.
    *
    * @param {string} path - Database repository path
-   * @param {RuntypeBase<E>} [model] - Runtype schema
-   * @param {RepoHttpClient} [http] - HTTP client. Defaults to `axios`
+   * @param {RuntypeBase<E>} model - Entity schema model
+   * @param {RTDRepoHttpClient} [http] - HTTP client. Defaults to `axios`
    */
   constructor(
     path: string,
     model: RuntypeBase<E>,
-    http: RepoHttpClient = axios
+    http: RTDRepoHttpClient = axios
   ) {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+    // Environment variables
+    const {
+      FIREBASE_CLIENT_EMAIL: client_email,
+      FIREBASE_DATABASE_URL,
+      FIREBASE_PRIVATE_KEY: private_key,
+      FIREBASE_RTD_REPOS_VALIDATE: validate
+    } = configuration()
+
+    // Required scopes to generate Google OAuth2 access token
+    const scopes = [
+      'https://www.googleapis.com/auth/firebase.database',
+      'https://www.googleapis.com/auth/userinfo.email'
+    ]
+
+    this.DATABASE_URL = FIREBASE_DATABASE_URL
+    this.http = http
+    this.jwt = new JWT(client_email, undefined, private_key, scopes)
+    this.model = model
+    this.path = path
+    this.validate = validate
   }
 
   /**

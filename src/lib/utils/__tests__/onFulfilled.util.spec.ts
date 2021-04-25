@@ -7,11 +7,11 @@ import AXIOS_RESPONSE from './__fixtures__/axios-response.fixture'
  */
 
 describe('unit:lib/utils/onFulfilled', () => {
-  it('exports default function', () => {
+  it('should export default function', () => {
     expect(typeof testSubject === 'function').toBeTruthy()
   })
 
-  it('should return the response data', () => {
+  it('should return response data', () => {
     expect(testSubject(AXIOS_RESPONSE)).toMatchObject(AXIOS_RESPONSE.data)
   })
 })

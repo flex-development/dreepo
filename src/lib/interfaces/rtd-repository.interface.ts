@@ -1,5 +1,6 @@
 import type { EntityDTO } from '@/lib/dto/entity.dto'
 import type { OneOrMany, PartialOr } from '@/lib/types'
+import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { PlainObject as Params } from 'simplytyped'
 import type { IEntity } from './entity.interface'
 
@@ -18,6 +19,10 @@ export interface IRTDRepository<
   E extends IEntity = IEntity,
   P extends Params = Params
 > {
+  readonly model: RuntypeBase<E>
+  readonly path: string
+  readonly validate: boolean
+
   clear(): Promise<boolean>
   create(dto: EntityDTO<E>): Promise<E>
   delete(id: OneOrMany<E['id']>): Promise<typeof id>

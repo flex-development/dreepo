@@ -59,6 +59,6 @@ export type PartialOr<T = PlainObject> = T | Partial<T>
 /**
  * HTTP client used to make requests to the Firebase Database REST API.
  */
-export type RepoHttpClient<T = any> = {
+export type RTDRepoHttpClient<T = any> = {
   (config: AxiosRequestConfig): Promise<{ data: T }>
 }

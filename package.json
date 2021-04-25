@@ -50,7 +50,7 @@
   "dependencies": {
     "@flex-development/exceptions": "1.0.0",
     "axios": "latest",
-    "googleapis": "latest",
+    "google-auth-library": "latest",
     "lodash": "latest",
     "runtypes": "latest"
   },

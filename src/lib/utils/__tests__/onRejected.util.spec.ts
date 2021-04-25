@@ -10,7 +10,7 @@ import AXIOS_ERROR from './__fixtures__/axios-error.fixture'
  */
 
 describe('unit:lib/utils/onRejected', () => {
-  it('exports default function', () => {
+  it('should export default function', () => {
     expect(typeof testSubject === 'function').toBeTruthy()
   })
 
