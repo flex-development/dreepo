@@ -1,5 +1,5 @@
 import M from 'expect/build/matchers'
-import isPlainObject from 'lodash/isPlainObject'
+import isPlainObject from 'lodash.isplainobject'
 import type { PlainObject } from 'simplytyped'
 
 /**

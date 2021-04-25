@@ -51,7 +51,12 @@
     "@flex-development/exceptions": "1.0.0",
     "axios": "latest",
     "google-auth-library": "latest",
-    "lodash": "latest",
+    "lodash.isboolean": "latest",
+    "lodash.isplainobject": "latest",
+    "lodash.isstring": "latest",
+    "lodash.merge": "latest",
+    "lodash.omit": "latest",
+    "lodash.pick": "latest",
     "runtypes": "latest"
   },
   "devDependencies": {
@@ -71,7 +76,12 @@
     "@types/debug": "latest",
     "@types/faker": "latest",
     "@types/jest": "latest",
-    "@types/lodash": "latest",
+    "@types/lodash.isboolean": "latest",
+    "@types/lodash.isplainobject": "latest",
+    "@types/lodash.isstring": "latest",
+    "@types/lodash.merge": "latest",
+    "@types/lodash.omit": "latest",
+    "@types/lodash.pick": "latest",
     "@types/node": "latest",
     "@types/urijs": "latest",
     "@types/validator": "latest",
@@ -103,21 +113,17 @@
     "ts-node": "latest",
     "ttypescript": "latest",
     "type-plus": "latest",
-    "typescript": "4.3.0-dev.20210306",
+    "typescript": "4.3.0-beta",
     "underscore-cli": "latest",
     "urijs": "latest",
     "validator": "latest",
     "yarn": "latest"
   },
   "peerDependencies": {
-    "@types/lodash": "latest",
     "@types/node": "latest",
     "simplytyped": "latest"
   },
   "peerDependenciesMeta": {
-    "@types/lodash": {
-      "optional": true
-    },
     "@types/node": {
       "optional": true
     },
