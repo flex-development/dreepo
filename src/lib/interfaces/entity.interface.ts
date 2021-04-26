@@ -23,5 +23,5 @@ export interface IEntity {
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */
-  readonly updated_at: number | null
+  readonly updated_at?: number
 }
