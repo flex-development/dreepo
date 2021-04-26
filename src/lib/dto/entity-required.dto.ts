@@ -1,5 +1,5 @@
-import type { IEntity } from '@/lib/interfaces'
-import type { EntityReadonlyProps, PartialByRequired } from '@/lib/types'
+import type { IEntity } from '../interfaces/entity.interface'
+import type { EntityReadonlyProps, PartialByRequired } from '../types'
 
 /**
  * @file Global DTOs - EntityDTOR

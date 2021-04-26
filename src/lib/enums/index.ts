@@ -3,6 +3,7 @@
  * @module lib/enums
  */
 
-export default {}
+export { BSONTypeAlias } from './bson-type-alias.enum'
+export { BSONTypeCode } from './bson-type-code.enum'
 
 /* eslint-disable prettier/prettier */

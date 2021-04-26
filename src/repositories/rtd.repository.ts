@@ -6,7 +6,7 @@ import type {
   NullishString,
   OneOrMany,
   PartialOr,
-  RTDRepoHttpClient
+  RepoHttpClient
 } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -47,9 +47,9 @@ export default class RTDRepository<
   /**
    * @readonly
    * @instance
-   * @property {RTDRepoHttpClient} http - HTTP client used to request REST API
+   * @property {RepoHttpClient} http - HTTP client used to request REST API
    */
-  readonly http: RTDRepoHttpClient
+  readonly http: RepoHttpClient
 
   /**
    * @readonly
@@ -85,12 +85,12 @@ export default class RTDRepository<
    *
    * @param {string} path - Database repository path
    * @param {RuntypeBase<E>} model - Entity schema model
-   * @param {RTDRepoHttpClient} [http] - HTTP client. Defaults to `axios`
+   * @param {RepoHttpClient} [http] - HTTP client. Defaults to `axios`
    */
   constructor(
     path: string,
     model: RuntypeBase<E>,
-    http: RTDRepoHttpClient = axios
+    http: RepoHttpClient = axios
   ) {
     // Environment variables
     const {

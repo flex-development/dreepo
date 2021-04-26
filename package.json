@@ -57,6 +57,7 @@
     "lodash.merge": "latest",
     "lodash.omit": "latest",
     "lodash.pick": "latest",
+    "mingo": "latest",
     "runtypes": "latest"
   },
   "devDependencies": {
@@ -97,6 +98,7 @@
     "eslint-plugin-jsdoc": "latest",
     "eslint-plugin-node": "latest",
     "eslint-plugin-prettier": "latest",
+    "eslint-plugin-tree-shaking": "latest",
     "faker": "latest",
     "fs-extra": "latest",
     "husky": "4.3.8",
@@ -141,7 +143,6 @@
     "FIREBASE_CLIENT_EMAIL",
     "FIREBASE_DATABASE_URL",
     "FIREBASE_PRIVATE_KEY",
-    "FIREBASE_PROJECT_ID",
     "FIREBASE_RTD_REPOS_VALIDATE"
   ]
 }

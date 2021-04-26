@@ -38,7 +38,7 @@ module.exports = {
     ...PARSER_OPTIONS,
     project: ['./tsconfig.json']
   },
-  plugins: ['@typescript-eslint/eslint-plugin', 'jsdoc'],
+  plugins: ['@typescript-eslint/eslint-plugin', 'jsdoc', 'tree-shaking'],
   rules: {
     '@typescript-eslint/ban-ts-ignore': 0,
     '@typescript-eslint/ban-types': 1,
