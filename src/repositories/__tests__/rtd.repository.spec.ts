@@ -8,7 +8,12 @@ import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../rtd.repository'
 import type { CarEntity } from './__fixtures__/cars.fixture'
-import { Car, REPO_PATH_CARS } from './__fixtures__/cars.fixture'
+import {
+  Car,
+  CARS,
+  CARS_ROOT,
+  REPO_PATH_CARS
+} from './__fixtures__/cars.fixture'
 
 /**
  * @file Unit Tests - RTDRepository
@@ -32,6 +37,7 @@ describe('unit:repositories/RTDRepository', () => {
       const Subject = getSubject()
 
       expect(Subject.DATABASE_URL).toBe(FIREBASE_DATABASE_URL)
+      expect(Subject.cache).toMatchObject({ collection: [], root: {} })
       expect(Subject.http).toBeDefined()
       expect(isType<JWT>(Subject.jwt as any)).toBeTruthy()
       expect(isType<RuntypeBase<CarEntity>>(Subject.model as any)).toBeTruthy()
@@ -76,6 +82,29 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#refreshCache', () => {
+    const Subject = getSubject()
+
+    const spy = jest.spyOn(Subject, 'request')
+
+    beforeEach(() => {
+      spy.mockReturnValue(Promise.resolve(CARS_ROOT))
+    })
+
+    it('should request repository root data', async () => {
+      await Subject.refreshCache()
+
+      expect(spy).toBeCalledTimes(1)
+      expect(spy).toBeCalledWith()
+    })
+
+    it('should update data cache', async () => {
+      const result = await Subject.refreshCache()
+
+      expect(result).toMatchObject({ collection: CARS, root: CARS_ROOT })
+    })
+  })
+
   describe('#request', () => {
     const Subject = getSubject()
 
@@ -87,9 +116,12 @@ describe('unit:repositories/RTDRepository', () => {
       await Subject.request()
     })
 
-    it('should set config.url to #DATABASE_URL', () => {
+    it('should set config.url to #DATABASE_URL/#path', () => {
       expect(spy_http).toBeCalledTimes(1)
-      expect(spy_http.mock.calls[0][0].baseURL).toBe(Subject.DATABASE_URL)
+
+      const expected = `${Subject.DATABASE_URL}/${Subject.path}`
+
+      expect(spy_http.mock.calls[0][0].baseURL).toBe(expected)
     })
 
     it('should make authenticated request', () => {

@@ -11,6 +11,11 @@ import type { PlainObject } from 'simplytyped'
 export type ANY = any
 
 /**
+ * Type representing any empty object.
+ */
+export type EmptyObject = Record<never, never>
+
+/**
  * Type representing any JSON object.
  */
 export type JSONObject = Record<string, JSONValue>

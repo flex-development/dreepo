@@ -1,3 +1,4 @@
+import ROOT from '@tests/fixtures/cars-root.fixture.json'
 import { Null, Number, Record, Static, String } from 'runtypes'
 
 /**
@@ -17,3 +18,6 @@ export const Car = Record({
 })
 
 export type CarEntity = Static<typeof Car>
+
+export const CARS_ROOT = Object.freeze(ROOT)
+export const CARS = Object.values(CARS_ROOT)

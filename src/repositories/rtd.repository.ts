@@ -6,7 +6,9 @@ import type {
   NullishString,
   OneOrMany,
   PartialOr,
-  RepoHttpClient
+  RepoCache,
+  RepoHttpClient,
+  RepoRoot
 } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -43,6 +45,13 @@ export default class RTDRepository<
    * @property {string} DATABASE_URL - Firebase Realtime Database URL
    */
   readonly DATABASE_URL: string
+
+  /**
+   * @readonly
+   * @instance
+   * @property {RepoCache} cache - Repository data cache
+   */
+  readonly cache: RepoCache<E>
 
   /**
    * @readonly
@@ -107,6 +116,7 @@ export default class RTDRepository<
     ]
 
     this.DATABASE_URL = FIREBASE_DATABASE_URL
+    this.cache = { collection: [], root: {} }
     this.http = http
     this.jwt = new JWT(client_email, undefined, private_key, scopes)
     this.model = model
@@ -309,6 +319,28 @@ export default class RTDRepository<
   }
 
   /**
+   * Refreshes the repository data cache.
+   *
+   * Should be called when a repository is first instantiated, or when an entity
+   * is created or updated.
+   *
+   * @async
+   * @return {Promise<RepoCache<E>>} Updated data cache
+   */
+  async refreshCache(): Promise<RepoCache<E>> {
+    // Require repository root data
+    const root = await this.request<RepoRoot<E>>()
+
+    // Get entities
+    const collection = Object.values(root)
+
+    // Update data cache
+    Object.assign(this.cache, { collection, root })
+
+    return this.cache
+  }
+
+  /**
    * Sends requests to the Firebase Database REST API.
    *
    * To bypass Realtime Database Rules, requests will be authenticated with a
@@ -327,7 +359,7 @@ export default class RTDRepository<
   async request<T = any>(config: DBRequestConfig = {}): Promise<T> {
     const $config: AxiosRequestConfig = {
       ...config,
-      baseURL: this.DATABASE_URL,
+      baseURL: `${this.DATABASE_URL}/${this.path}`,
       params: {
         ...(isPlainObject(config.params) ? config.params : {}),
         access_token: await this.accessToken(),

@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from 'axios'
 import type { IEntity, ProjectionOperators, QueryOperators } from './interfaces'
-import type { JSONValue, ObjectPath } from './types-global'
+import type { EmptyObject, JSONValue, ObjectPath } from './types-global'
 
 /**
  * @file Type Definitions - Repository Globals
@@ -41,6 +41,14 @@ export type QueryCriteria<E extends IEntity = IEntity> = Record<
 >
 
 /**
+ * Type representing a repository data cache.
+ */
+export type RepoCache<E extends IEntity = IEntity> = {
+  collection: E[]
+  root: RepoRoot<E>
+}
+
+/**
  * HTTP client used to make requests to the Firebase Database REST API.
  *
  * @template T - Payload
@@ -48,3 +56,10 @@ export type QueryCriteria<E extends IEntity = IEntity> = Record<
 export type RepoHttpClient<T = any> = {
   (config: AxiosRequestConfig): Promise<{ data: T }>
 }
+
+/**
+ * Type representing the root of a repository.
+ */
+export type RepoRoot<E extends IEntity = IEntity> =
+  | Record<E['id'], E>
+  | EmptyObject
