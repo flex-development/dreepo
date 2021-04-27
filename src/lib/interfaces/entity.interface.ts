@@ -1,5 +1,3 @@
-import type { NumberToString } from 'simplytyped'
-
 /**
  * @file Interface - IEntity
  * @module lib/interfaces/Entity
@@ -16,7 +14,7 @@ export interface IEntity {
   /**
    * Unique identifier for the entity.
    */
-  readonly id: NumberToString<number> | string
+  readonly id: string
 
   /**
    * Date and time entity was modified.

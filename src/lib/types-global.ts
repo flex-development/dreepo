@@ -1,5 +1,3 @@
-import type { PlainObject } from 'simplytyped'
-
 /**
  * @file Type Definitions - Globals
  * @module lib/types
@@ -9,6 +7,11 @@ import type { PlainObject } from 'simplytyped'
  * Type representing any value.
  */
 export type ANY = any
+
+/**
+ * Type representing any object value.
+ */
+export type AnyObject = { [x: string]: unknown }
 
 /**
  * Type representing any empty object.
@@ -23,7 +26,7 @@ export type JSONObject = Record<string, JSONValue>
 /**
  * Types of JSON data values.
  */
-export type JSONValue = OneOrMany<NullishPrimitive | PlainObject>
+export type JSONValue = OneOrMany<NullishPrimitive | AnyObject>
 
 /**
  * Type representing a `number` or `string`.
@@ -71,7 +74,7 @@ export type ObjectPath<T> = ObjectPathNT<T> extends string | keyof T
  * - https://github.com/ghoullier/awesome-template-literal-types#dot-notation-string-type-safe
  */
 export type ObjectPathN<T, K extends keyof T> = K extends string
-  ? T[K] extends PlainObject
+  ? T[K] extends AnyObject
     ?
         | `${K}.${ObjectPathN<T[K], Exclude<keyof T[K], keyof any[]>> & string}`
         | `${K}.${Exclude<keyof T[K], keyof any[]> & string}`
@@ -139,7 +142,7 @@ export type PartialByRequired<T, K extends keyof T> = Pick<T, K> &
 /**
  * Type allowing all properties of T or some properties of T.
  */
-export type PartialOr<T = PlainObject> = T | Partial<T>
+export type PartialOr<T = AnyObject> = T | Partial<T>
 
 /**
  * Type capturing defined primitive value types.

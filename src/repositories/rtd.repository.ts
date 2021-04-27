@@ -3,6 +3,7 @@ import configuration from '@/config/configuration'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
 import type { DBRequestConfig, IEntity, IRTDRepository } from '@/lib/interfaces'
 import type {
+  AnyObject,
   NullishString,
   OneOrMany,
   PartialOr,
@@ -17,7 +18,6 @@ import { JWT } from 'google-auth-library'
 import isPlainObject from 'lodash.isplainobject'
 import pick from 'lodash.pick'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
-import type { PlainObject } from 'simplytyped'
 
 /**
  * @file Repositories - RTDRepository
@@ -37,7 +37,7 @@ import type { PlainObject } from 'simplytyped'
  */
 export default class RTDRepository<
   E extends IEntity = IEntity,
-  P extends PlainObject = PlainObject
+  P extends AnyObject = AnyObject
 > implements IRTDRepository {
   /**
    * @readonly

@@ -1,7 +1,6 @@
 import type { RuntypeBase } from 'runtypes/lib/runtype'
-import type { PlainObject as Params } from 'simplytyped'
-import { EntityDTO } from '../dto/entity.dto'
-import type { OneOrMany, PartialOr } from '../types'
+import type { EntityDTO } from '../dto/entity.dto'
+import type { AnyObject as Params, OneOrMany, PartialOr } from '../types'
 import type { IEntity } from './entity.interface'
 
 /**

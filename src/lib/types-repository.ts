@@ -1,6 +1,6 @@
 import type { AxiosRequestConfig } from 'axios'
-import type { IEntity, ProjectionOperators, QueryOperators } from './interfaces'
-import type { EmptyObject, JSONValue, ObjectPath } from './types-global'
+import type { IEntity } from './interfaces'
+import type { EmptyObject, ObjectPath } from './types-global'
 
 /**
  * @file Type Definitions - Repository Globals
@@ -13,32 +13,19 @@ import type { EmptyObject, JSONValue, ObjectPath } from './types-global'
  */
 
 /**
+ * Type representing a nested or top level entity key.
+ */
+export type EntityPath<
+  E extends IEntity = IEntity
+> = ObjectPath<E> extends string ? ObjectPath<E> : never
+
+/**
  * Readonly properties of all entities.
  *
  * The `created_at` and `id` fields cannot be overwritten; whereas `updated_at`
  * can only be updated internally by the `EntityRepository` class.
  */
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
-
-/**
- * Projection query parameters mapped to entity field names.
- *
- * @template E - Entity
- */
-export type ProjectionCriteria<E extends IEntity = IEntity> = Record<
-  ObjectPath<E>,
-  ProjectionOperators
->
-
-/**
- * Query parameters mapped to entity field names.
- *
- * @template E - Entity
- */
-export type QueryCriteria<E extends IEntity = IEntity> = Record<
-  ObjectPath<E>,
-  JSONValue | QueryOperators
->
 
 /**
  * Type representing a repository data cache.

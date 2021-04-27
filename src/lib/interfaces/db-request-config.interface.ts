@@ -1,5 +1,4 @@
 import type { AxiosRequestConfig as Config } from 'axios'
-import type { PlainObject } from 'simplytyped'
 
 /**
  * @file Interface - DBRequestConfig

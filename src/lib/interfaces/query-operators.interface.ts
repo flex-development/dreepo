@@ -1,7 +1,8 @@
 import { BSONTypeAlias } from '../enums/bson-type-alias.enum'
 import { BSONTypeCode } from '../enums/bson-type-code.enum'
 import type { JSONValue } from '../types'
-import type { AggregationOperators } from './aggregation-operators.interface'
+import type { Expression } from '../types-mingo'
+import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - QueryOperators
@@ -13,7 +14,7 @@ import type { AggregationOperators } from './aggregation-operators.interface'
  *
  * [1]: https://docs.mongodb.com/manual/reference/operator/query/#query-selectors
  */
-export interface QueryOperators {
+export interface QueryOperators<E extends IEntity = IEntity> {
   /**
    * Selects the entities where the value of a field is an array that contains
    * all the specified elements.
@@ -50,7 +51,7 @@ export interface QueryOperators {
    *
    * - https://docs.mongodb.com/manual/reference/operator/query/expr
    */
-  $expr?: AggregationOperators
+  $expr?: Expression<E>
 
   /**
    * Matches entities that have the specified field.
@@ -126,7 +127,7 @@ export interface QueryOperators {
 
   /**
    * Inverts the effect of a query expression and returns entities that do
-   * _not_ match the query expression.
+   * *not* match the query expression.
    *
    * - https://docs.mongodb.com/manual/reference/operator/query/not
    */
