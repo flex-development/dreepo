@@ -1,5 +1,5 @@
 import ROOT from '@tests/fixtures/cars-root.fixture.json'
-import { Number, Record, Static, String, Undefined } from 'runtypes'
+import { Number, Record, Static, String } from 'runtypes'
 
 /**
  * @file Test Fixture - Cars Repository
@@ -14,7 +14,7 @@ export const Car = Record({
   make: String,
   model: String,
   model_year: Number,
-  updated_at: Number.Or(Undefined)
+  updated_at: Number.optional()
 })
 
 export type CarEntity = Static<typeof Car>

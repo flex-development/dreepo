@@ -31,8 +31,10 @@ import type { Debugger } from 'debug'
 import { JWT } from 'google-auth-library'
 import isEmpty from 'lodash.isempty'
 import isPlainObject from 'lodash.isplainobject'
+import merge from 'lodash.merge'
 import pick from 'lodash.pick'
 import type { RawArray, RawObject } from 'mingo/util'
+import { ValidationError } from 'runtypes/lib/errors'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 
 /**
@@ -514,17 +516,32 @@ export default class RTDRepository<
   }
 
   /**
-   * Validates {@param value} against the {@see RTDRepository#model} if schema
+   * Validates {@param value} against {@see RTDRepository#model} if schema
    * validation is enabled. If disabled, the original value will be returned.
    *
-   * @param {RawObject} value - Data to validate
-   * @return {E | typeof value} - Validated object or original value
+   * @template V - Type of value being validated
+   *
+   * @param {V} value - Data to validate
+   * @return {E | V} - Validated object or original value
    * @throws {Exception}
    */
-  validate(value: RawObject = {}): E | typeof value {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  validate<V extends RawObject = RawObject>(value: V = {} as V): E | V {
+    if (!this.validate_enabled) return value
+
+    try {
+      return this.model.check(value)
+    } catch (error) {
+      let code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      let data = { value }
+
+      if (error.name === 'ValidationError') {
+        const { code: failcode, details } = error as ValidationError
+
+        code = ExceptionStatusCode.BAD_REQUEST
+        data = merge(data, { errors: details, failcode })
+      }
+
+      throw new Exception(code, error.message, data, error.stack)
+    }
   }
 }

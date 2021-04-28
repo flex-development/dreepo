@@ -96,19 +96,25 @@ describe('unit:repositories/RTDRepository', () => {
 
     const spy_aggregate = jest.spyOn(Subject.mingo, 'aggregate')
 
-    it('should not call #mingo.aggregate if cache is empty', () => {
+    beforeAll(() => {
       // @ts-expect-error mocking
-      Subject.cache = { collection: [], root: {} }
+      Subject.cache = mockCache
+    })
 
-      Subject.aggregate()
+    it('should not call #mingo.aggregate if cache is empty', () => {
+      const ThisSubject = getSubject()
 
-      expect(spy_aggregate).toBeCalledTimes(0)
+      // @ts-expect-error mocking
+      ThisSubject.cache = { collection: [], root: {} }
+
+      const this_spy_aggregate = jest.spyOn(ThisSubject.mingo, 'aggregate')
+
+      ThisSubject.aggregate()
+
+      expect(this_spy_aggregate).toBeCalledTimes(0)
     })
 
     it('should throw Exception if error occurs', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const pipeline = [stage]
       const error_message = 'Test aggregate error'
 
@@ -131,9 +137,6 @@ describe('unit:repositories/RTDRepository', () => {
 
     describe('runs pipeline', () => {
       it('should run pipeline after converting stage into stages array', () => {
-        // @ts-expect-error mocking
-        Subject.cache = mockCache
-
         Subject.aggregate(stage)
 
         expect(spy_aggregate).toBeCalledTimes(1)
@@ -145,9 +148,6 @@ describe('unit:repositories/RTDRepository', () => {
       })
 
       it('should run pipeline with stages array', () => {
-        // @ts-expect-error mocking
-        Subject.cache = mockCache
-
         const pipeline = [stage]
 
         Subject.aggregate(pipeline)
@@ -175,22 +175,24 @@ describe('unit:repositories/RTDRepository', () => {
     const mockFind = jest.fn().mockReturnValue(mockCursor)
 
     beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
       Subject.mingo.find = mockFind
     })
 
     it('should not call #mingo.find if cache is empty', () => {
+      const ThisSubject = getSubject()
+
       // @ts-expect-error mocking
-      Subject.cache = { collection: [], root: {} }
+      ThisSubject.cache = { collection: [], root: {} }
+      ThisSubject.mingo.find = mockFind
 
-      Subject.find()
+      ThisSubject.find()
 
-      expect(Subject.mingo.find).toBeCalledTimes(0)
+      expect(ThisSubject.mingo.find).toBeCalledTimes(0)
     })
 
     it('should handle query criteria', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const params = { id: Subject.cache.collection[0].id }
 
       Subject.find(params)
@@ -205,9 +207,6 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should sort results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const params = { $sort: { id: SortOrder.ASCENDING } }
 
       Subject.find(params)
@@ -217,9 +216,6 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should offset results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const params = { $skip: 2 }
 
       Subject.find(params)
@@ -229,9 +225,6 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should limit results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const params = { $limit: 1 }
 
       Subject.find(params)
@@ -241,9 +234,6 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should run aggregation pipeline with $project stage', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const spy_aggregate = jest.spyOn(Subject, 'aggregate')
 
       const params = { $project: { model: true } }
@@ -255,9 +245,6 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should throw Exception if error occurs', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
       const error_message = 'Test find error'
       let exception = {} as Exception
 
@@ -463,10 +450,53 @@ describe('unit:repositories/RTDRepository', () => {
   })
 
   describe('#validate', () => {
-    it.todo('should call #model.check if schema validation is enabled')
+    const Subject = getSubject()
 
-    it.todo('should not call #model.check if schema validation is disabled')
+    const spy_model_check = jest.spyOn(Subject.model, 'check')
 
-    it.todo('should throw Exception if validation fails')
+    it('should call #model.check if schema validation is enabled', () => {
+      Subject.validate(ENTITY)
+
+      expect(spy_model_check).toBeCalledTimes(1)
+    })
+
+    it('should not call #model.check if schema validation is disabled', () => {
+      const ThisSubject = getSubject()
+
+      // @ts-expect-error mocking
+      ThisSubject.validate_enabled = false
+
+      const this_model_check = jest.spyOn(ThisSubject.model, 'check')
+
+      const value = {}
+      const result = ThisSubject.validate(value)
+
+      expect(result).toMatchObject(value)
+      expect(this_model_check).toBeCalledTimes(0)
+    })
+
+    it('should return value if validation passes', () => {
+      expect(Subject.validate(ENTITY)).toMatchObject(ENTITY)
+    })
+
+    it('should throw Exception if validation fails', () => {
+      const value = {}
+
+      let exception = {} as Exception
+
+      try {
+        Subject.validate(value)
+      } catch (error) {
+        exception = error
+      }
+
+      const ejson = exception.toJSON()
+
+      expect(ejson.code).toBe(ExceptionStatusCode.BAD_REQUEST)
+      expect(ejson.data.failcode).toBeDefined()
+      expect(ejson.data.value).toMatchObject(value)
+      expect(ejson.errors).toBePlainObject()
+      expect(ejson.message.length).toBeTruthy()
+    })
   })
 })
