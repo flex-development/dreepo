@@ -1,3 +1,5 @@
+import type { RawObject } from 'mingo/util'
+
 /**
  * @file Type Definitions - Globals
  * @module lib/types
@@ -7,11 +9,6 @@
  * Type representing any value.
  */
 export type ANY = any
-
-/**
- * Type representing any object value.
- */
-export type AnyObject = { [x: string]: unknown }
 
 /**
  * Type representing any empty object.
@@ -26,7 +23,7 @@ export type JSONObject = Record<string, JSONValue>
 /**
  * Types of JSON data values.
  */
-export type JSONValue = OneOrMany<NullishPrimitive | AnyObject>
+export type JSONValue = OneOrMany<NullishPrimitive | RawObject>
 
 /**
  * Type representing a `number` or `string`.
@@ -74,7 +71,7 @@ export type ObjectPath<T> = ObjectPathNT<T> extends string | keyof T
  * - https://github.com/ghoullier/awesome-template-literal-types#dot-notation-string-type-safe
  */
 export type ObjectPathN<T, K extends keyof T> = K extends string
-  ? T[K] extends AnyObject
+  ? T[K] extends RawObject
     ?
         | `${K}.${ObjectPathN<T[K], Exclude<keyof T[K], keyof any[]>> & string}`
         | `${K}.${Exclude<keyof T[K], keyof any[]> & string}`
@@ -142,7 +139,7 @@ export type PartialByRequired<T, K extends keyof T> = Pick<T, K> &
 /**
  * Type allowing all properties of T or some properties of T.
  */
-export type PartialOr<T = AnyObject> = T | Partial<T>
+export type PartialOr<T = RawObject> = T | Partial<T>
 
 /**
  * Type capturing defined primitive value types.

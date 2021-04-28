@@ -1,7 +1,5 @@
-import { SortOrder } from './enums/sort-order.enum'
 import type {
   AggregationOperators,
-  AggregationStages,
   IEntity,
   ProjectionOperators,
   QueryOperators
@@ -75,6 +73,17 @@ export type FieldPath<E extends IEntity = IEntity> = `$${EntityPath<E>}`
 export type LiteralExpression<T = any> = { $literal: T }
 
 /**
+ * [Aggregation Pipeline Stage - `$project`][1].
+ *
+ * @template E - Entity
+ *
+ * [1]: https://docs.mongodb.com/manual/reference/operator/aggregation/project
+ */
+export type ProjectStage<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, boolean | 0 | 1>
+>
+
+/**
  * Projection query parameters mapped to entity field names.
  *
  * @template E - Entity
@@ -91,14 +100,3 @@ export type ProjectionCriteria<E extends IEntity = IEntity> = Partial<
 export type QueryCriteria<E extends IEntity = IEntity> = Partial<
   Record<EntityPath<E>, JSONValue | QueryOperators>
 >
-
-/**
- * Query parameters.
- *
- * @template E - Entity
- */
-export type QueryParams<E extends IEntity = IEntity> = QueryCriteria<E> &
-  Pick<AggregationStages, '$limit' | '$skip'> & {
-    $project?: EntityPath<E>[] | string[]
-    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
-  }

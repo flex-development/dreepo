@@ -1,5 +1,6 @@
 import configuration from '@/config/configuration'
 import { SortOrder } from '@/lib/enums'
+import type { AggregationStages } from '@/lib/interfaces'
 import type { NullishString } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -25,6 +26,8 @@ describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
 
   const getSubject = () => new TestSubject<CarEntity>(REPO_PATH_CARS, Car)
+
+  const mockCache = { collection: CARS, root: CARS_ROOT }
 
   describe('exports', () => {
     it('should export class by default', () => {
@@ -83,20 +86,208 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#aggregate', () => {
+    const Subject = getSubject()
+
+    const stage: AggregationStages<CarEntity> = { $count: 'count' }
+
+    const spy_aggregate = jest.spyOn(Subject.mingo, 'aggregate')
+
+    it('should not call #mingo.aggregate if cache is empty', () => {
+      // @ts-expect-error mocking
+      Subject.cache = { collection: [], root: {} }
+
+      Subject.aggregate()
+
+      expect(spy_aggregate).toBeCalledTimes(0)
+    })
+
+    it('should throw Exception if error occurs', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const pipeline = [stage]
+      const error_message = 'Test aggregate error'
+
+      let exception = {} as Exception
+
+      try {
+        jest.spyOn(Subject.mingo, 'aggregate').mockImplementationOnce(() => {
+          throw new Error(error_message)
+        })
+
+        Subject.aggregate(pipeline)
+      } catch (error) {
+        exception = error
+      }
+
+      expect(exception.code).toBe(ExceptionStatusCode.BAD_REQUEST)
+      expect(exception.data).toMatchObject({ pipeline })
+      expect(exception.message).toBe(error_message)
+    })
+
+    describe('runs pipeline', () => {
+      it('should run pipeline after converting stage into stages array', () => {
+        // @ts-expect-error mocking
+        Subject.cache = mockCache
+
+        Subject.aggregate(stage)
+
+        expect(spy_aggregate).toBeCalledTimes(1)
+        expect(spy_aggregate).toBeCalledWith(
+          Subject.cache.collection,
+          [stage],
+          Subject.mopts
+        )
+      })
+
+      it('should run pipeline with stages array', () => {
+        // @ts-expect-error mocking
+        Subject.cache = mockCache
+
+        const pipeline = [stage]
+
+        Subject.aggregate(pipeline)
+
+        expect(spy_aggregate).toBeCalledTimes(1)
+        expect(spy_aggregate).toBeCalledWith(
+          Subject.cache.collection,
+          pipeline,
+          Subject.mopts
+        )
+      })
+    })
+  })
+
+  describe('#find', () => {
+    const Subject = getSubject()
+
+    const mockCursor = {
+      all: jest.fn().mockReturnValue(mockCache.collection),
+      limit: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis()
+    }
+
+    const mockFind = jest.fn().mockReturnValue(mockCursor)
+
+    beforeAll(() => {
+      Subject.mingo.find = mockFind
+    })
+
+    it('should not call #mingo.find if cache is empty', () => {
+      // @ts-expect-error mocking
+      Subject.cache = { collection: [], root: {} }
+
+      Subject.find()
+
+      expect(Subject.mingo.find).toBeCalledTimes(0)
+    })
+
+    it('should handle query criteria', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { id: Subject.cache.collection[0].id }
+
+      Subject.find(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(Subject.mingo.find).toBeCalledWith(
+        Subject.cache.collection,
+        { id: params.id },
+        {},
+        Subject.mopts
+      )
+    })
+
+    it('should sort results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $sort: { id: SortOrder.ASCENDING } }
+
+      Subject.find(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.sort).toBeCalledWith(params.$sort)
+    })
+
+    it('should offset results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $skip: 2 }
+
+      Subject.find(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.skip).toBeCalledWith(params.$skip)
+    })
+
+    it('should limit results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $limit: 1 }
+
+      Subject.find(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.limit).toBeCalledWith(params.$limit)
+    })
+
+    it('should run aggregation pipeline with $project stage', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const spy_aggregate = jest.spyOn(Subject, 'aggregate')
+
+      const params = { $project: { model: true } }
+
+      Subject.find(params)
+
+      expect(spy_aggregate).toBeCalledTimes(1)
+      expect(spy_aggregate).toBeCalledWith({ $project: params.$project })
+    })
+
+    it('should throw Exception if error occurs', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const error_message = 'Test find error'
+      let exception = {} as Exception
+
+      try {
+        jest.spyOn(Subject.mingo, 'find').mockImplementationOnce(() => {
+          throw new Error(error_message)
+        })
+
+        Subject.find()
+      } catch (error) {
+        exception = error
+      }
+
+      expect(exception.code).toBe(ExceptionStatusCode.BAD_REQUEST)
+      expect(exception.data).toMatchObject({ params: {}, projection: {} })
+      expect(exception.message).toBe(error_message)
+    })
+  })
+
   describe('#refreshCache', () => {
     const Subject = getSubject()
 
-    const spy = jest.spyOn(Subject, 'request')
+    const spy_request = jest.spyOn(Subject, 'request')
 
     beforeEach(() => {
-      spy.mockReturnValue(Promise.resolve(CARS_ROOT))
+      spy_request.mockReturnValue(Promise.resolve(CARS_ROOT))
     })
 
     it('should request repository root data', async () => {
       await Subject.refreshCache()
 
-      expect(spy).toBeCalledTimes(1)
-      expect(spy).toBeCalledWith()
+      expect(spy_request).toBeCalledTimes(1)
+      expect(spy_request).toBeCalledWith()
     })
 
     it('should update data cache', async () => {
@@ -132,101 +323,6 @@ describe('unit:repositories/RTDRepository', () => {
     it('should append `.json` to the end of config.url', () => {
       expect(spy_http).toBeCalledTimes(1)
       expect(spy_http.mock.calls[0][0].url).toBe(`/.json`)
-    })
-  })
-
-  describe('#search', () => {
-    const Subject = getSubject()
-
-    const mockCache = { collection: CARS, root: CARS_ROOT }
-
-    const mockCursor = {
-      all: jest.fn().mockReturnValue(mockCache.collection),
-      limit: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis()
-    }
-
-    const mockFind = jest.fn().mockReturnValue(mockCursor)
-
-    beforeAll(() => {
-      Subject.mingo.find = mockFind
-    })
-
-    it('should not call #mingo.find if cache is empty', () => {
-      // @ts-expect-error mocking
-      Subject.cache = { collection: [], root: {} }
-
-      Subject.search()
-
-      expect(Subject.mingo.find).toBeCalledTimes(0)
-    })
-
-    it('should handle query criteria', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      const params = { id: Subject.cache.collection[0].id }
-
-      Subject.search(params)
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(Subject.mingo.find).toBeCalledWith(
-        Subject.cache.collection,
-        { id: params.id },
-        {},
-        Subject.mopts
-      )
-    })
-
-    it('should sort results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      const params = { $sort: { id: SortOrder.ASCENDING } }
-
-      Subject.search(params)
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.sort).toBeCalledWith(params.$sort)
-    })
-
-    it('should offset results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      const params = { $skip: 2 }
-
-      Subject.search(params)
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.skip).toBeCalledWith(params.$skip)
-    })
-
-    it('should limit results', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      const params = { $limit: 1 }
-
-      Subject.search(params)
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.limit).toBeCalledWith(params.$limit)
-    })
-
-    it('should pick fields from each entity', () => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      const params = { $project: ['id'] }
-
-      const entities = Subject.search(params)
-
-      entities.forEach(entity => {
-        const efields = Object.keys(entity)
-        expect(params.$project).toEqual(expect.arrayContaining(efields))
-      })
     })
   })
 })

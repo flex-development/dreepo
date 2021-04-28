@@ -3,6 +3,7 @@ import { BSONTypeCode } from '../enums/bson-type-code.enum'
 import type { JSONValue } from '../types-global'
 import type { Expression } from '../types-mingo'
 import type { AccumulatorOperators } from './accumulator-operators.interface'
+import { CustomAccumulator } from './custom-accumulator.interface'
 import type { IEntity } from './entity.interface'
 
 /**
@@ -21,6 +22,10 @@ import type { IEntity } from './entity.interface'
  */
 export interface AggregationOperators<E extends IEntity = IEntity>
   extends AccumulatorOperators<E> {
+  // Support package users loading additional operators
+  // TODO: Ensure index signature begins with dollar (`$`) sign
+  [x: string]: Expression<E> | CustomAccumulator | undefined
+
   /**
    * Returns the absolute value of a number.
    *

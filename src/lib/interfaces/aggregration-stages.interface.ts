@@ -1,6 +1,12 @@
+import type { RawObject } from 'mingo/util'
 import { SortOrder } from '../enums/sort-order.enum'
-import type { AnyObject, OneOrMany } from '../types-global'
-import type { Expression, FieldPath, QueryCriteria } from '../types-mingo'
+import type { OneOrMany } from '../types-global'
+import type {
+  Expression,
+  FieldPath,
+  ProjectStage,
+  QueryCriteria
+} from '../types-mingo'
 import type { EntityPath } from '../types-repository'
 import type { AccumulatorOperators } from './accumulator-operators.interface'
 import type { BucketStageAuto } from './bucket-stage-auto.interface'
@@ -33,7 +39,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/addFields
    */
-  $addFields?: Record<string, Expression<E>>
+  $addFields?: Partial<Record<string, Expression<E>>>
 
   /**
    * Categorizes incoming entities into groups, called buckets, based on a
@@ -69,7 +75,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/facet
    */
-  $facet?: Record<string, AggregationStages<E>>
+  $facet?: Partial<Record<string, AggregationStages<E>>>
 
   /**
    * Groups input entities by a specified identifier expression and applies the
@@ -106,7 +112,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/project
    */
-  $project?: Record<EntityPath<E>, boolean | 0 | 1>
+  $project?: ProjectStage<E>
 
   /**
    * Restricts the contents of the entities based on information stored in the
@@ -129,7 +135,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/replaceRoot
    */
-  $replaceRoot?: { newRoot: Expression<E> | AnyObject }
+  $replaceRoot?: { newRoot: Expression<E> | RawObject }
 
   /**
    * Replaces the input entity with the specified object.
@@ -141,7 +147,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/replaceWith
    */
-  $replaceWith?: Expression<E> | AnyObject
+  $replaceWith?: Expression<E> | RawObject
 
   /**
    * Randomly selects the specified number of entities from its input.

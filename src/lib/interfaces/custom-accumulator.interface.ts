@@ -1,4 +1,4 @@
-import type { AnyObject } from '../types-global'
+import type { RawObject } from 'mingo/util'
 
 /**
  * @file Interface - CustomAccumulator
@@ -38,7 +38,7 @@ export interface CustomAccumulator {
    * Function used to update the result of the accumulation.
    */
   finalize: {
-    (state: CustomAccumulatorState): CustomAccumulatorState | AnyObject
+    (state: CustomAccumulatorState): CustomAccumulatorState | RawObject
   }
 
   /**

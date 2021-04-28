@@ -1,6 +1,8 @@
 import type { AxiosRequestConfig } from 'axios'
-import type { IEntity } from './interfaces'
+import { SortOrder } from './enums/sort-order.enum'
+import type { AggregationStages, IEntity } from './interfaces'
 import type { EmptyObject, ObjectPath } from './types-global'
+import type { ProjectionCriteria, QueryCriteria } from './types-mingo'
 
 /**
  * @file Type Definitions - Repository Globals
@@ -11,6 +13,14 @@ import type { EmptyObject, ObjectPath } from './types-global'
  * NOTICE: These type defintions are separate from the global type definitions
  * file to prevent circular imports.
  */
+
+/**
+ * Entity that can have additional properties after being evaluated during an
+ * aggregation pipeline.
+ */
+export type EntityEnhanced<E extends IEntity = IEntity> = E & {
+  [x: string]: unknown
+}
 
 /**
  * Type representing a nested or top level entity key.
@@ -26,6 +36,17 @@ export type EntityPath<
  * can only be updated internally by the `EntityRepository` class.
  */
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
+
+/**
+ * Query parameters.
+ *
+ * @template E - Entity
+ */
+export type QueryParams<E extends IEntity = IEntity> = QueryCriteria<E> &
+  Pick<AggregationStages<E>, '$limit' | '$project' | '$skip'> & {
+    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
+    projection?: ProjectionCriteria<E>
+  }
 
 /**
  * Type representing a repository data cache.

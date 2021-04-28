@@ -4,13 +4,21 @@ import logger from '@/config/logger'
 import mingo from '@/config/mingo'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
 import { SortOrder } from '@/lib/enums/sort-order.enum'
-import type { DBRequestConfig, IEntity, IRTDRepository } from '@/lib/interfaces'
 import type {
+  AggregationStages,
+  DBRequestConfig,
+  IEntity,
+  IRTDRepository,
+  MingoOptions
+} from '@/lib/interfaces'
+import type {
+  EntityEnhanced,
   EntityPath,
   NullishString,
   OneOrMany,
   PartialOr,
   ProjectionCriteria,
+  ProjectStage,
   QueryParams,
   RepoCache,
   RepoHttpClient,
@@ -24,8 +32,7 @@ import { JWT } from 'google-auth-library'
 import isEmpty from 'lodash.isempty'
 import isPlainObject from 'lodash.isplainobject'
 import pick from 'lodash.pick'
-import uniq from 'lodash.uniq'
-import type { Options as MingoOptions } from 'mingo/core'
+import type { RawArray, RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 
 /**
@@ -47,7 +54,7 @@ import type { RuntypeBase } from 'runtypes/lib/runtype'
 export default class RTDRepository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
-> implements IRTDRepository {
+> implements IRTDRepository<E, P> {
   /**
    * @readonly
    * @instance
@@ -195,6 +202,40 @@ export default class RTDRepository<
   }
 
   /**
+   * Runs an aggregation pipeline for `this.cache.collection`.
+   *
+   * If the cache is empty, a warning will be logged to the console instructing
+   * developers to call {@method RTDRepository#refreshCache}.
+   *
+   * @param {OneOrMany<AggregationStages<E>>} pipeline - Aggregation stage(s)
+   * @return {Array<PartialOr<EntityEnhanced<E>>> | RawArray} Pipeline results
+   * @throws {Exception}
+   */
+  aggregate(
+    pipeline: OneOrMany<AggregationStages<E>> = []
+  ): PartialOr<EntityEnhanced<E>>[] | RawArray {
+    const { collection } = this.cache
+
+    if (!collection.length) {
+      this.logger(`Repository at path "${this.path}" empty.`)
+      this.logger('Consider calling #refreshCache before running pipeline.')
+
+      return collection
+    }
+
+    let _pipeline = pipeline as RawObject[]
+    if (!Array.isArray(_pipeline)) _pipeline = [_pipeline]
+
+    try {
+      return this.mingo.aggregate(collection, _pipeline, this.mopts)
+    } catch ({ message, stack }) {
+      const data = { pipeline: _pipeline }
+
+      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
+    }
+  }
+
+  /**
    * Clears all data from the repository.
    *
    * @async
@@ -246,18 +287,66 @@ export default class RTDRepository<
   }
 
   /**
-   * Finds entities that match given options.
+   * Performs a query on `this.cache.collection`.
    *
-   * @async
+   * If the cache is empty, a warning will be logged to the console instructing
+   * developers to call {@method RTDRepository#refreshCache}.
+   *
    * @param {P} [params] - Query parameters
-   * @return {Promise<PartialOr<E>[]>} Promise with matching entities
+   * @param {number} [params.$limit] - Limit number of results
+   * @param {ProjectStage<E>} [params.$project] - Fields to include
+   * @param {number} [params.$skip] - Skips the first n entities
+   * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
+   * @param {ProjectionCriteria<E>} [params.projection] - Projection operators
+   * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
-  async find(params: P = {} as P): Promise<PartialOr<E>[]> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  find(params: P = {} as P): PartialOr<E>[] {
+    const {
+      $limit,
+      $project = {},
+      $skip,
+      $sort,
+      projection = {},
+      ...criteria
+    } = params
+    const { collection } = this.cache
+
+    if (!collection.length) {
+      this.logger(`Repository at path "${this.path}" empty.`)
+      this.logger('Consider calling #refreshCache before performing search.')
+
+      return collection
+    }
+
+    try {
+      // Handle query criteria
+      let cursor = this.mingo.find(collection, criteria, projection, this.mopts)
+
+      // Apply sorting rules
+      if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
+
+      // Apply offset
+      if (typeof $skip === 'number') cursor = cursor.skip($skip)
+
+      // Limit results
+      if (typeof $limit === 'number') cursor = cursor.limit($limit)
+
+      // Get entities
+      let entities = cursor.all() as PartialOr<E>[]
+
+      // Pick entity fields from each entity
+      if ($project && !isEmpty($project)) {
+        entities = this.aggregate({ $project }) as PartialOr<E>[]
+      }
+
+      // Return search results
+      return entities
+    } catch ({ message, stack }) {
+      const data = { params, projection }
+
+      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
+    }
   }
 
   /**
@@ -412,60 +501,5 @@ export default class RTDRepository<
       ExceptionStatusCode.NOT_IMPLEMENTED,
       'Method not implemented'
     )
-  }
-
-  /**
-   * Performs a query on `this.cache.collection`.
-   *
-   * @async
-   * @param {P} [params] - Query parameters
-   * @param {number} [params.$limit] - Limit number of results
-   * @param {EntityPath<E>[]} [params.$project] - Fields to include
-   * @param {number} [params.$skip] - Skips the first n entities
-   * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
-   * @param {ProjectionCriteria<E>} [projection] - Projection operators
-   * @return {PartialOr<E>[]} Search results
-   * @throws {Exception}
-   */
-  search(
-    params: P = {} as P,
-    projection: ProjectionCriteria<E> = {}
-  ): PartialOr<E>[] {
-    const { $limit, $project = [], $skip, $sort, ...criteria } = params
-    const { collection } = this.cache
-
-    if (!collection.length) {
-      this.logger(`Repository at path "${this.path}" empty.`)
-      this.logger('Consider calling #refreshCache before performing search.')
-
-      return collection
-    }
-
-    try {
-      // Handle query criteria
-      let cursor = this.mingo.find(collection, criteria, projection, this.mopts)
-
-      // Apply sorting rules
-      if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
-
-      // Apply offset
-      if (typeof $skip === 'number') cursor = cursor.skip($skip)
-
-      // Limit results
-      if (typeof $limit === 'number') cursor = cursor.limit($limit)
-
-      // Get entities
-      let entities = cursor.all() as PartialOr<E>[]
-
-      // Pick entity fields from each entity
-      if (Array.isArray($project)) {
-        entities = entities.map(entity => pick(entity, uniq($project)))
-      }
-
-      // Return search results
-      return entities
-    } catch ({ message }) {
-      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, params)
-    }
   }
 }
