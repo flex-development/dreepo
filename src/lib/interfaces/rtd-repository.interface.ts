@@ -37,8 +37,8 @@ export interface IRTDRepository<
   delete(id: OneOrMany<E['id']>): Promise<typeof id>
   find(params?: P): PartialOr<E>[]
   findByIds(ids: E['id'][], params?: P): PartialOr<E>[]
-  findOne(id: E['id'], params?: P): Promise<PartialOr<E> | null>
-  findOneOrFail(id: E['id'], params?: P): Promise<PartialOr<E>>
+  findOne(id: E['id'], params?: P): PartialOr<E> | null
+  findOneOrFail(id: E['id'], params?: P): PartialOr<E>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>>
 }

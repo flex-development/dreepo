@@ -6,6 +6,7 @@ import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { JWT } from 'google-auth-library'
 import pick from 'lodash.pick'
+import type { RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../rtd.repository'
@@ -28,6 +29,8 @@ describe('unit:repositories/RTDRepository', () => {
   const getSubject = () => new TestSubject<CarEntity>(REPO_PATH_CARS, Car)
 
   const mockCache = { collection: CARS, root: CARS_ROOT }
+
+  const ENTITY = mockCache.collection[0]
 
   describe('exports', () => {
     it('should export class by default', () => {
@@ -285,7 +288,7 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('return specified entities', () => {
-      const ids = [Subject.cache.collection[1].id]
+      const ids = [ENTITY.id]
 
       const entities = Subject.findByIds(ids)
 
@@ -328,6 +331,82 @@ describe('unit:repositories/RTDRepository', () => {
 
         expect(exception.constructor.name).toBe('Exception')
       })
+    })
+  })
+
+  describe('#findOne', () => {
+    const Subject = getSubject()
+
+    const spy_find = jest.spyOn(Subject, 'find')
+
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+    })
+
+    it('should return entity', () => {
+      spy_find.mockReturnValue([ENTITY])
+
+      const result = Subject.findOne(ENTITY.id)
+
+      expect(spy_find).toBeCalledTimes(1)
+      expect(spy_find).toBeCalledWith({ id: ENTITY.id })
+
+      expect(result).toMatchObject(ENTITY)
+    })
+
+    it('should return null if entity is not found', () => {
+      const id = 'NON_EXISTENT_ENTITY_ID'
+
+      spy_find.mockReturnValue([])
+
+      const result = Subject.findOne(id)
+
+      expect(spy_find).toBeCalledTimes(1)
+      expect(spy_find).toBeCalledWith({ id })
+
+      expect(result).toBe(null)
+    })
+  })
+
+  describe('#findOneOrFail', () => {
+    const Subject = getSubject()
+
+    const spy_findOne = jest.spyOn(Subject, 'findOne')
+
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+    })
+
+    it('should return entity', () => {
+      spy_findOne.mockReturnValue(ENTITY)
+
+      const result = Subject.findOneOrFail(ENTITY.id)
+
+      expect(spy_findOne).toBeCalledTimes(1)
+      expect(spy_findOne).toBeCalledWith(ENTITY.id, {})
+
+      expect(result).toMatchObject(ENTITY)
+    })
+
+    it('should throw Exception if entity is not found', () => {
+      const id = 'NON_EXISTENT_ENTITY_ID'
+
+      let exception = {} as Exception
+
+      spy_findOne.mockReturnValue(null)
+
+      try {
+        Subject.findOneOrFail(id)
+      } catch (error) {
+        exception = error
+      }
+
+      expect(exception.code).toBe(ExceptionStatusCode.NOT_FOUND)
+      expect(exception.data).toMatchObject({ params: {} })
+      expect((exception.errors as RawObject).id).toBe(id)
+      expect(exception.message).toMatch(new RegExp(`"${id}" does not exist`))
     })
   })
 

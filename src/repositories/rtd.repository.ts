@@ -376,41 +376,44 @@ export default class RTDRepository<
 
   /**
    * Finds an entity by ID.
-   *
    * Returns `null` if the entity isn't found.
    *
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Query parameters
-   * @return {Promise<PartialOr<E> | null>} Promise with entity or null
+   * @return {PartialOr<E> | null} Promise with entity or null
    * @throws {Exception}
    */
-  async findOne(
-    id: E['id'],
-    params: P = {} as P
-  ): Promise<PartialOr<E> | null> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  findOne(id: E['id'], params: P = {} as P): PartialOr<E> | null {
+    // Perform search
+    const entities = this.find({ ...params, id })
+    const entity = entities[0]
+
+    // Return entity or null if not found
+    return entity?.id === id ? entity : null
   }
 
   /**
    * Finds an entity by ID.
-   *
    * Throws an error if the entity isn't found.
    *
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Query parameters
-   * @return {Promise<PartialOr<E>>} Promise with entity or null
+   * @return {PartialOr<E>} Promise with entity or null
    * @throws {Exception}
    */
-  async findOneOrFail(id: E['id'], params: P = {} as P): Promise<PartialOr<E>> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  findOneOrFail(id: E['id'], params: P = {} as P): PartialOr<E> {
+    const entity = this.findOne(id, params)
+
+    if (!entity) {
+      const message = `Entity with id "${id}" does not exist`
+      const data = { errors: { id }, params }
+
+      throw new Exception(ExceptionStatusCode.NOT_FOUND, message, data)
+    }
+
+    return entity
   }
 
   /**
