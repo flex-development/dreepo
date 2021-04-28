@@ -3,9 +3,9 @@
   "description": "Repository API for Firebase Realtime Database",
   "version": "1.0.0-beta",
   "keywords": [
-    "firebase",
+    "firebase admin",
     "realtime database",
-    "repository api",
+    "repository pattern",
     "typescript"
   ],
   "homepage": "https://github.com/flex-development/rtd-repos",

@@ -128,10 +128,11 @@ export default class RTDRepository<
   /**
    * @readonly
    * @instance
-   * @property {boolean} validate - If `true`, validate DTOs before creating or
-   * updating an entity. Otherwise, perform operation without validating schema
+   * @property {boolean} validate_enabled - If `true`, validate DTOs before
+   * creating or updating an entity. Otherwise, perform operation without
+   * validating schema
    */
-  readonly validate: boolean
+  readonly validate_enabled: boolean
 
   /**
    * Instantiates a new Realtime Database repository.
@@ -150,7 +151,7 @@ export default class RTDRepository<
       FIREBASE_CLIENT_EMAIL: client_email,
       FIREBASE_DATABASE_URL,
       FIREBASE_PRIVATE_KEY: private_key,
-      FIREBASE_RTD_REPOS_VALIDATE: validate,
+      FIREBASE_RTD_REPOS_VALIDATE: validate_enabled,
       NODE_ENV
     } = configuration()
 
@@ -167,7 +168,7 @@ export default class RTDRepository<
     this.jwt = new JWT(client_email, undefined, private_key, scopes)
     this.model = model
     this.path = path
-    this.validate = validate
+    this.validate_enabled = validate_enabled
   }
 
   /**
@@ -506,6 +507,21 @@ export default class RTDRepository<
    * @throws {Exception}
    */
   async save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>> {
+    throw new Exception(
+      ExceptionStatusCode.NOT_IMPLEMENTED,
+      'Method not implemented'
+    )
+  }
+
+  /**
+   * Validates {@param value} against the {@see RTDRepository#model} if schema
+   * validation is enabled. If disabled, the original value will be returned.
+   *
+   * @param {RawObject} value - Data to validate
+   * @return {E | typeof value} - Validated object or original value
+   * @throws {Exception}
+   */
+  validate(value: RawObject = {}): E | typeof value {
     throw new Exception(
       ExceptionStatusCode.NOT_IMPLEMENTED,
       'Method not implemented'

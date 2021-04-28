@@ -1,5 +1,5 @@
 import mingo from 'mingo'
-import type { RawArray } from 'mingo/util'
+import type { RawArray, RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { EntityDTO } from '../dto/entity.dto'
 import type { OneOrMany, PartialOr } from '../types-global'
@@ -27,7 +27,7 @@ export interface IRTDRepository<
   readonly mopts: MingoOptions
   readonly model: RuntypeBase<E>
   readonly path: string
-  readonly validate: boolean
+  readonly validate_enabled: boolean
 
   aggregate(
     pipeline?: OneOrMany<AggregationStages<E>>
@@ -41,4 +41,5 @@ export interface IRTDRepository<
   findOneOrFail(id: E['id'], params?: P): PartialOr<E>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>>
+  validate(value?: RawObject): E | typeof value
 }

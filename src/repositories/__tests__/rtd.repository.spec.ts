@@ -49,7 +49,7 @@ describe('unit:repositories/RTDRepository', () => {
       expect(isType<JWT>(Subject.jwt as any)).toBeTruthy()
       expect(isType<RuntypeBase<CarEntity>>(Subject.model as any)).toBeTruthy()
       expect(Subject.path).toBe(REPO_PATH_CARS)
-      expect(Subject.validate).toBe(FIREBASE_RTD_REPOS_VALIDATE)
+      expect(Subject.validate_enabled).toBe(FIREBASE_RTD_REPOS_VALIDATE)
     })
   })
 
@@ -460,5 +460,13 @@ describe('unit:repositories/RTDRepository', () => {
       expect(spy_http).toBeCalledTimes(1)
       expect(spy_http.mock.calls[0][0].url).toBe(`/.json`)
     })
+  })
+
+  describe('#validate', () => {
+    it.todo('should call #model.check if schema validation is enabled')
+
+    it.todo('should not call #model.check if schema validation is disabled')
+
+    it.todo('should throw Exception if validation fails')
   })
 })
