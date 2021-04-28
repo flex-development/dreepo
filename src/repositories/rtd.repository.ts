@@ -352,20 +352,26 @@ export default class RTDRepository<
   /**
    * Finds multiple entities by id.
    *
-   * @async
-   * @param {string[]} ids - ID of entities to find
+   * @param {string[]} [ids] - Array of entity IDs
    * @param {P} [params] - Query parameters
-   * @return {Promise<PartialOr<E>[]>} Promise with matching entities
+   * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
-  async findByIds(
-    ids: E['id'][],
-    params: P = {} as P
-  ): Promise<PartialOr<E>[]> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  findByIds(ids: E['id'][] = [], params: P = {} as P): PartialOr<E>[] {
+    try {
+      // Perform search
+      const entities = this.find(params)
+
+      // Get specified entities
+      return entities.filter(entity => ids.includes(entity.id as string))
+    } catch (error) {
+      if (error.constructor.name === 'Exception') throw error
+
+      const { message, stack } = error
+      const data = { ids, params }
+
+      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
+    }
   }
 
   /**

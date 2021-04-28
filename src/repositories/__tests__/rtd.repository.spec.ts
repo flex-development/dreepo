@@ -274,6 +274,63 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#findByIds', () => {
+    const Subject = getSubject()
+
+    const spy_find = jest.spyOn(Subject, 'find')
+
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+    })
+
+    it('return specified entities', () => {
+      const ids = [Subject.cache.collection[1].id]
+
+      const entities = Subject.findByIds(ids)
+
+      expect(spy_find).toBeCalledTimes(1)
+      expect(spy_find).toBeCalledWith({})
+
+      expect(entities.length).toBe(ids.length)
+    })
+
+    describe('throws Exception', () => {
+      it('should throw Exception if error is Error class type', () => {
+        let exception = {} as Exception
+
+        try {
+          // @ts-expect-error mocking
+          jest.spyOn(Array.prototype, 'includes').mockImplementationOnce(() => {
+            throw new Error()
+          })
+
+          Subject.findByIds()
+        } catch (error) {
+          exception = error
+        }
+
+        expect(exception.constructor.name).toBe('Exception')
+      })
+
+      it('should throw Exception if error is Exception class type', () => {
+        let exception = {} as Exception
+
+        try {
+          spy_find.mockImplementationOnce(() => {
+            throw new Exception()
+          })
+
+          Subject.findByIds()
+        } catch (error) {
+          exception = error
+        }
+
+        expect(exception.constructor.name).toBe('Exception')
+      })
+    })
+  })
+
   describe('#refreshCache', () => {
     const Subject = getSubject()
 
