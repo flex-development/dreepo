@@ -1,4 +1,5 @@
 import configuration from '@/config/configuration'
+import { SortOrder } from '@/lib/enums'
 import type { NullishString } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -131,6 +132,101 @@ describe('unit:repositories/RTDRepository', () => {
     it('should append `.json` to the end of config.url', () => {
       expect(spy_http).toBeCalledTimes(1)
       expect(spy_http.mock.calls[0][0].url).toBe(`/.json`)
+    })
+  })
+
+  describe('#search', () => {
+    const Subject = getSubject()
+
+    const mockCache = { collection: CARS, root: CARS_ROOT }
+
+    const mockCursor = {
+      all: jest.fn().mockReturnValue(mockCache.collection),
+      limit: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      sort: jest.fn().mockReturnThis()
+    }
+
+    const mockFind = jest.fn().mockReturnValue(mockCursor)
+
+    beforeAll(() => {
+      Subject.mingo.find = mockFind
+    })
+
+    it('should not call #mingo.find if cache is empty', () => {
+      // @ts-expect-error mocking
+      Subject.cache = { collection: [], root: {} }
+
+      Subject.search()
+
+      expect(Subject.mingo.find).toBeCalledTimes(0)
+    })
+
+    it('should handle query criteria', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { id: Subject.cache.collection[0].id }
+
+      Subject.search(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(Subject.mingo.find).toBeCalledWith(
+        Subject.cache.collection,
+        { id: params.id },
+        {},
+        Subject.mopts
+      )
+    })
+
+    it('should sort results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $sort: { id: SortOrder.ASCENDING } }
+
+      Subject.search(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.sort).toBeCalledWith(params.$sort)
+    })
+
+    it('should offset results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $skip: 2 }
+
+      Subject.search(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.skip).toBeCalledWith(params.$skip)
+    })
+
+    it('should limit results', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $limit: 1 }
+
+      Subject.search(params)
+
+      expect(Subject.mingo.find).toBeCalledTimes(1)
+      expect(mockCursor.limit).toBeCalledWith(params.$limit)
+    })
+
+    it('should pick fields from each entity', () => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
+
+      const params = { $project: ['id'] }
+
+      const entities = Subject.search(params)
+
+      entities.forEach(entity => {
+        const efields = Object.keys(entity)
+        expect(params.$project).toEqual(expect.arrayContaining(efields))
+      })
     })
   })
 })

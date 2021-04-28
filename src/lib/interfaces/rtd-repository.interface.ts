@@ -1,6 +1,8 @@
+import mingo from 'mingo'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { EntityDTO } from '../dto/entity.dto'
-import type { AnyObject as Params, OneOrMany, PartialOr } from '../types'
+import type { AnyObject as Params, OneOrMany, PartialOr } from '../types-global'
+import type { ProjectionCriteria } from '../types-mingo'
 import type { IEntity } from './entity.interface'
 
 /**
@@ -18,6 +20,7 @@ export interface IRTDRepository<
   E extends IEntity = IEntity,
   P extends Params = Params
 > {
+  readonly mingo: typeof mingo
   readonly model: RuntypeBase<E>
   readonly path: string
   readonly validate: boolean
@@ -30,6 +33,6 @@ export interface IRTDRepository<
   findOne(id: E['id'], params?: P): Promise<PartialOr<E> | null>
   findOneOrFail(id: E['id'], params?: P): Promise<PartialOr<E>>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
-  query(params?: P): Promise<PartialOr<E>[]>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>>
+  search(params?: P, projection?: ProjectionCriteria<E>): PartialOr<E>[]
 }

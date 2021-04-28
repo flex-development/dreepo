@@ -1,5 +1,7 @@
+import { SortOrder } from './enums/sort-order.enum'
 import type {
   AggregationOperators,
+  AggregationStages,
   IEntity,
   ProjectionOperators,
   QueryOperators
@@ -77,9 +79,8 @@ export type LiteralExpression<T = any> = { $literal: T }
  *
  * @template E - Entity
  */
-export type ProjectionCriteria<E extends IEntity = IEntity> = Record<
-  EntityPath<E>,
-  ProjectionOperators
+export type ProjectionCriteria<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, ProjectionOperators>
 >
 
 /**
@@ -87,7 +88,17 @@ export type ProjectionCriteria<E extends IEntity = IEntity> = Record<
  *
  * @template E - Entity
  */
-export type QueryCriteria<E extends IEntity = IEntity> = Record<
-  EntityPath<E>,
-  JSONValue | QueryOperators
+export type QueryCriteria<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, JSONValue | QueryOperators>
 >
+
+/**
+ * Query parameters.
+ *
+ * @template E - Entity
+ */
+export type QueryParams<E extends IEntity = IEntity> = QueryCriteria<E> &
+  Pick<AggregationStages, '$limit' | '$skip'> & {
+    $project?: EntityPath<E>[] | string[]
+    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
+  }

@@ -50,13 +50,16 @@
   "dependencies": {
     "@flex-development/exceptions": "1.0.0",
     "axios": "latest",
+    "debug": "latest",
     "google-auth-library": "latest",
     "lodash.isboolean": "latest",
+    "lodash.isempty": "latest",
     "lodash.isplainobject": "latest",
     "lodash.isstring": "latest",
     "lodash.merge": "latest",
     "lodash.omit": "latest",
     "lodash.pick": "latest",
+    "lodash.uniq": "latest",
     "mingo": "latest",
     "runtypes": "latest"
   },
@@ -78,18 +81,19 @@
     "@types/faker": "latest",
     "@types/jest": "latest",
     "@types/lodash.isboolean": "latest",
+    "@types/lodash.isempty": "latest",
     "@types/lodash.isplainobject": "latest",
     "@types/lodash.isstring": "latest",
     "@types/lodash.merge": "latest",
     "@types/lodash.omit": "latest",
     "@types/lodash.pick": "latest",
+    "@types/lodash.uniq": "latest",
     "@types/node": "latest",
     "@types/urijs": "latest",
     "@types/validator": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "@zerollup/ts-transform-paths": "latest",
-    "debug": "latest",
     "dotenv-cli": "latest",
     "eslint": "latest",
     "eslint-config-prettier": "latest",
@@ -135,9 +139,12 @@
     "allowBranch": "main"
   },
   "required-env": [
+    "DEBUG",
+    "DEBUG_COLORS",
     "FIREBASE_CLIENT_EMAIL",
     "FIREBASE_DATABASE_URL",
     "FIREBASE_PRIVATE_KEY",
-    "FIREBASE_RTD_REPOS_VALIDATE"
+    "FIREBASE_RTD_REPOS_VALIDATE",
+    "NODE_ENV"
   ]
 }

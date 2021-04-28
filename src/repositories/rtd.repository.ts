@@ -1,12 +1,17 @@
 import axios from '@/config/axios'
 import configuration from '@/config/configuration'
+import logger from '@/config/logger'
+import mingo from '@/config/mingo'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
+import { SortOrder } from '@/lib/enums/sort-order.enum'
 import type { DBRequestConfig, IEntity, IRTDRepository } from '@/lib/interfaces'
 import type {
-  AnyObject,
+  EntityPath,
   NullishString,
   OneOrMany,
   PartialOr,
+  ProjectionCriteria,
+  QueryParams,
   RepoCache,
   RepoHttpClient,
   RepoRoot
@@ -14,9 +19,13 @@ import type {
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { AxiosRequestConfig } from 'axios'
+import type { Debugger } from 'debug'
 import { JWT } from 'google-auth-library'
+import isEmpty from 'lodash.isempty'
 import isPlainObject from 'lodash.isplainobject'
 import pick from 'lodash.pick'
+import uniq from 'lodash.uniq'
+import type { Options as MingoOptions } from 'mingo/core'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 
 /**
@@ -37,7 +46,7 @@ import type { RuntypeBase } from 'runtypes/lib/runtype'
  */
 export default class RTDRepository<
   E extends IEntity = IEntity,
-  P extends AnyObject = AnyObject
+  P extends QueryParams<E> = QueryParams<E>
 > implements IRTDRepository {
   /**
    * @readonly
@@ -45,6 +54,13 @@ export default class RTDRepository<
    * @property {string} DATABASE_URL - Firebase Realtime Database URL
    */
   readonly DATABASE_URL: string
+
+  /**
+   * @readonly
+   * @instance
+   * @property {string} ENV - Node environment
+   */
+  readonly ENV: string
 
   /**
    * @readonly
@@ -66,6 +82,27 @@ export default class RTDRepository<
    * @property {JWT} jwt - JWT client authenticated with service account
    */
   readonly jwt: JWT
+
+  /**
+   * @readonly
+   * @instance
+   * @property {Debugger} logger - Internal logger
+   */
+  readonly logger: Debugger = logger.extend('RTDRepository')
+
+  /**
+   * @readonly
+   * @instance
+   * @property {typeof mingo} mingo - MongoDB query language client
+   */
+  readonly mingo: typeof mingo = mingo
+
+  /**
+   * @readonly
+   * @instance
+   * @property {MingoOptions} mopts - Global Mingo options
+   */
+  readonly mopts: MingoOptions = { idKey: 'id' }
 
   /**
    * @readonly
@@ -106,7 +143,8 @@ export default class RTDRepository<
       FIREBASE_CLIENT_EMAIL: client_email,
       FIREBASE_DATABASE_URL,
       FIREBASE_PRIVATE_KEY: private_key,
-      FIREBASE_RTD_REPOS_VALIDATE: validate
+      FIREBASE_RTD_REPOS_VALIDATE: validate,
+      NODE_ENV
     } = configuration()
 
     // Required scopes to generate Google OAuth2 access token
@@ -116,6 +154,7 @@ export default class RTDRepository<
     ]
 
     this.DATABASE_URL = FIREBASE_DATABASE_URL
+    this.ENV = NODE_ENV
     this.cache = { collection: [], root: {} }
     this.http = http
     this.jwt = new JWT(client_email, undefined, private_key, scopes)
@@ -210,7 +249,7 @@ export default class RTDRepository<
    * Finds entities that match given options.
    *
    * @async
-   * @param {P} params - Query parameters
+   * @param {P} [params] - Query parameters
    * @return {Promise<PartialOr<E>[]>} Promise with matching entities
    * @throws {Exception}
    */
@@ -226,7 +265,7 @@ export default class RTDRepository<
    *
    * @async
    * @param {string[]} ids - ID of entities to find
-   * @param {P} params - Query parameters
+   * @param {P} [params] - Query parameters
    * @return {Promise<PartialOr<E>[]>} Promise with matching entities
    * @throws {Exception}
    */
@@ -247,7 +286,7 @@ export default class RTDRepository<
    *
    * @async
    * @param {string} id - ID of entity to find
-   * @param {P} params - Query parameters
+   * @param {P} [params] - Query parameters
    * @return {Promise<PartialOr<E> | null>} Promise with entity or null
    * @throws {Exception}
    */
@@ -268,7 +307,7 @@ export default class RTDRepository<
    *
    * @async
    * @param {string} id - ID of entity to find
-   * @param {P} params - Query parameters
+   * @param {P} [params] - Query parameters
    * @return {Promise<PartialOr<E>>} Promise with entity or null
    * @throws {Exception}
    */
@@ -298,20 +337,6 @@ export default class RTDRepository<
     dto: Partial<EntityDTO<E>>,
     rfields: string[] = []
   ): Promise<E> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
-  }
-
-  /**
-   * Executes a query.
-   *
-   * @async
-   * @param {P} params - Query parameters
-   * @throws {Exception}
-   */
-  async query(params: P = {} as P): Promise<PartialOr<E>[]> {
     throw new Exception(
       ExceptionStatusCode.NOT_IMPLEMENTED,
       'Method not implemented'
@@ -387,5 +412,60 @@ export default class RTDRepository<
       ExceptionStatusCode.NOT_IMPLEMENTED,
       'Method not implemented'
     )
+  }
+
+  /**
+   * Performs a query on `this.cache.collection`.
+   *
+   * @async
+   * @param {P} [params] - Query parameters
+   * @param {number} [params.$limit] - Limit number of results
+   * @param {EntityPath<E>[]} [params.$project] - Fields to include
+   * @param {number} [params.$skip] - Skips the first n entities
+   * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
+   * @param {ProjectionCriteria<E>} [projection] - Projection operators
+   * @return {PartialOr<E>[]} Search results
+   * @throws {Exception}
+   */
+  search(
+    params: P = {} as P,
+    projection: ProjectionCriteria<E> = {}
+  ): PartialOr<E>[] {
+    const { $limit, $project = [], $skip, $sort, ...criteria } = params
+    const { collection } = this.cache
+
+    if (!collection.length) {
+      this.logger(`Repository at path "${this.path}" empty.`)
+      this.logger('Consider calling #refreshCache before performing search.')
+
+      return collection
+    }
+
+    try {
+      // Handle query criteria
+      let cursor = this.mingo.find(collection, criteria, projection, this.mopts)
+
+      // Apply sorting rules
+      if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
+
+      // Apply offset
+      if (typeof $skip === 'number') cursor = cursor.skip($skip)
+
+      // Limit results
+      if (typeof $limit === 'number') cursor = cursor.limit($limit)
+
+      // Get entities
+      let entities = cursor.all() as PartialOr<E>[]
+
+      // Pick entity fields from each entity
+      if (Array.isArray($project)) {
+        entities = entities.map(entity => pick(entity, uniq($project)))
+      }
+
+      // Return search results
+      return entities
+    } catch ({ message }) {
+      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, params)
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { SortOrder } from '../enums/sort-order.enum'
 import type { AnyObject, OneOrMany } from '../types-global'
 import type { Expression, FieldPath, QueryCriteria } from '../types-mingo'
 import type { EntityPath } from '../types-repository'
@@ -163,7 +164,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/sort
    */
-  $sort?: Record<EntityPath<E>, -1 | 1 | { $meta: 'textScore' }>
+  $sort?: Partial<Record<EntityPath<E>, SortOrder | { $meta: 'textScore' }>>
 
   /**
    * Groups incoming entities based on the value of a specified expression,
