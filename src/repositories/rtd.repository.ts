@@ -34,6 +34,7 @@ import isPlainObject from 'lodash.isplainobject'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import pick from 'lodash.pick'
+import uniq from 'lodash.uniq'
 import type { RawArray, RawObject } from 'mingo/util'
 import { ValidationError } from 'runtypes/lib/errors'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
@@ -291,30 +292,39 @@ export default class RTDRepository<
    * @throws {Exception}
    */
   async create(dto: EntityDTO<E>): Promise<E> {
-    let data = merge(dto, {
-      created_at: Date.now(),
-      id: isEmpty(dto.id) ? uuid() : `${dto.id}`.trim(),
-      updated_at: undefined
-    }) as E
+    try {
+      let data = merge(dto, {
+        created_at: Date.now(),
+        id: isEmpty(dto.id) ? uuid() : `${dto.id}`.trim(),
+        updated_at: undefined
+      }) as E
 
-    // Check if another entity with the same `id` already exists
-    if (this.findOne(data.id)) {
-      const message = `Entity with id "${data.id}" already exists`
-      const edata = { dto: data, errors: { id: data.id } }
+      // Check if another entity with the same `id` already exists
+      if (this.findOne(data.id)) {
+        const message = `Entity with id "${data.id}" already exists`
+        const edata = { dto: data, errors: { id: data.id } }
 
-      throw new Exception(ExceptionStatusCode.CONFLICT, message, edata)
+        throw new Exception(ExceptionStatusCode.CONFLICT, message, edata)
+      }
+
+      // Validate DTO schema
+      data = this.validate<E>(data)
+
+      // Create new entity
+      data = await this.request<E>({ data, method: 'put', url: data.id })
+
+      // ! Refresh cache
+      await this.refreshCache()
+
+      return data
+    } catch (error) {
+      if (error.constructor.name === 'Exception') throw error
+
+      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      const { message, stack } = error
+
+      throw new Exception(code, message, { dto }, stack)
     }
-
-    // Validate DTO schema
-    data = this.validate<E>(data)
-
-    // Create new entity
-    data = await this.request<E>({ data, method: 'put', url: data.id })
-
-    // ! Refresh cache
-    await this.refreshCache()
-
-    return data
   }
 
   /**
@@ -522,10 +532,38 @@ export default class RTDRepository<
     dto: Partial<EntityDTO<E>>,
     rfields: string[] = []
   ): Promise<E> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+    // Make sure entity exists
+    const entity = this.findOneOrFail(id)
+
+    try {
+      // Get readonly properties
+      const _rfields = uniq(['created_at', 'id', 'updated_at'].concat(rfields))
+
+      // Remove readonly properties from dto
+      dto = omit(dto, _rfields)
+
+      // Merge existing data and update `updated_at` timestamp
+      let data = merge(entity, { ...dto, updated_at: Date.now() }) as E
+
+      // Validate DTO schema
+      data = this.validate<E>(data)
+
+      // Update entity
+      data = await this.request<E>({ data, method: 'put', url: data.id })
+
+      // ! Refresh cache
+      await this.refreshCache()
+
+      return data
+    } catch (error) {
+      if (error.constructor.name === 'Exception') throw error
+
+      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      const { message, stack } = error
+
+      /* eslint-disable-next-line sort-keys */
+      throw new Exception(code, message, { id, dto, rfields }, stack)
+    }
   }
 
   /**
@@ -538,16 +576,25 @@ export default class RTDRepository<
    * @return {Promise<RepoCache<E>>} Updated data cache
    */
   async refreshCache(): Promise<RepoCache<E>> {
-    // Require repository root data
-    const root = await this.request<RepoRoot<E>>()
+    try {
+      // Require repository root data
+      const root = await this.request<RepoRoot<E>>()
 
-    // Get entities
-    const collection = Object.values(root)
+      // Get entities
+      const collection = Object.values(root)
 
-    // Update cache
-    Object.assign(this.cache, { collection, root })
+      // Update cache
+      Object.assign(this.cache, { collection, root })
 
-    return this.cache
+      return this.cache
+    } catch (error) {
+      if (error.constructor.name === 'Exception') throw error
+
+      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      const { message, stack } = error
+
+      throw new Exception(code, message, {}, stack)
+    }
   }
 
   /**

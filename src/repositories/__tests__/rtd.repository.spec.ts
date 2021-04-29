@@ -594,6 +594,16 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#patch', () => {
+    it.todo('should call #findOneOrFail')
+
+    it.todo('should remove readonly fields from dto')
+
+    it.todo('should call #validate')
+
+    it.todo('should update entity and call #refreshCache')
+  })
+
   describe('#refreshCache', () => {
     const Subject = getSubject()
 
