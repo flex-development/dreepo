@@ -83,20 +83,22 @@ describe('unit:repositories/RTDRepository', () => {
   describe('#accessToken', () => {
     const Subject = getSubject()
 
+    // @ts-expect-error testing invocation
+    const spy_jwt_authorizeAsync = jest.spyOn(Subject.jwt, 'authorizeAsync')
+
     it('should generate google oauth2 token', async () => {
+      spy_jwt_authorizeAsync.mockReturnValueOnce(Promise.resolve('TOKEN'))
+
       const access_token: any = await Subject.accessToken()
 
       expect(isType<NullishString>(access_token)).toBeTruthy()
     })
 
     it('should throw Exception if #jwt.authorize throws', async () => {
-      // @ts-expect-error testing invocation
-      const spy = jest.spyOn(Subject.jwt, 'authorizeAsync')
-
       const error = new Error('Test error message')
       const jwtd = pick(Subject.jwt, ['email', 'key', 'scopes'])
 
-      spy.mockReturnValueOnce(Promise.reject(error))
+      spy_jwt_authorizeAsync.mockReturnValueOnce(Promise.reject(error))
 
       let exception = {} as Exception
 
@@ -178,6 +180,67 @@ describe('unit:repositories/RTDRepository', () => {
           Subject.mopts
         )
       })
+    })
+  })
+
+  describe('#clear', () => {
+    const Subject = getSubject()
+
+    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
+      return { data: config.data }
+    })
+
+    const spy_request = jest.spyOn(Subject, 'request')
+
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.http = mockHttp
+    })
+
+    it('should clear cache and database', async () => {
+      const cleared = await Subject.clear()
+
+      expect(cleared).toBeTruthy()
+
+      expect(Subject.cache).toMatchObject(mockCacheEmpty)
+      expect(spy_request).toBeCalledWith({
+        data: Subject.cache.root,
+        method: 'put'
+      })
+    })
+
+    it('should throw Exception if error is Error class type', async () => {
+      let exception = {} as Exception
+
+      try {
+        spy_request.mockImplementationOnce(() => {
+          throw new Error()
+        })
+
+        await Subject.clear()
+      } catch (error) {
+        exception = error
+      }
+
+      expect(exception.constructor.name).toBe('Exception')
+      expect(exception.data).toMatchObject({ cache: Subject.cache })
+    })
+
+    it('should throw Exception if error is Exception class type', async () => {
+      let exception = {} as Exception
+
+      try {
+        spy_request.mockImplementationOnce(() => {
+          throw new Exception()
+        })
+
+        await Subject.clear()
+      } catch (error) {
+        exception = error
+      }
+
+      expect(exception.constructor.name).toBe('Exception')
+      expect(exception.data).toMatchObject({ cache: Subject.cache })
     })
   })
 

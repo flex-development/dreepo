@@ -244,14 +244,31 @@ export default class RTDRepository<
    * Clears all data from the repository.
    *
    * @async
-   * @return {Promise<boolean>} Promise with boolean indicating data was removed
+   * @return {Promise<true>} Promise with `true` indicating data was removed
    * @throws {Exception}
    */
-  async clear(): Promise<boolean> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  async clear(): Promise<true> {
+    try {
+      // ! Update cache
+      Object.assign(this.cache, { collection: [], root: {} })
+
+      // ! Clear database
+      await this.request<RepoRoot<E>>({ data: this.cache.root, method: 'put' })
+    } catch (error) {
+      const data = { cache: this.cache }
+
+      if (error.constructor.name === 'Exception') {
+        error.data = merge(error.data, data)
+        throw error
+      }
+
+      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      const { message, stack } = error
+
+      throw new Exception(code, message, data, stack)
+    }
+
+    return true
   }
 
   /**
@@ -443,6 +460,7 @@ export default class RTDRepository<
 
   /**
    * Finds an entity by ID.
+   *
    * Returns `null` if the entity isn't found.
    *
    * @async
@@ -462,6 +480,7 @@ export default class RTDRepository<
 
   /**
    * Finds an entity by ID.
+   *
    * Throws an error if the entity isn't found.
    *
    * @async
