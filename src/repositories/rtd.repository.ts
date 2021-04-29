@@ -303,7 +303,8 @@ export default class RTDRepository<
   /**
    * Deletes a single entity or group of entities.
    *
-   * Throws an error if the entity or one of the entities doesn't exist.
+   * If {@param should_exist} is `true`, an error will be thrown if the entity
+   * or one of the entities doesn't exist.
    *
    * @async
    * @param {OneOrMany<string>} id - Entity ID or array of IDs
@@ -313,7 +314,7 @@ export default class RTDRepository<
    */
   async delete(
     id: OneOrMany<E['id']>,
-    should_exist: boolean = true
+    should_exist: boolean = false
   ): Promise<string[]> {
     let _ids = Array.isArray(id) ? id : [id]
 
@@ -330,7 +331,7 @@ export default class RTDRepository<
       Object.assign(this.cache, { collection: Object.values(root), root })
 
       // ! Remove entities from database
-      await this.request({ data: root, method: 'put' })
+      await this.request<RepoRoot<E>>({ data: this.cache.root, method: 'put' })
 
       return _ids
     } catch (error) {

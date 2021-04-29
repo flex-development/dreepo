@@ -18,7 +18,7 @@ import {
   Car,
   CARS,
   CARS_ROOT,
-  REPO_PATH_CARS as path
+  REPO_PATH_CARS as REPO_PATH
 } from './__fixtures__/cars.fixture'
 
 /**
@@ -26,20 +26,18 @@ import {
  * @module repositories/tests/RTDRepository
  */
 
-jest.mock('lodash.merge', () => {
-  return jest.fn((...args) => jest.requireActual('lodash.merge')(...args))
-})
-
 const mockMerge = merge as jest.MockedFunction<typeof merge>
+const mockOmit = omit as jest.MockedFunction<typeof omit>
 
 describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
 
-  const mockCache = { collection: CARS, root: CARS_ROOT }
-  const mockCacheEmpty = { collection: [], root: {} }
+  const mockCache = Object.freeze({ collection: CARS, root: CARS_ROOT })
+  const mockCacheEmpty = Object.freeze({ collection: [], root: {} })
 
   const EMPTY_CACHE = true
-  const ENTITY = mockCache.collection[0]
+  const ENTITY = Object.assign({}, mockCache.collection[0])
+  const NON_EXISTENT_ENTITY_ID = 'NON_EXISTENT_ENTITY_ID'
 
   /**
    * Returns a test repository.
@@ -53,10 +51,10 @@ describe('unit:repositories/RTDRepository', () => {
   const getSubject = (
     emptyCache?: boolean
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(path, Car)
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, Car)
 
     // @ts-expect-error mocking
-    Subject.cache = emptyCache ? mockCacheEmpty : mockCache
+    Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
 
     return Subject
   }
@@ -73,11 +71,11 @@ describe('unit:repositories/RTDRepository', () => {
       const Subject = getSubject(EMPTY_CACHE)
 
       expect(Subject.DATABASE_URL).toBe(FIREBASE_DATABASE_URL)
-      expect(Subject.cache).toMatchObject({ collection: [], root: {} })
+      expect(Subject.cache).toMatchObject(mockCacheEmpty)
       expect(Subject.http).toBeDefined()
       expect(isType<JWT>(Subject.jwt as any)).toBeTruthy()
       expect(isType<RuntypeBase<ICar>>(Subject.model as any)).toBeTruthy()
-      expect(Subject.path).toBe(path)
+      expect(Subject.path).toBe(REPO_PATH)
       expect(Subject.validate_enabled).toBe(FIREBASE_RTD_REPOS_VALIDATE)
     })
   })
@@ -259,11 +257,60 @@ describe('unit:repositories/RTDRepository', () => {
   })
 
   describe('#delete', () => {
-    it.todo('should throw if any entity does not exist but should')
+    const Subject = getSubject()
 
-    it.todo('should remove entities from cache and database')
+    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
+      return { data: config.data }
+    })
 
-    it.todo('should return array with ids of deleted entities')
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.http = mockHttp
+    })
+
+    it('should throw if any entity does not exist but should', async () => {
+      const SHOULD_EXIST = true
+      const ids = [NON_EXISTENT_ENTITY_ID]
+
+      let exception = {} as Exception
+
+      try {
+        await Subject.delete(ids, SHOULD_EXIST)
+      } catch (error) {
+        exception = error
+      }
+
+      const ejson = exception.toJSON()
+
+      expect(ejson.code).toBe(ExceptionStatusCode.NOT_FOUND)
+      expect(ejson.data).toMatchObject({ ids, should_exist: SHOULD_EXIST })
+    })
+
+    it('should filter out ids of entities that do not exist', async () => {
+      const ids = [NON_EXISTENT_ENTITY_ID]
+
+      const result = await Subject.delete(ids)
+
+      expect(mockOmit).toBeCalledWith(Subject.cache.root, [])
+      expect(result).toBeArray({ length: 0 })
+    })
+
+    it('should remove entities from cache and database', async () => {
+      const spy_request = jest.spyOn(Subject, 'request')
+
+      const ids = [ENTITY.id, NON_EXISTENT_ENTITY_ID]
+
+      await Subject.delete(ids)
+
+      expect(Subject.cache.collection.find(e => e.id === ENTITY.id)).toBeFalsy()
+      expect(Subject.cache.root[ENTITY.id]).not.toBeDefined()
+
+      expect(spy_request).toBeCalledTimes(1)
+      expect(spy_request).toBeCalledWith({
+        data: Subject.cache.root,
+        method: 'put'
+      })
+    })
   })
 
   describe('#find', () => {
@@ -435,7 +482,7 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should return null if entity is not found', () => {
-      const id = 'NON_EXISTENT_ENTITY_ID'
+      const id = NON_EXISTENT_ENTITY_ID
 
       spy_find.mockReturnValue([])
 
@@ -465,7 +512,7 @@ describe('unit:repositories/RTDRepository', () => {
     })
 
     it('should throw Exception if entity is not found', () => {
-      const id = 'NON_EXISTENT_ENTITY_ID'
+      const id = NON_EXISTENT_ENTITY_ID
 
       let exception = {} as Exception
 
