@@ -595,13 +595,56 @@ describe('unit:repositories/RTDRepository', () => {
   })
 
   describe('#patch', () => {
-    it.todo('should call #findOneOrFail')
+    const Subject = getSubject()
 
-    it.todo('should remove readonly fields from dto')
+    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
+      if (config.url?.includes(ENTITY.id)) return { data: config.data }
+      return { data: CARS }
+    })
 
-    it.todo('should call #validate')
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.http = mockHttp
+    })
 
-    it.todo('should update entity and call #refreshCache')
+    it('should call #findOneOrFail', async () => {
+      const spy_findOneOrFail = jest.spyOn(Subject, 'findOneOrFail')
+
+      await Subject.patch(ENTITY.id, {})
+
+      expect(spy_findOneOrFail).toBeCalledTimes(1)
+      expect(spy_findOneOrFail).toBeCalledWith(ENTITY.id)
+    })
+
+    it('should remove readonly fields from dto', async () => {
+      const dto = { ...ENTITY, id: '' }
+
+      await Subject.patch(ENTITY.id, dto)
+
+      expect(mockMerge.mock.results[0].value.id).not.toBe(dto.id)
+    })
+
+    it('should call #validate', async () => {
+      const spy_validate = jest.spyOn(Subject, 'validate')
+
+      await Subject.patch(ENTITY.id, {})
+
+      expect(spy_validate).toBeCalledTimes(1)
+    })
+
+    it('should update entity and call #refreshCache', async () => {
+      const spy_request = jest.spyOn(Subject, 'request')
+      const spy_refreshCache = jest.spyOn(Subject, 'refreshCache')
+
+      const dto = { make: 'MAKE' }
+
+      await Subject.patch(ENTITY.id, dto)
+
+      expect(spy_request.mock.calls[0][0]?.data.make).toBe(dto.make)
+      expect(spy_request.mock.calls[0][0]?.url).toBe(ENTITY.id)
+
+      expect(spy_refreshCache).toBeCalledTimes(1)
+    })
   })
 
   describe('#refreshCache', () => {
