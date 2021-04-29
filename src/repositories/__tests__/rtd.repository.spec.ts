@@ -699,6 +699,48 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#save', () => {
+    const Subject = getSubject()
+
+    const DTO_BASE = { make: 'MAKE', model: 'MODEL', model_year: -1 }
+
+    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
+      if (config?.method === 'put') return { data: config.data }
+      return { data: CARS_ROOT }
+    })
+
+    const spy_findOne = jest.spyOn(Subject, 'findOne')
+
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.http = mockHttp
+    })
+
+    it('should create new entity', async () => {
+      const spy_create = jest.spyOn(Subject, 'create')
+
+      spy_findOne.mockReturnValueOnce(null)
+
+      await Subject.save(DTO_BASE)
+
+      expect(spy_create).toBeCalledTimes(1)
+      expect(spy_create).toBeCalledWith(DTO_BASE)
+    })
+
+    it('should patch entity', async () => {
+      const spy_patch = jest.spyOn(Subject, 'patch')
+
+      spy_findOne.mockReturnValue(ENTITY)
+
+      const dto = { ...ENTITY, ...DTO_BASE }
+
+      await Subject.save(dto)
+
+      expect(spy_patch).toBeCalledTimes(1)
+      expect(spy_patch).toBeCalledWith(dto.id, dto)
+    })
+  })
+
   describe('#validate', () => {
     const Subject = getSubject()
 

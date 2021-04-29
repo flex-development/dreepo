@@ -1,10 +1,18 @@
+import type { Debugger } from 'debug'
+import type { JWT } from 'google-auth-library'
 import mingo from 'mingo'
 import type { RawArray, RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { EntityDTO } from '../dto/entity.dto'
-import type { OneOrMany, PartialOr } from '../types-global'
-import type { EntityEnhanced, QueryParams } from '../types-repository'
+import type { NullishString, OneOrMany, PartialOr } from '../types-global'
+import type {
+  EntityEnhanced,
+  QueryParams,
+  RepoCache,
+  RepoHttpClient
+} from '../types-repository'
 import type { AggregationStages } from './aggregration-stages.interface'
+import type { DBRequestConfig } from './db-request-config.interface'
 import type { IEntity } from './entity.interface'
 import type { MingoOptions } from './mingo-options.interface'
 
@@ -23,12 +31,18 @@ export interface IRTDRepository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
 > {
+  readonly DATABASE_URL: string
+  readonly cache: RepoCache<E>
+  readonly http: RepoHttpClient
+  readonly jwt: JWT
+  readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly mopts: MingoOptions
   readonly model: RuntypeBase<E>
   readonly path: string
   readonly validate_enabled: boolean
 
+  accessToken(): Promise<NullishString>
   aggregate(
     pipeline?: OneOrMany<AggregationStages<E>>
   ): PartialOr<EntityEnhanced<E>>[] | RawArray
@@ -40,6 +54,8 @@ export interface IRTDRepository<
   findOne(id: E['id'], params?: P): PartialOr<E> | null
   findOneOrFail(id: E['id'], params?: P): PartialOr<E>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
-  save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>>
-  validate(value?: RawObject): E | typeof value
+  refreshCache(): Promise<RepoCache<E>>
+  request<T = any>(config?: DBRequestConfig): Promise<T>
+  save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]>
+  validate<V extends unknown = RawObject>(value?: V): E | V
 }

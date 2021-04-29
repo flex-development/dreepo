@@ -70,13 +70,6 @@ export default class RTDRepository<
   /**
    * @readonly
    * @instance
-   * @property {string} ENV - Node environment
-   */
-  readonly ENV: string
-
-  /**
-   * @readonly
-   * @instance
    * @property {RepoCache} cache - Repository data cache
    */
   readonly cache: RepoCache<E>
@@ -156,8 +149,7 @@ export default class RTDRepository<
       FIREBASE_CLIENT_EMAIL: client_email,
       FIREBASE_DATABASE_URL,
       FIREBASE_PRIVATE_KEY: private_key,
-      FIREBASE_RTD_REPOS_VALIDATE: validate_enabled,
-      NODE_ENV
+      FIREBASE_RTD_REPOS_VALIDATE: validate_enabled
     } = configuration()
 
     // Required scopes to generate Google OAuth2 access token
@@ -167,7 +159,6 @@ export default class RTDRepository<
     ]
 
     this.DATABASE_URL = FIREBASE_DATABASE_URL
-    this.ENV = NODE_ENV
     this.cache = { collection: [], root: {} }
     this.http = http
     this.jwt = new JWT(client_email, undefined, private_key, scopes)
@@ -573,7 +564,8 @@ export default class RTDRepository<
    * is created or updated.
    *
    * @async
-   * @return {Promise<RepoCache<E>>} Updated data cache
+   * @return {Promise<RepoCache<E>>} Updated repository cache
+   * @throws {Exception}
    */
   async refreshCache(): Promise<RepoCache<E>> {
     try {
@@ -636,14 +628,33 @@ export default class RTDRepository<
    *
    * @async
    * @param {OneOrMany<PartialOr<EntityDTO<E>>>} dto - Entities to upsert
-   * @return {Promise<OneOrMany<E>>} Promise with new entity or entities
-   * @throws {Exception}
+   * @return {Promise<E[]>} Promise with new or updated entities
    */
-  async save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<OneOrMany<E>> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  async save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]> {
+    /**
+     * Creates or updates a single entity.
+     *
+     * If the entity already exists in the database, it will be updated.
+     * If the entity does not exist in the database, it will be inserted.
+     *
+     * @async
+     * @param {PartialOr<EntityDTO<E>>} dto - Data to upsert entity
+     * @return {Promise<E>} Promise with new or updated entiy
+     */
+    const upsert = async (dto: PartialOr<EntityDTO<E>>): Promise<E> => {
+      const { id = '' } = dto
+
+      const exists = this.findOne(id)
+
+      if (!exists) return await this.create(dto as EntityDTO<E>)
+      return await this.patch(id, dto)
+    }
+
+    // Convert into array of DTOs
+    const dtos = Array.isArray(dto) ? dto : [dto]
+
+    // Perform upsert
+    return await Promise.all(dtos.map(async d => upsert(d)))
   }
 
   /**
