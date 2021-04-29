@@ -4,7 +4,10 @@ import type { AggregationStages } from '@/lib/interfaces'
 import type { NullishString } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { AxiosRequestConfig } from 'axios'
 import type { JWT } from 'google-auth-library'
+import merge from 'lodash.merge'
+import omit from 'lodash.omit'
 import pick from 'lodash.pick'
 import type { RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
@@ -22,6 +25,12 @@ import {
  * @file Unit Tests - RTDRepository
  * @module repositories/tests/RTDRepository
  */
+
+jest.mock('lodash.merge', () => {
+  return jest.fn((...args) => jest.requireActual('lodash.merge')(...args))
+})
+
+const mockMerge = merge as jest.MockedFunction<typeof merge>
 
 describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
@@ -163,15 +172,81 @@ describe('unit:repositories/RTDRepository', () => {
   })
 
   describe('#create', () => {
-    it.todo('should add timestamp to dto')
+    const Subject = getSubject()
 
-    it.todo('should assign id if dto.id is nullable or empty string')
+    const dto = { ...ENTITY, id: `${ENTITY.id}-test` }
 
-    it.todo('should throw Exception if entity with dto.id already exists')
+    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
+      if (config.url?.includes(dto.id)) return { data: config.data }
+      return { data: CARS }
+    })
 
-    it.todo('should call #validate')
+    beforeAll(() => {
+      // @ts-expect-error mocking
+      Subject.cache = mockCache
 
-    it.todo('should create new entity and call #refreshCache')
+      // @ts-expect-error mocking
+      Subject.http = mockHttp
+    })
+
+    it('should add timestamps to dto', async () => {
+      await Subject.create(dto)
+
+      const data = mockMerge.mock.results[0].value
+
+      expect(typeof data.created_at === 'number').toBeTruthy()
+      expect(data.updated_at).toBe(undefined)
+    })
+
+    it('should assign id if dto.id is nullable or empty string', async () => {
+      await Subject.create({ ...dto, id: undefined })
+
+      const data = mockMerge.mock.results[0].value
+
+      expect(typeof data.id === 'string').toBeTruthy()
+    })
+
+    it('should throw if entity with dto.id already exists', async () => {
+      let exception = {} as Exception
+
+      const this_dto = { ...dto, id: ENTITY.id }
+      const emessage_match = new RegExp(`id "${this_dto.id}" already exists`)
+
+      try {
+        await Subject.create(this_dto)
+      } catch (error) {
+        exception = error
+      }
+
+      const ejson = exception.toJSON()
+
+      expect(ejson.code).toBe(ExceptionStatusCode.CONFLICT)
+      expect(ejson.data.dto).toMatchObject(this_dto)
+      expect((ejson.errors as RawObject).id).toBe(this_dto.id)
+      expect(ejson.message).toMatch(emessage_match)
+    })
+
+    it('should call #validate', async () => {
+      const spy_validate = jest.spyOn(Subject, 'validate')
+
+      await Subject.create(dto)
+
+      expect(spy_validate).toBeCalledTimes(1)
+    })
+
+    it('should create new entity and call #refreshCache', async () => {
+      const spy_request = jest.spyOn(Subject, 'request')
+      const spy_refreshCache = jest.spyOn(Subject, 'refreshCache')
+
+      const result = await Subject.create(dto)
+
+      expect(result).toMatchObject(omit(dto, ['created_at']))
+
+      expect(spy_request.mock.calls[0][0]?.method).toBe('put')
+      expect(spy_request.mock.calls[0][0]?.url).toBe(dto.id)
+
+      expect(spy_refreshCache).toBeCalledTimes(1)
+    })
   })
 
   describe('#find', () => {
