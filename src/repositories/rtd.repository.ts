@@ -36,6 +36,7 @@ import pick from 'lodash.pick'
 import type { RawArray, RawObject } from 'mingo/util'
 import { ValidationError } from 'runtypes/lib/errors'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
+import { v4 as uuid } from 'uuid'
 
 /**
  * @file Repositories - RTDRepository
@@ -254,10 +255,17 @@ export default class RTDRepository<
 
   /**
    * Creates a new entity.
-   * The entity will be timestamped and assigned an UUID.
    *
-   * Throws an error if an entity with the same `id` exists, or if model
+   * The entity will be timestamped and assigned an UUID if {@param dto.id} is
+   * nullable or an empty string.
+   *
+   * Throws an error if an entity with the same `id` exists, or if schema
    * validation is enabled and fails.
+   *
+   * References:
+   *
+   * - https://firebase.google.com/docs/reference/rest/database#section-put
+   * - https://github.com/uuidjs/uuid
    *
    * @async
    * @param {EntityDTO<E>} dto - Data to create new entity
@@ -265,10 +273,30 @@ export default class RTDRepository<
    * @throws {Exception}
    */
   async create(dto: EntityDTO<E>): Promise<E> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+    let data = merge(dto, {
+      created_at: Date.now(),
+      id: isEmpty(dto.id) ? uuid() : `${dto.id}`.trim(),
+      updated_at: undefined
+    }) as E
+
+    // Check if another entity with the same `id` already exists
+    if (this.findOne(data.id)) {
+      const message = `Entity with id "${data.id}" already exists`
+      const edata = { dto: data, errors: { id: data.id } }
+
+      throw new Exception(ExceptionStatusCode.CONFLICT, message, edata)
+    }
+
+    // Validate DTO schema
+    data = this.validate<E>(data)
+
+    // Create new entity
+    data = await this.request<E>({ data, method: 'put', url: data.id })
+
+    // Refresh cache
+    await this.refreshCache()
+
+    return data
   }
 
   /**
@@ -421,9 +449,10 @@ export default class RTDRepository<
 
   /**
    * Partially updates an entity.
+   *
    * The entity's `created_at` and `id` properties cannot be patched.
    *
-   * Throws an error if the entity isn't found, or if model validation is
+   * Throws an error if the entity isn't found, or if schema validation is
    * enabled and fails.
    *
    * @async
@@ -519,13 +548,17 @@ export default class RTDRepository<
    * Validates {@param value} against {@see RTDRepository#model} if schema
    * validation is enabled. If disabled, the original value will be returned.
    *
+   * References:
+   *
+   * - https://github.com/pelotom/runtypes
+   *
    * @template V - Type of value being validated
    *
    * @param {V} value - Data to validate
    * @return {E | V} - Validated object or original value
    * @throws {Exception}
    */
-  validate<V extends RawObject = RawObject>(value: V = {} as V): E | V {
+  validate<V extends unknown = RawObject>(value: V = {} as V): E | V {
     if (!this.validate_enabled) return value
 
     try {

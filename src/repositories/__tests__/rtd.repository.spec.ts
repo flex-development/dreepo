@@ -162,6 +162,18 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#create', () => {
+    it.todo('should add timestamp to dto')
+
+    it.todo('should assign id if dto.id is nullable or empty string')
+
+    it.todo('should throw Exception if entity with dto.id already exists')
+
+    it.todo('should call #validate')
+
+    it.todo('should create new entity and call #refreshCache')
+  })
+
   describe('#find', () => {
     const Subject = getSubject()
 

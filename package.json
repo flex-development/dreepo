@@ -61,7 +61,8 @@
     "lodash.pick": "latest",
     "lodash.uniq": "latest",
     "mingo": "latest",
-    "runtypes": "latest"
+    "runtypes": "latest",
+    "uuid": "latest"
   },
   "devDependencies": {
     "@babel/eslint-parser": "latest",
@@ -90,6 +91,7 @@
     "@types/lodash.uniq": "latest",
     "@types/node": "latest",
     "@types/urijs": "latest",
+    "@types/uuid": "latest",
     "@types/validator": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
