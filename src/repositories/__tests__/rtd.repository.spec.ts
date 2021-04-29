@@ -1,7 +1,7 @@
 import configuration from '@/config/configuration'
 import { SortOrder } from '@/lib/enums'
 import type { AggregationStages } from '@/lib/interfaces'
-import type { NullishString } from '@/lib/types'
+import type { NullishString, QueryParams } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { AxiosRequestConfig } from 'axios'
@@ -13,12 +13,12 @@ import type { RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../rtd.repository'
-import type { CarEntity } from './__fixtures__/cars.fixture'
+import type { CarEntity as ICar } from './__fixtures__/cars.fixture'
 import {
   Car,
   CARS,
   CARS_ROOT,
-  REPO_PATH_CARS
+  REPO_PATH_CARS as path
 } from './__fixtures__/cars.fixture'
 
 /**
@@ -35,11 +35,31 @@ const mockMerge = merge as jest.MockedFunction<typeof merge>
 describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
 
-  const getSubject = () => new TestSubject<CarEntity>(REPO_PATH_CARS, Car)
-
   const mockCache = { collection: CARS, root: CARS_ROOT }
+  const mockCacheEmpty = { collection: [], root: {} }
 
+  const EMPTY_CACHE = true
   const ENTITY = mockCache.collection[0]
+
+  /**
+   * Returns a test repository.
+   *
+   * If {@param emptyCache} is `true`, the repository will be initialized with
+   * an empty cache. Otherwise the mockCache will be used.
+   *
+   * @param {boolean} [emptyCache] - Initialize with empty mock cache
+   * @return {TestSubject<ICar, QueryParams<ICar>>} Test repo
+   */
+  const getSubject = (
+    emptyCache?: boolean
+  ): TestSubject<ICar, QueryParams<ICar>> => {
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(path, Car)
+
+    // @ts-expect-error mocking
+    Subject.cache = emptyCache ? mockCacheEmpty : mockCache
+
+    return Subject
+  }
 
   describe('exports', () => {
     it('should export class by default', () => {
@@ -50,14 +70,14 @@ describe('unit:repositories/RTDRepository', () => {
 
   describe('constructor', () => {
     it('should initialize instance properties', () => {
-      const Subject = getSubject()
+      const Subject = getSubject(EMPTY_CACHE)
 
       expect(Subject.DATABASE_URL).toBe(FIREBASE_DATABASE_URL)
       expect(Subject.cache).toMatchObject({ collection: [], root: {} })
       expect(Subject.http).toBeDefined()
       expect(isType<JWT>(Subject.jwt as any)).toBeTruthy()
-      expect(isType<RuntypeBase<CarEntity>>(Subject.model as any)).toBeTruthy()
-      expect(Subject.path).toBe(REPO_PATH_CARS)
+      expect(isType<RuntypeBase<ICar>>(Subject.model as any)).toBeTruthy()
+      expect(Subject.path).toBe(path)
       expect(Subject.validate_enabled).toBe(FIREBASE_RTD_REPOS_VALIDATE)
     })
   })
@@ -101,20 +121,12 @@ describe('unit:repositories/RTDRepository', () => {
   describe('#aggregate', () => {
     const Subject = getSubject()
 
-    const stage: AggregationStages<CarEntity> = { $count: 'count' }
+    const stage: AggregationStages<ICar> = { $count: 'count' }
 
     const spy_aggregate = jest.spyOn(Subject.mingo, 'aggregate')
 
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-    })
-
     it('should not call #mingo.aggregate if cache is empty', () => {
-      const ThisSubject = getSubject()
-
-      // @ts-expect-error mocking
-      ThisSubject.cache = { collection: [], root: {} }
+      const ThisSubject = getSubject(EMPTY_CACHE)
 
       const this_spy_aggregate = jest.spyOn(ThisSubject.mingo, 'aggregate')
 
@@ -183,9 +195,6 @@ describe('unit:repositories/RTDRepository', () => {
 
     beforeAll(() => {
       // @ts-expect-error mocking
-      Subject.cache = mockCache
-
-      // @ts-expect-error mocking
       Subject.http = mockHttp
     })
 
@@ -249,6 +258,14 @@ describe('unit:repositories/RTDRepository', () => {
     })
   })
 
+  describe('#delete', () => {
+    it.todo('should throw if any entity does not exist but should')
+
+    it.todo('should remove entities from cache and database')
+
+    it.todo('should return array with ids of deleted entities')
+  })
+
   describe('#find', () => {
     const Subject = getSubject()
 
@@ -262,16 +279,12 @@ describe('unit:repositories/RTDRepository', () => {
     const mockFind = jest.fn().mockReturnValue(mockCursor)
 
     beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
       Subject.mingo.find = mockFind
     })
 
     it('should not call #mingo.find if cache is empty', () => {
-      const ThisSubject = getSubject()
+      const ThisSubject = getSubject(EMPTY_CACHE)
 
-      // @ts-expect-error mocking
-      ThisSubject.cache = { collection: [], root: {} }
       ThisSubject.mingo.find = mockFind
 
       ThisSubject.find()
@@ -356,11 +369,6 @@ describe('unit:repositories/RTDRepository', () => {
 
     const spy_find = jest.spyOn(Subject, 'find')
 
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-    })
-
     it('return specified entities', () => {
       const ids = [ENTITY.id]
 
@@ -388,6 +396,7 @@ describe('unit:repositories/RTDRepository', () => {
         }
 
         expect(exception.constructor.name).toBe('Exception')
+        expect(exception.data).toMatchObject({ ids: [], params: {} })
       })
 
       it('should throw Exception if error is Exception class type', () => {
@@ -404,6 +413,7 @@ describe('unit:repositories/RTDRepository', () => {
         }
 
         expect(exception.constructor.name).toBe('Exception')
+        expect(exception.data).toMatchObject({ ids: [], params: {} })
       })
     })
   })
@@ -412,11 +422,6 @@ describe('unit:repositories/RTDRepository', () => {
     const Subject = getSubject()
 
     const spy_find = jest.spyOn(Subject, 'find')
-
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-    })
 
     it('should return entity', () => {
       spy_find.mockReturnValue([ENTITY])
@@ -447,11 +452,6 @@ describe('unit:repositories/RTDRepository', () => {
     const Subject = getSubject()
 
     const spy_findOne = jest.spyOn(Subject, 'findOne')
-
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = mockCache
-    })
 
     it('should return entity', () => {
       spy_findOne.mockReturnValue(ENTITY)

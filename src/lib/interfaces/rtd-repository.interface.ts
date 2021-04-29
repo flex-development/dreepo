@@ -34,7 +34,7 @@ export interface IRTDRepository<
   ): PartialOr<EntityEnhanced<E>>[] | RawArray
   clear(): Promise<boolean>
   create(dto: EntityDTO<E>): Promise<E>
-  delete(id: OneOrMany<E['id']>): Promise<typeof id>
+  delete(id: OneOrMany<E['id']>, should_exist?: boolean): Promise<typeof id>
   find(params?: P): PartialOr<E>[]
   findByIds(ids: E['id'][], params?: P): PartialOr<E>[]
   findOne(id: E['id'], params?: P): PartialOr<E> | null

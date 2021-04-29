@@ -32,6 +32,7 @@ import { JWT } from 'google-auth-library'
 import isEmpty from 'lodash.isempty'
 import isPlainObject from 'lodash.isplainobject'
 import merge from 'lodash.merge'
+import omit from 'lodash.omit'
 import pick from 'lodash.pick'
 import type { RawArray, RawObject } from 'mingo/util'
 import { ValidationError } from 'runtypes/lib/errors'
@@ -293,7 +294,7 @@ export default class RTDRepository<
     // Create new entity
     data = await this.request<E>({ data, method: 'put', url: data.id })
 
-    // Refresh cache
+    // ! Refresh cache
     await this.refreshCache()
 
     return data
@@ -306,15 +307,45 @@ export default class RTDRepository<
    *
    * @async
    * @param {OneOrMany<string>} id - Entity ID or array of IDs
-   * @return {Promise<OneOrMany<string>>} Promise with ID of deleted entity or
-   * array of deleted entity IDs
+   * @param {boolean} [should_exist] - Throw if any entities don't exist
+   * @return {Promise<string[]>} Promise with array of deleted entity IDs
    * @throws {Exception}
    */
-  async delete(id: OneOrMany<E['id']>): Promise<typeof id> {
-    throw new Exception(
-      ExceptionStatusCode.NOT_IMPLEMENTED,
-      'Method not implemented'
-    )
+  async delete(
+    id: OneOrMany<E['id']>,
+    should_exist: boolean = true
+  ): Promise<string[]> {
+    let _ids = Array.isArray(id) ? id : [id]
+
+    try {
+      // Check if all entities exist or filter our non-existent entities
+      if (should_exist) _ids.forEach(id => this.findOneOrFail(id))
+      else _ids = _ids.filter(id => this.findOne(id))
+
+      // Get repository root data from cache
+      let root = Object.assign({}, this.cache.root)
+
+      // ! Remove entities and update cache
+      root = omit(root, _ids)
+      Object.assign(this.cache, { collection: Object.values(root), root })
+
+      // ! Remove entities from database
+      await this.request({ data: root, method: 'put' })
+
+      return _ids
+    } catch (error) {
+      const data = { ids: _ids, should_exist }
+
+      if (error.constructor.name === 'Exception') {
+        error.data = merge(error.data, data)
+        throw error
+      }
+
+      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
+      const { message, stack } = error
+
+      throw new Exception(code, message, data, stack)
+    }
   }
 
   /**
@@ -396,10 +427,14 @@ export default class RTDRepository<
       // Get specified entities
       return entities.filter(entity => ids.includes(entity.id as string))
     } catch (error) {
-      if (error.constructor.name === 'Exception') throw error
+      const data = { ids, params }
+
+      if (error.constructor.name === 'Exception') {
+        error.data = merge(error.data, data)
+        throw error
+      }
 
       const { message, stack } = error
-      const data = { ids, params }
 
       throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
     }
@@ -489,7 +524,7 @@ export default class RTDRepository<
     // Get entities
     const collection = Object.values(root)
 
-    // Update data cache
+    // Update cache
     Object.assign(this.cache, { collection, root })
 
     return this.cache
