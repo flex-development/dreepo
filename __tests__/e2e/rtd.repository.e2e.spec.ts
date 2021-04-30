@@ -8,7 +8,7 @@ import {
   REPO_PATH_CARS as REPO_PATH,
   REPO_PATH_CARS
 } from '@tests/fixtures/cars.fixture'
-import { clearRepository } from '@tests/utils'
+import { clearRepository, loadRepository } from '@tests/utils'
 
 /**
  * @file E2E Tests - RTDRepository
@@ -23,19 +23,22 @@ describe('e2e:RTDRepository', () => {
   /**
    * Returns a test repository.
    *
+   * @param {boolean} [cache] - If `true`, return with mock cache intialized
    * @return {TestSubject<ICar, QueryParams<ICar>>} Test repo
    */
-  const getSubject = (): TestSubject<ICar, QueryParams<ICar>> => {
-    return new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, Car)
+  const getSubject = (
+    cache: boolean = true
+  ): TestSubject<ICar, QueryParams<ICar>> => {
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, Car)
+
+    // @ts-expect-error mocking
+    if (cache) Subject.cache = Object.assign({}, mockCache)
+
+    return Subject
   }
 
   describe('#clear', () => {
     const Subject = getSubject()
-
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.cache = Object.assign({}, mockCache)
-    })
 
     it('should clear database', async () => {
       const cleared = await Subject.clear()
@@ -71,9 +74,34 @@ describe('e2e:RTDRepository', () => {
   })
 
   describe('#delete', () => {
-    it.todo('should remove one entity')
+    const Subject = getSubject()
 
-    it.todo('should remove a group of entities')
+    beforeAll(async () => {
+      await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+    })
+
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
+
+    it('should remove one entity', async () => {
+      const id = Subject.cache.collection[0].id
+
+      const deleted = await Subject.delete(id)
+
+      expect(deleted[0]).toBe(id)
+    })
+
+    it('should remove a group of entities', async () => {
+      const ids = [
+        Subject.cache.collection[1].id,
+        Subject.cache.collection[2].id
+      ]
+
+      const deleted = await Subject.delete(ids)
+
+      expect(deleted).toEqual(expect.arrayContaining(ids))
+    })
   })
 
   describe('#patch', () => {
