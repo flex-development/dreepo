@@ -43,6 +43,11 @@ describe('e2e:RTDRepository', () => {
     model_year: -1
   })
 
+  const DTO2: Readonly<EntityDTO<ICar>> = Object.freeze({
+    ...DTO,
+    model: 'BEST MODEL'
+  })
+
   describe('#clear', () => {
     const Subject = getSubject()
 
@@ -149,15 +154,64 @@ describe('e2e:RTDRepository', () => {
 
   describe('#save', () => {
     describe('should create', () => {
-      it.todo('should create one entity')
+      const cache = false
+      const Subject = getSubject(cache)
 
-      it.todo('should create a group of entities')
+      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
+      const dto2: EntityDTO<ICar> = Object.assign({}, DTO2)
+
+      afterAll(async () => {
+        await clearRepository(REPO_PATH_CARS)
+      })
+
+      it('should create one entity', async () => {
+        const entities = await Subject.save(dto)
+
+        expect(entities[0]).toMatchObject(dto)
+      })
+
+      it('should create a group of entities', async () => {
+        const dtos = [dto, dto2]
+
+        const entities = await Subject.save(dtos)
+
+        expect(entities[0]).toMatchObject(dtos[0])
+        expect(entities[1]).toMatchObject(dtos[1])
+      })
     })
 
     describe('should patch', () => {
-      it.todo('should patch one entity')
+      const Subject = getSubject()
 
-      it.todo('should patch a group of entities')
+      beforeAll(async () => {
+        await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+      })
+
+      afterAll(async () => {
+        await clearRepository(REPO_PATH_CARS)
+      })
+
+      it('should patch one entity', async () => {
+        const id = Subject.cache.collection[2].id
+        const dto: EntityDTO<ICar> = Object.assign({}, { ...DTO, id })
+
+        const entities = await Subject.save(dto)
+
+        expect(entities[0]).toMatchObject(dto)
+      })
+
+      it('should patch a group of entities', async () => {
+        const id = Subject.cache.collection[0].id
+        const id1 = Subject.cache.collection[1].id
+
+        const dto: EntityDTO<ICar> = Object.assign({}, { ...DTO, id: id })
+        const dto1: EntityDTO<ICar> = Object.assign({}, { ...DTO, id: id1 })
+
+        const entities = await Subject.save([dto, dto1])
+
+        expect(entities[0]).toMatchObject(dto)
+        expect(entities[1]).toMatchObject(dto1)
+      })
     })
   })
 })
