@@ -1,5 +1,4 @@
 import debug from 'debug'
-import pkg from '../../package.json'
 
 /**
  * @file Config - Logger
@@ -7,4 +6,4 @@ import pkg from '../../package.json'
  * @see https://github.com/visionmedia/debug
  */
 
-export default debug(pkg.name.split('/')[1])
+export default debug('rtd-repos')

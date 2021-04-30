@@ -20,11 +20,6 @@ import isURL from 'validator/lib/isURL'
 const DB_HOSTNAMES = ['firebaseio.com', 'europe-west1.firebasedatabase.app']
 
 /**
- * @property {string} ENVIRONMENTS - Support Node environments
- */
-const ENVIRONMENTS = ['development', 'production', 'test']
-
-/**
  * Returns an object containing the project's environment variables.
  *
  * Throws an error if any required variables are missing or invalid.
@@ -38,8 +33,7 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     FIREBASE_CLIENT_EMAIL = '',
     FIREBASE_DATABASE_URL = '',
     FIREBASE_PRIVATE_KEY = '',
-    FIREBASE_RTD_REPOS_VALIDATE = 'true',
-    NODE_ENV = 'development'
+    FIREBASE_RTD_REPOS_VALIDATE = 'true'
   } = isPlainObject(env) ? (env as typeof process['env']) : process.env
 
   let exception: Exception | null = null
@@ -86,13 +80,8 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     FIREBASE_RTD_REPOS_VALIDATE: (() => {
       const VM = JSON.parse(`${FIREBASE_RTD_REPOS_VALIDATE.toLowerCase()}`)
       return isBoolean(VM) ? VM : true
-    })(),
-    NODE_ENV: (() => {
-      const ENV = (isString(NODE_ENV) ? NODE_ENV : '').toLowerCase()
-      return ENVIRONMENTS.includes(ENV) ? ENV : 'development'
     })()
   }
 }
 
 export default configuration
-export { DB_HOSTNAMES, ENVIRONMENTS }

@@ -28,7 +28,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
-    "dist",
+    "dist/**",
     "CHANGELOG.md",
     "LICENSE.md",
     "README.md"
@@ -39,13 +39,12 @@
     "postinstall": "husky-run install",
     "format": "prettier --write \"./\"",
     "lint": "eslint . --ext js,ts --fix --cache",
-    "test": "zsh ./scripts/jest.sh",
-    "precompile": "rm -rf ./dist || true",
-    "compile": "ttsc -p tsconfig.prod.json",
-    "postcompile": "node ./scripts/js/fix-node-module-paths",
-    "release": "zsh ./scripts/release.sh",
-    "prepublishOnly": "zsh ./scripts/prepublishOnly.sh",
-    "postpublish": "zsh ./scripts/postpublish.sh"
+    "test": "zsh scripts/jest.sh",
+    "test:e2e": "zsh scripts/jest-e2e.sh",
+    "compile": "zsh scripts/compile.sh",
+    "release": "zsh scripts/release.sh",
+    "prepublishOnly": "zsh scripts/prepublishOnly.sh",
+    "postpublish": "zsh scripts/postpublish.sh"
   },
   "dependencies": {
     "@flex-development/exceptions": "1.0.0",
@@ -120,7 +119,7 @@
     "ts-node": "latest",
     "ttypescript": "latest",
     "type-plus": "latest",
-    "typescript": "4.3.0-beta",
+    "typescript": "4.3.0-dev.20210306",
     "underscore-cli": "latest",
     "urijs": "latest",
     "validator": "latest",
@@ -146,7 +145,6 @@
     "FIREBASE_CLIENT_EMAIL",
     "FIREBASE_DATABASE_URL",
     "FIREBASE_PRIVATE_KEY",
-    "FIREBASE_RTD_REPOS_VALIDATE",
-    "NODE_ENV"
+    "FIREBASE_RTD_REPOS_VALIDATE"
   ]
 }

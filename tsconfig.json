@@ -20,14 +20,16 @@
     "noUnusedParameters": false,
     "outDir": "dist",
     "paths": {
+      "@": ["src/index.ts"],
+      "@/*": ["src/*"],
       "@flex-development/exceptions": [
-        "node_modules/@flex-development/exceptions/dist/index.ts"
+        "node_modules/@flex-development/exceptions/dist/index.js"
       ],
       "@flex-development/exceptions/*": [
         "node_modules/@flex-development/exceptions/dist/*"
       ],
-      "@": ["src/index.ts"],
-      "@/*": ["src/*"],
+      "@flex-development/rtd-repos": ["dist/index.js"],
+      "@flex-development/rtd-repos/*": ["dist/*"],
       "@tests/fixtures/*": ["__tests__/__fixtures__/*"],
       "@tests/*": ["__tests__/*"]
     },

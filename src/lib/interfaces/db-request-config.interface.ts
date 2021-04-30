@@ -1,4 +1,5 @@
 import type { AxiosRequestConfig as Config } from 'axios'
+import type { RawObject } from 'mingo/util'
 
 /**
  * @file Interface - DBRequestConfig
@@ -9,5 +10,5 @@ import type { AxiosRequestConfig as Config } from 'axios'
  * Axios request config for the Firebase Database REST API.
  */
 export interface DBRequestConfig extends Omit<Config, 'baseURL' | 'params'> {
-  params?: Omit<PlainObject, 'access_token'>
+  params?: Omit<RawObject, 'access_token'>
 }

@@ -15,7 +15,7 @@ const replace = require('replace-in-file')
  */
 const OPTIONS = {
   files: 'dist/**/*',
-  from: new RegExp('(../.*)?(node_modules/)', 'g'),
+  from: new RegExp('(.*)?(node_modules/)', 'g'),
   to: ''
 }
 
