@@ -23,13 +23,11 @@ import type {
   RepoHttpClient,
   RepoRoot
 } from '@/lib/types'
-import databaseToken from '@/lib/utils/databaseToken.util'
+import databaseRequest from '@/lib/utils/databaseRequest.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import type { AxiosRequestConfig } from 'axios'
 import type { Debugger } from 'debug'
 import isEmpty from 'lodash.isempty'
-import isPlainObject from 'lodash.isplainobject'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import uniq from 'lodash.uniq'
@@ -543,12 +541,6 @@ export default class RTDRepository<
   /**
    * Sends requests to the Firebase Database REST API.
    *
-   * To bypass Realtime Database Rules, requests will be authenticated with a
-   * Google OAuth2 token, thus granting the server admin database privileges.
-   *
-   * To use `process.env.FIREBASE_DATBASE_URL` as a REST endpoint, the request
-   * URL, {@param config.url} will have `.json` appended.
-   *
    * @template T - Payload type
    *
    * @async
@@ -557,25 +549,7 @@ export default class RTDRepository<
    * @throws {Exception}
    */
   async request<T = any>(config: DBRequestConfig = {}): Promise<T> {
-    const $config: AxiosRequestConfig = {
-      ...config,
-      baseURL: `${this.DATABASE_URL}/${this.path}`,
-      params: {
-        ...(isPlainObject(config.params) ? config.params : {}),
-        access_token: await databaseToken(),
-        print: 'pretty'
-      },
-      url: `/${(config.url || '').trim()}.json`
-    }
-
-    // Make request
-    const response = await this.http($config)
-
-    // ! If repository root is empty, null will be returned
-    if ($config?.url === '/.json') return (response?.data ?? {}) as T
-
-    // Return response data or response object if no data
-    return response?.data ?? response
+    return await databaseRequest<T>(this.path, config, this.http)
   }
 
   /**

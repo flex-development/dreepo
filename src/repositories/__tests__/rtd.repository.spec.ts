@@ -2,7 +2,7 @@ import configuration from '@/config/configuration'
 import { SortOrder } from '@/lib/enums'
 import type { AggregationStages } from '@/lib/interfaces'
 import type { QueryParams } from '@/lib/types'
-import databaseToken from '@/lib/utils/databaseToken.util'
+import dbRequest from '@/lib/utils/databaseRequest.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
@@ -27,9 +27,9 @@ import TestSubject from '../rtd.repository'
  * @module repositories/tests/RTDRepository
  */
 
-jest.mock('@/lib/utils/databaseToken.util')
+jest.mock('@/lib/utils/databaseRequest.util')
 
-const mockDBToken = databaseToken as jest.MockedFunction<typeof databaseToken>
+const mockDBRequest = dbRequest as jest.MockedFunction<typeof dbRequest>
 const mockMerge = merge as jest.MockedFunction<typeof merge>
 const mockOmit = omit as jest.MockedFunction<typeof omit>
 
@@ -642,21 +642,9 @@ describe('unit:repositories/RTDRepository', () => {
       await Subject.request()
     })
 
-    it('should set config.url to #DATABASE_URL/#path', () => {
-      expect(spy_http).toBeCalledTimes(1)
-
-      const expected = `${Subject.DATABASE_URL}/${Subject.path}`
-
-      expect(spy_http.mock.calls[0][0].baseURL).toBe(expected)
-    })
-
-    it('should make authenticated request', () => {
-      expect(mockDBToken).toBeCalledTimes(1)
-    })
-
-    it('should append `.json` to the end of config.url', () => {
-      expect(spy_http).toBeCalledTimes(1)
-      expect(spy_http.mock.calls[0][0].url).toBe(`/.json`)
+    it('should call databaseRequest utility', () => {
+      expect(mockDBRequest).toBeCalledTimes(1)
+      expect(mockDBRequest).toBeCalledWith(Subject.path, {}, Subject.http)
     })
   })
 
