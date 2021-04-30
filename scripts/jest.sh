@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/zsh
 
 # Custom Jest Workflow Script
 

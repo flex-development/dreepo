@@ -1,0 +1,37 @@
+{
+  "3221085d-6f55-4d23-842a-aeb0e413fca8": {
+    "created_at": 1619455540449,
+    "id": "3221085d-6f55-4d23-842a-aeb0e413fca8",
+    "make": "Scion",
+    "model": "tC",
+    "model_year": 2010
+  },
+  "5b38c222-bf0c-4972-9810-d8cd7e399a56": {
+    "created_at": 1619455540449,
+    "id": "5b38c222-bf0c-4972-9810-d8cd7e399a56",
+    "make": "Mitsubishi",
+    "model": "3000GT",
+    "model_year": 1999
+  },
+  "6e177f82-055d-464d-b118-cf36b10fb77d": {
+    "created_at": 1619455540449,
+    "id": "6e177f82-055d-464d-b118-cf36b10fb77d",
+    "make": "Nissan",
+    "model": "Quest",
+    "model_year": 1994
+  },
+  "e3df6457-3901-4c25-90cd-6aaabf3cdcb8": {
+    "created_at": 1619455540449,
+    "id": "e3df6457-3901-4c25-90cd-6aaabf3cdcb8",
+    "make": "Chevrolet",
+    "model": "Aveo",
+    "model_year": 2006
+  },
+  "eda31c5a-7b59-4250-b365-e66661930bc8": {
+    "created_at": 1619455540449,
+    "id": "eda31c5a-7b59-4250-b365-e66661930bc8",
+    "make": "Subaru",
+    "model": "Impreza",
+    "model_year": 1994
+  }
+}

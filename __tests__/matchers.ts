@@ -1,6 +1,6 @@
 import M from 'expect/build/matchers'
-import isPlainObject from 'lodash/isPlainObject'
-import type { PlainObject } from 'simplytyped'
+import isPlainObject from 'lodash.isplainobject'
+import type { RawObject } from 'mingo/util'
 
 /**
  * @file Custom Matchers
@@ -35,7 +35,7 @@ export const toBeArray = (
   }
 
   // @ts-expect-error matcher must not have an expected argument
-  const { pass: isArray } = M.toBeTruthy(Array.isArray(received)) as PlainObject
+  const { pass: isArray } = M.toBeTruthy(Array.isArray(received)) as RawObject
 
   const arr = received as any[]
   const valid = length === null ? isArray : isArray && arr.length === length
@@ -46,7 +46,7 @@ export const toBeArray = (
 /**
  * Expects {@param received} to be a plain object.
  *
- * @param {PlainObject} received - Test value
+ * @param {RawObject} received - Test value
  * @param {jest.ToBePlainObjectOptions} [options] - Additional test options
  * @param {string} [options.keys] - Comma-separated list of expected keys
  * @param {number} [options.length] - Expected number of keys
@@ -84,7 +84,7 @@ export const toBePlainObject = (
  * Expects {@param received} to be an array where each object has the fields
  * listed in {@param keys}, a comma-separated list of expected property names.
  *
- * @param {PlainObject[]} received - Test value
+ * @param {RawObject[]} received - Test value
  * @param {string} keys - Expected property names
  * @return {jest.CustomMatcherResult} Custom matcher result
  */
@@ -107,7 +107,7 @@ export const toEachHaveKeys = (
   if (!Array.isArray(received)) return fail
 
   const results: boolean[] = []
-  const receivedarr = received as PlainObject[]
+  const receivedarr = received as RawObject[]
 
   receivedarr.forEach(o => results.push(toHaveKeys(o, keys).pass))
 
@@ -118,7 +118,7 @@ export const toEachHaveKeys = (
  * Expects {@param received} to be an array where each object has {@param keys}
  * number of keys.
  *
- * @param {PlainObject[]} received - Test value
+ * @param {RawObject[]} received - Test value
  * @param {number} keys - Expected number of keys for each object
  * @return {jest.CustomMatcherResult} Custom matcher result
  */
@@ -139,7 +139,7 @@ export const toEachHaveKeysLength = (
   if (!Array.isArray(received)) return fail
 
   const results: boolean[] = []
-  const receivedarr = received as PlainObject[]
+  const receivedarr = received as RawObject[]
 
   receivedarr.forEach(o => results.push(toHaveKeysLength(o, keys).pass))
 
@@ -150,7 +150,7 @@ export const toEachHaveKeysLength = (
  * Expects {@param received} to have the fields listed in {@param keys}, a
  * comma-separated list of expected fields.
  *
- * @param {PlainObject} received - Test value
+ * @param {RawObject} received - Test value
  * @param {string} keys - Expected fields
  * @return {jest.CustomMatcherResult} Custom matcher result
  */
@@ -172,7 +172,7 @@ export const toHaveKeys = (
 
   if (!toBePlainObject(received).pass) return fail
 
-  const received_fields = Object.keys(received as PlainObject)
+  const received_fields = Object.keys(received as RawObject)
 
   return keysarr.every(field => received_fields.includes(field)) ? pass : fail
 }
@@ -180,7 +180,7 @@ export const toHaveKeys = (
 /**
  * Expects {@param received} to {@param keys} number of keys.
  *
- * @param {PlainObject} received - Test value
+ * @param {RawObject} received - Test value
  * @param {number} keys - Expected number of keys
  * @return {jest.CustomMatcherResult} Custom matcher result
  */
@@ -200,5 +200,5 @@ export const toHaveKeysLength = (
 
   if (!toBePlainObject(received).pass) return fail
 
-  return Object.keys(received as PlainObject).length === keys ? pass : fail
+  return Object.keys(received as RawObject).length === keys ? pass : fail
 }

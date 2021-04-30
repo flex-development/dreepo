@@ -1,8 +1,8 @@
-import type { IEntity } from '@/lib/interfaces'
-import type { EntityReadonlyProps, PartialBy } from '@/lib/types'
+import type { IEntity } from '../models/entity.model'
+import type { EntityReadonlyProps, PartialBy } from '../types'
 
 /**
- * @file Global DTOs - EntityDTO
+ * @file Data Transfer Objects - EntityDTO
  * @module lib/dto/EntityDTO
  */
 

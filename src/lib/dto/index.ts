@@ -1,5 +1,5 @@
 /**
- * @file Entry Point - Global Data Transfer Objects
+ * @file Entry Point - Data Transfer Objects
  * @module lib/dto
  */
 
