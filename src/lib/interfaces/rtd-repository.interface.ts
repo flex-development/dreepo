@@ -9,7 +9,8 @@ import type {
   EntityEnhanced,
   QueryParams,
   RepoCache,
-  RepoHttpClient
+  RepoHttpClient,
+  RepoValidatorOpts
 } from '../types-repository'
 import type { AggregationStages } from './aggregration-stages.interface'
 import type { DBRequestConfig } from './db-request-config.interface'
@@ -38,7 +39,7 @@ export interface IRTDRepository<
   readonly mopts: MingoOptions
   readonly model: RuntypeBase<E>
   readonly path: string
-  readonly validate_enabled: boolean
+  readonly vopts: RepoValidatorOpts<E>
 
   aggregate(
     pipeline?: OneOrMany<AggregationStages<E>>
@@ -54,5 +55,5 @@ export interface IRTDRepository<
   refreshCache(): Promise<RepoCache<E>>
   request<T = any>(config?: DBRequestConfig): Promise<T>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]>
-  validate<V extends unknown = RawObject>(value?: V): E | V
+  validate<Value extends unknown = RawObject>(value?: Value): Promise<E | Value>
 }

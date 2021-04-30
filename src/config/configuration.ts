@@ -1,7 +1,6 @@
 import type { EnvironmentVariables } from '@/lib/interfaces'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import isBoolean from 'lodash.isboolean'
 import isPlainObject from 'lodash.isplainobject'
 import isString from 'lodash.isstring'
 import URI from 'urijs'
@@ -32,8 +31,7 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
   const {
     FIREBASE_CLIENT_EMAIL = '',
     FIREBASE_DATABASE_URL = '',
-    FIREBASE_PRIVATE_KEY = '',
-    FIREBASE_RTD_REPOS_VALIDATE = 'true'
+    FIREBASE_PRIVATE_KEY = ''
   } = isPlainObject(env) ? (env as typeof process['env']) : process.env
 
   let exception: Exception | null = null
@@ -76,11 +74,7 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
   return {
     FIREBASE_CLIENT_EMAIL,
     FIREBASE_DATABASE_URL: FIREBASE_DATABASE_URL.toLowerCase(),
-    FIREBASE_PRIVATE_KEY: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    FIREBASE_RTD_REPOS_VALIDATE: (() => {
-      const VM = JSON.parse(`${FIREBASE_RTD_REPOS_VALIDATE.toLowerCase()}`)
-      return isBoolean(VM) ? VM : true
-    })()
+    FIREBASE_PRIVATE_KEY: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n')
   }
 }
 

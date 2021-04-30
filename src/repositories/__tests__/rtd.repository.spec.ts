@@ -7,12 +7,12 @@ import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
 import {
-  Car,
   CARS,
   CARS_MOCK_CACHE as mockCache,
   CARS_MOCK_CACHE_EMPTY as mockCacheEmpty,
   CARS_ROOT,
-  REPO_PATH_CARS as REPO_PATH
+  REPO_PATH_CARS as REPO_PATH,
+  REPO_VOPTS_CARS as vopts
 } from '@tests/fixtures/cars.fixture'
 import type { AxiosRequestConfig } from 'axios'
 import merge from 'lodash.merge'
@@ -34,7 +34,7 @@ const mockMerge = merge as jest.MockedFunction<typeof merge>
 const mockOmit = omit as jest.MockedFunction<typeof omit>
 
 describe('unit:repositories/RTDRepository', () => {
-  const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
+  const { FIREBASE_DATABASE_URL } = configuration()
 
   const EMPTY_CACHE = true
   const ENTITY = Object.assign({}, mockCache.collection[0])
@@ -52,7 +52,7 @@ describe('unit:repositories/RTDRepository', () => {
   const getSubject = (
     emptyCache?: boolean
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, Car)
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, vopts)
 
     // @ts-expect-error mocking
     Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
@@ -76,7 +76,7 @@ describe('unit:repositories/RTDRepository', () => {
       expect(Subject.http).toBeDefined()
       expect(isType<RuntypeBase<ICar>>(Subject.model as any)).toBeTruthy()
       expect(Subject.path).toBe(REPO_PATH)
-      expect(Subject.validate_enabled).toBe(FIREBASE_RTD_REPOS_VALIDATE)
+      expect(Subject.vopts.enabled).toBeTruthy()
     })
   })
 
@@ -695,38 +695,48 @@ describe('unit:repositories/RTDRepository', () => {
 
     const spy_model_check = jest.spyOn(Subject.model, 'check')
 
-    it('should call #model.check if schema validation is enabled', () => {
-      Subject.validate(ENTITY)
+    it('should call #model.check if validation is enabled', async () => {
+      await Subject.validate(ENTITY)
 
       expect(spy_model_check).toBeCalledTimes(1)
     })
 
-    it('should not call #model.check if schema validation is disabled', () => {
+    it('should not call #model.check if validation is disabled', async () => {
       const ThisSubject = getSubject()
 
-      // @ts-expect-error mocking
-      ThisSubject.validate_enabled = false
+      ThisSubject.vopts.enabled = false
 
       const this_model_check = jest.spyOn(ThisSubject.model, 'check')
 
       const value = {}
-      const result = ThisSubject.validate(value)
+      const result = await ThisSubject.validate(value)
 
       expect(result).toMatchObject(value)
       expect(this_model_check).toBeCalledTimes(0)
     })
 
-    it('should return value if validation passes', () => {
-      expect(Subject.validate(ENTITY)).toMatchObject(ENTITY)
+    it('should call #vopts.refinement', async () => {
+      const ThisSubject = getSubject()
+
+      ThisSubject.vopts.refinement = jest.fn(args => Promise.resolve(args))
+
+      await ThisSubject.validate(ENTITY)
+
+      expect(ThisSubject.vopts.refinement).toBeCalledTimes(1)
+      expect(ThisSubject.vopts.refinement).toBeCalledWith(ENTITY)
     })
 
-    it('should throw Exception if validation fails', () => {
+    it('should return value if validation passes', async () => {
+      expect(await Subject.validate(ENTITY)).toMatchObject(ENTITY)
+    })
+
+    it('should throw Exception if validation fails', async () => {
       const value = {}
 
       let exception = {} as Exception
 
       try {
-        Subject.validate(value)
+        await Subject.validate(value)
       } catch (error) {
         exception = error
       }

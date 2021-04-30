@@ -25,3 +25,5 @@ export const CARS_MOCK_CACHE = Object.freeze({
   collection: CARS,
   root: CARS_ROOT
 })
+
+export const REPO_VOPTS_CARS = { enabled: true, model: Car }

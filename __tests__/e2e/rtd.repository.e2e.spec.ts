@@ -2,11 +2,11 @@ import { RTDRepository as TestSubject } from '@flex-development/rtd-repos'
 import { EntityDTO } from '@flex-development/rtd-repos/lib/dto'
 import type { QueryParams } from '@flex-development/rtd-repos/lib/types'
 import {
-  Car,
   CarEntity as ICar,
   CARS_MOCK_CACHE as mockCache,
   REPO_PATH_CARS as REPO_PATH,
-  REPO_PATH_CARS
+  REPO_PATH_CARS,
+  REPO_VOPTS_CARS as vopts
 } from '@tests/fixtures/cars.fixture'
 import { clearRepository, loadRepository } from '@tests/utils'
 
@@ -29,7 +29,7 @@ describe('e2e:RTDRepository', () => {
   const getSubject = (
     cache: boolean = true
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, Car)
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, vopts)
 
     // @ts-expect-error mocking
     if (cache) Subject.cache = Object.assign({}, mockCache)

@@ -21,7 +21,10 @@ import type {
   QueryParams,
   RepoCache,
   RepoHttpClient,
-  RepoRoot
+  RepoModelRefinement,
+  RepoRoot,
+  RepoValidatorOpts,
+  RepoValidatorOptsDTO
 } from '@/lib/types'
 import databaseRequest from '@/lib/utils/databaseRequest.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
@@ -115,36 +118,38 @@ export default class RTDRepository<
   /**
    * @readonly
    * @instance
-   * @property {boolean} validate_enabled - If `true`, validate DTOs before
-   * creating or updating an entity. Otherwise, perform operation without
-   * validating schema
+   * @property {RepoValidatorOpts<E>} vopts - Schema validation options
    */
-  readonly validate_enabled: boolean
+  readonly vopts: RepoValidatorOpts<E>
 
   /**
    * Instantiates a new Realtime Database repository.
    *
    * @param {string} path - Database repository path
-   * @param {RuntypeBase<E>} model - Entity schema model
+   * @param {RepoValidatorOptsDTO<E>} vopts - Schema validation options
+   * @param {boolean} [vopts.enabled] - Toggle schema validation
+   * @param {RuntypeBase<E>} vopts.model - Entity schema model
+   * @param {RepoModelRefinement<E>} [vopts.refinement] - Function to perform
+   * additional validations. Can be asynchronous
    * @param {RepoHttpClient} [http] - HTTP client. Defaults to `axios`
    */
   constructor(
     path: string,
-    model: RuntypeBase<E>,
+    vopts: RepoValidatorOptsDTO<E>,
     http: RepoHttpClient = axios
   ) {
     // Environment variables
-    const {
-      FIREBASE_DATABASE_URL,
-      FIREBASE_RTD_REPOS_VALIDATE: validate_enabled
-    } = configuration()
+    const { FIREBASE_DATABASE_URL } = configuration()
+
+    // Schema validation options
+    const { enabled: venabled = true, model, refinement } = vopts
 
     this.DATABASE_URL = FIREBASE_DATABASE_URL
     this.cache = { collection: [], root: {} }
     this.http = http
     this.model = model
     this.path = path
-    this.validate_enabled = validate_enabled
+    this.vopts = { enabled: venabled, refinement: refinement }
   }
 
   /**
@@ -248,7 +253,7 @@ export default class RTDRepository<
       }
 
       // Validate DTO schema
-      data = this.validate<E>(data)
+      data = await this.validate<E>(data)
 
       // Create new entity
       data = await this.request<E>({ data, method: 'put', url: data.id })
@@ -486,7 +491,7 @@ export default class RTDRepository<
       let data = merge(entity, { ...dto, updated_at: Date.now() }) as E
 
       // Validate DTO schema
-      data = this.validate<E>(data)
+      data = await this.validate<E>(data)
 
       // Update entity
       data = await this.request<E>({ data, method: 'put', url: data.id })
@@ -597,17 +602,23 @@ export default class RTDRepository<
    *
    * - https://github.com/pelotom/runtypes
    *
-   * @template V - Type of value being validated
+   * @template Value - Type of value being validated
    *
-   * @param {V} value - Data to validate
-   * @return {E | V} - Validated object or original value
+   * @param {Value} value - Data to validate
+   * @return {Promise<E | Value>} - Promise with value
    * @throws {Exception}
    */
-  validate<V extends unknown = RawObject>(value: V = {} as V): E | V {
-    if (!this.validate_enabled) return value
+  async validate<Value extends unknown = RawObject>(
+    value: Value = {} as Value
+  ): Promise<E | Value> {
+    if (!this.vopts.enabled) return value
 
     try {
-      return this.model.check(value)
+      const validated = this.model.check(value)
+
+      if (this.vopts.refinement) await this.vopts.refinement(validated)
+
+      return validated
     } catch (error) {
       let code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
       let data = { value }

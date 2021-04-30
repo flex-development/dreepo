@@ -1,8 +1,9 @@
 import type { AxiosRequestConfig } from 'axios'
+import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { SortOrder } from './enums/sort-order.enum'
 import type { AggregationStages } from './interfaces'
 import type { IEntity } from './models/entity.model'
-import type { EmptyObject, ObjectPath } from './types-global'
+import type { EmptyObject, ObjectPath, OrPromise } from './types-global'
 import type { ProjectionCriteria, QueryCriteria } from './types-mingo'
 
 /**
@@ -67,8 +68,39 @@ export type RepoHttpClient<T = any> = {
 }
 
 /**
+ * Function to perform additional validations.
+ */
+export type RepoModelRefinement<E extends IEntity = IEntity> = {
+  (value: E): OrPromise
+}
+
+/**
  * Type representing the root of a repository.
+ *
+ * @template E - Entity
  */
 export type RepoRoot<E extends IEntity = IEntity> =
   | Record<E['id'], E>
   | EmptyObject
+
+/**
+ * Type representing the repository schema validation options accepted by the
+ * RTDRepository class.
+ *
+ * @template E - Entity
+ */
+export type RepoValidatorOptsDTO<E extends IEntity = IEntity> = {
+  enabled?: boolean
+  model: RuntypeBase<E>
+  refinement?: RepoModelRefinement<E>
+}
+
+/**
+ * Type representing the repository schema validation options.
+ *
+ * @template E - Entity
+ */
+export type RepoValidatorOpts<E extends IEntity = IEntity> = {
+  enabled: boolean
+  refinement?: RepoModelRefinement<E>
+}
