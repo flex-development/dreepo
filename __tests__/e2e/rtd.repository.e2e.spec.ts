@@ -129,11 +129,22 @@ describe('e2e:RTDRepository', () => {
   })
 
   describe('#refreshCache', () => {
-    it.todo('should update repository cache')
-  })
+    const cache = false
+    const Subject = getSubject(cache)
 
-  describe('#request', () => {
-    it.todo('should request firebase database rest api')
+    beforeAll(async () => {
+      await loadRepository(REPO_PATH_CARS, mockCache.root)
+    })
+
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
+
+    it('should update repository cache', async () => {
+      await Subject.refreshCache()
+
+      expect(Subject.cache).toMatchObject(mockCache)
+    })
   })
 
   describe('#save', () => {
