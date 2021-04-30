@@ -4,6 +4,15 @@ import type { AggregationStages } from '@/lib/interfaces'
 import type { NullishString, QueryParams } from '@/lib/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
+import {
+  Car,
+  CARS,
+  CARS_MOCK_CACHE as mockCache,
+  CARS_MOCK_CACHE_EMPTY as mockCacheEmpty,
+  CARS_ROOT,
+  REPO_PATH_CARS as REPO_PATH
+} from '@tests/fixtures/cars.fixture'
 import type { AxiosRequestConfig } from 'axios'
 import type { JWT } from 'google-auth-library'
 import merge from 'lodash.merge'
@@ -13,13 +22,6 @@ import type { RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../rtd.repository'
-import type { CarEntity as ICar } from './__fixtures__/cars.fixture'
-import {
-  Car,
-  CARS,
-  CARS_ROOT,
-  REPO_PATH_CARS as REPO_PATH
-} from './__fixtures__/cars.fixture'
 
 /**
  * @file Unit Tests - RTDRepository
@@ -31,9 +33,6 @@ const mockOmit = omit as jest.MockedFunction<typeof omit>
 
 describe('unit:repositories/RTDRepository', () => {
   const { FIREBASE_DATABASE_URL, FIREBASE_RTD_REPOS_VALIDATE } = configuration()
-
-  const mockCache = Object.freeze({ collection: CARS, root: CARS_ROOT })
-  const mockCacheEmpty = Object.freeze({ collection: [], root: {} })
 
   const EMPTY_CACHE = true
   const ENTITY = Object.assign({}, mockCache.collection[0])

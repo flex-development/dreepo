@@ -614,10 +614,17 @@ export default class RTDRepository<
         access_token: await this.accessToken(),
         print: 'pretty'
       },
-      url: `/${config.url || ''}.json`
+      url: `/${(config.url || '').trim()}.json`
     }
 
-    return (await this.http($config)).data as T
+    // Make request
+    const response = await this.http($config)
+
+    // ! If repository root is empty, null will be returned
+    if ($config?.url === '/.json') return (response?.data ?? {}) as T
+
+    // Return response data or response object if no data
+    return response?.data ?? response
   }
 
   /**
