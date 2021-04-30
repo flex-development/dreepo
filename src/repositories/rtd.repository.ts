@@ -14,7 +14,6 @@ import type {
 import type {
   EntityEnhanced,
   EntityPath,
-  NullishString,
   OneOrMany,
   PartialOr,
   ProjectionCriteria,
@@ -24,16 +23,15 @@ import type {
   RepoHttpClient,
   RepoRoot
 } from '@/lib/types'
+import databaseToken from '@/lib/utils/databaseToken.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { AxiosRequestConfig } from 'axios'
 import type { Debugger } from 'debug'
-import { JWT } from 'google-auth-library'
 import isEmpty from 'lodash.isempty'
 import isPlainObject from 'lodash.isplainobject'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
-import pick from 'lodash.pick'
 import uniq from 'lodash.uniq'
 import type { RawArray, RawObject } from 'mingo/util'
 import { ValidationError } from 'runtypes/lib/errors'
@@ -80,13 +78,6 @@ export default class RTDRepository<
    * @property {RepoHttpClient} http - HTTP client used to request REST API
    */
   readonly http: RepoHttpClient
-
-  /**
-   * @readonly
-   * @instance
-   * @property {JWT} jwt - JWT client authenticated with service account
-   */
-  readonly jwt: JWT
 
   /**
    * @readonly
@@ -146,56 +137,16 @@ export default class RTDRepository<
   ) {
     // Environment variables
     const {
-      FIREBASE_CLIENT_EMAIL: client_email,
       FIREBASE_DATABASE_URL,
-      FIREBASE_PRIVATE_KEY: private_key,
       FIREBASE_RTD_REPOS_VALIDATE: validate_enabled
     } = configuration()
-
-    // Required scopes to generate Google OAuth2 access token
-    const scopes = [
-      'https://www.googleapis.com/auth/firebase.database',
-      'https://www.googleapis.com/auth/userinfo.email'
-    ]
 
     this.DATABASE_URL = FIREBASE_DATABASE_URL
     this.cache = { collection: [], root: {} }
     this.http = http
-    this.jwt = new JWT(client_email, undefined, private_key, scopes)
     this.model = model
     this.path = path
     this.validate_enabled = validate_enabled
-  }
-
-  /**
-   * Generates a Google OAuth2 access token with the following scopes:
-   *
-   * - `https://www.googleapis.com/auth/firebase.database`
-   * - `https://www.googleapis.com/auth/userinfo.email`
-   *
-   * The token can be used to send authenticated, admin-level requests to the
-   * Firebase Database REST API.
-   *
-   * References:
-   *
-   * - https://firebase.google.com/docs/database/rest/auth
-   *
-   * @async
-   * @return {Promise<NullishString>} Promise with access token or null
-   * @throws {Exception}
-   */
-  async accessToken(): Promise<NullishString> {
-    try {
-      // @ts-expect-error prefer to use async method
-      return (await this.jwt.authorizeAsync()).access_token || null
-    } catch ({ message, stack }) {
-      throw new Exception(
-        ExceptionStatusCode.UNAUTHORIZED,
-        message,
-        pick(this.jwt, ['email', 'key', 'scopes']),
-        stack
-      )
-    }
   }
 
   /**
@@ -611,7 +562,7 @@ export default class RTDRepository<
       baseURL: `${this.DATABASE_URL}/${this.path}`,
       params: {
         ...(isPlainObject(config.params) ? config.params : {}),
-        access_token: await this.accessToken(),
+        access_token: await databaseToken(),
         print: 'pretty'
       },
       url: `/${(config.url || '').trim()}.json`

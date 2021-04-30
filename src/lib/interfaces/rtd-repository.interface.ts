@@ -1,10 +1,9 @@
 import type { Debugger } from 'debug'
-import type { JWT } from 'google-auth-library'
 import mingo from 'mingo'
 import type { RawArray, RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { EntityDTO } from '../dto/entity.dto'
-import type { NullishString, OneOrMany, PartialOr } from '../types-global'
+import type { OneOrMany, PartialOr } from '../types-global'
 import type {
   EntityEnhanced,
   QueryParams,
@@ -34,7 +33,6 @@ export interface IRTDRepository<
   readonly DATABASE_URL: string
   readonly cache: RepoCache<E>
   readonly http: RepoHttpClient
-  readonly jwt: JWT
   readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly mopts: MingoOptions
@@ -42,7 +40,6 @@ export interface IRTDRepository<
   readonly path: string
   readonly validate_enabled: boolean
 
-  accessToken(): Promise<NullishString>
   aggregate(
     pipeline?: OneOrMany<AggregationStages<E>>
   ): PartialOr<EntityEnhanced<E>>[] | RawArray
