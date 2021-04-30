@@ -62,7 +62,7 @@ export type RepoCache<E extends IEntity = IEntity> = {
  * @template T - Payload
  */
 export type RepoHttpClient<T = any> = {
-  (config: AxiosRequestConfig): Promise<{ data: T }>
+  (config: AxiosRequestConfig): Promise<T>
 }
 
 /**

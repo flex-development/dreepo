@@ -233,7 +233,7 @@ export default class RTDRepository<
    */
   async create(dto: EntityDTO<E>): Promise<E> {
     try {
-      let data = merge(dto, {
+      let data = merge(Object.assign({}, dto), {
         created_at: Date.now(),
         id: isEmpty(dto.id) ? uuid() : `${dto.id}`.trim(),
         updated_at: undefined

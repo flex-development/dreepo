@@ -149,7 +149,7 @@ describe('unit:repositories/RTDRepository', () => {
     const Subject = getSubject()
 
     const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      return { data: config.data }
+      return config.data
     })
 
     const spy_request = jest.spyOn(Subject, 'request')
@@ -212,8 +212,8 @@ describe('unit:repositories/RTDRepository', () => {
     const dto = { ...ENTITY, id: `${ENTITY.id}-test` }
 
     const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config.url?.includes(dto.id)) return { data: config.data }
-      return { data: CARS }
+      if (config.url?.includes(dto.id)) return config.data
+      return mockCache.collection
     })
 
     beforeAll(() => {
@@ -253,7 +253,7 @@ describe('unit:repositories/RTDRepository', () => {
       const ejson = exception.toJSON()
 
       expect(ejson.code).toBe(ExceptionStatusCode.CONFLICT)
-      expect(ejson.data.dto).toMatchObject(this_dto)
+      expect(ejson.data.dto).toMatchObject(omit(this_dto, ['created_at']))
       expect((ejson.errors as RawObject).id).toBe(this_dto.id)
       expect(ejson.message).toMatch(emessage_match)
     })
@@ -285,7 +285,7 @@ describe('unit:repositories/RTDRepository', () => {
     const Subject = getSubject()
 
     const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      return { data: config.data }
+      return config.data
     })
 
     beforeAll(() => {
@@ -560,8 +560,8 @@ describe('unit:repositories/RTDRepository', () => {
     const Subject = getSubject()
 
     const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config.url?.includes(ENTITY.id)) return { data: config.data }
-      return { data: CARS }
+      if (config.url?.includes(ENTITY.id)) return config.data
+      return mockCache.collection
     })
 
     beforeAll(() => {
@@ -638,7 +638,7 @@ describe('unit:repositories/RTDRepository', () => {
     const spy_http = jest.spyOn(Subject, 'http')
 
     beforeEach(async () => {
-      spy_http.mockReturnValue(Promise.resolve({ data: [] }))
+      spy_http.mockReturnValue(Promise.resolve([]))
       await Subject.request()
     })
 
@@ -654,8 +654,8 @@ describe('unit:repositories/RTDRepository', () => {
     const DTO_BASE = { make: 'MAKE', model: 'MODEL', model_year: -1 }
 
     const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config?.method === 'put') return { data: config.data }
-      return { data: CARS_ROOT }
+      if (config?.method === 'put') return config.data
+      return mockCache.root
     })
 
     const spy_findOne = jest.spyOn(Subject, 'findOne')

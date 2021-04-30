@@ -49,10 +49,10 @@ async function databaseRequest<T = any>(
   const response = await http($config)
 
   // ! If repository root is empty, null will be returned
-  if ($config?.url === '/.json') return (response?.data ?? {}) as T
+  if ($config?.url === '/.json') return (response || {}) as T
 
-  // Return response data or response object if no data
-  return response?.data ?? response
+  // Return response
+  return response as T
 }
 
 export default databaseRequest

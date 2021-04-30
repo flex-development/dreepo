@@ -1,11 +1,14 @@
 import { RTDRepository as TestSubject } from '@flex-development/rtd-repos'
+import { EntityDTO } from '@flex-development/rtd-repos/lib/dto'
 import type { QueryParams } from '@flex-development/rtd-repos/lib/types'
-import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
 import {
   Car,
+  CarEntity as ICar,
   CARS_MOCK_CACHE as mockCache,
-  REPO_PATH_CARS as REPO_PATH
+  REPO_PATH_CARS as REPO_PATH,
+  REPO_PATH_CARS
 } from '@tests/fixtures/cars.fixture'
+import { clearRepository } from '@tests/utils'
 
 /**
  * @file E2E Tests - RTDRepository
@@ -45,7 +48,26 @@ describe('e2e:RTDRepository', () => {
   })
 
   describe('#create', () => {
-    it.todo('should create new entity')
+    const Subject = getSubject()
+
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
+
+    it('should create new entity', async () => {
+      const dto: EntityDTO<ICar> = {
+        make: 'MAKE',
+        model: 'MODEL',
+        model_year: -1
+      }
+
+      const entity = await Subject.create(dto)
+
+      expect(entity).toMatchObject(dto)
+
+      expect(Subject.cache.collection).toBeArray({ length: 1 })
+      expect(Subject.cache.root).toBePlainObject({ keys_length: 1 })
+    })
   })
 
   describe('#delete', () => {
@@ -68,13 +90,13 @@ describe('e2e:RTDRepository', () => {
 
   describe('#save', () => {
     describe('should create', () => {
-      it.todo('should create an entity')
+      it.todo('should create one entity')
 
       it.todo('should create a group of entities')
     })
 
     describe('should patch', () => {
-      it.todo('should patch an entity')
+      it.todo('should patch one entity')
 
       it.todo('should patch a group of entities')
     })
