@@ -1,4 +1,5 @@
-import { Number, Record, Static, String } from 'runtypes'
+import { Entity } from '@/lib/models/entity.model'
+import { Number, Static, String } from 'runtypes'
 import ROOT from './cars-root.fixture.json'
 
 /**
@@ -8,13 +9,10 @@ import ROOT from './cars-root.fixture.json'
 
 export const REPO_PATH_CARS = 'cars'
 
-export const Car = Record({
-  created_at: Number,
-  id: String,
+export const Car = Entity.extend({
   make: String,
   model: String,
-  model_year: Number,
-  updated_at: Number.optional()
+  model_year: Number
 })
 
 export type CarEntity = Static<typeof Car>

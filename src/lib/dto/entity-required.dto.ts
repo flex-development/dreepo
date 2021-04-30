@@ -1,4 +1,4 @@
-import type { IEntity } from '../interfaces/entity.interface'
+import type { IEntity } from '../models/entity.model'
 import type { EntityReadonlyProps, PartialByRequired } from '../types'
 
 /**

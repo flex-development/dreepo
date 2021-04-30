@@ -1,4 +1,4 @@
-import type { IEntity } from '@/lib/interfaces'
+import type { IEntity } from '@/lib/models/entity.model'
 import type { EmptyObject } from '@/lib/types-global'
 import type { RepoRoot } from '@/lib/types-repository'
 import databaseRequest from '@/lib/utils/databaseRequest.util'

@@ -7,10 +7,10 @@ import { SortOrder } from '@/lib/enums/sort-order.enum'
 import type {
   AggregationStages,
   DBRequestConfig,
-  IEntity,
   IRTDRepository,
   MingoOptions
 } from '@/lib/interfaces'
+import type { IEntity } from '@/lib/models/entity.model'
 import type {
   EntityEnhanced,
   EntityPath,

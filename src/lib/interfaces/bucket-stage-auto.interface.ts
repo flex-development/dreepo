@@ -1,5 +1,5 @@
+import type { IEntity } from '../models/entity.model'
 import type { BucketStage } from './bucket-stage.interface'
-import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - BucketStageAuto

@@ -1,25 +1,29 @@
+import { Number, Record, Static, String } from 'runtypes'
+
 /**
- * @file Interface - IEntity
- * @module lib/interfaces/Entity
+ * @file Models - Entity
+ * @module lib/models/Entity
  */
 
-export interface IEntity {
+export const Entity = Record({
   /**
    * Date and time entity was created.
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */
-  readonly created_at: number
+  created_at: Number,
 
   /**
    * Unique identifier for the entity.
    */
-  readonly id: string
+  id: String,
 
   /**
    * Date and time entity was modified.
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */
-  readonly updated_at?: number
-}
+  updated_at: Number.optional()
+}).asReadonly()
+
+export type IEntity = Static<typeof Entity>

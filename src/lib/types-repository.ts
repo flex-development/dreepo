@@ -1,6 +1,7 @@
 import type { AxiosRequestConfig } from 'axios'
 import { SortOrder } from './enums/sort-order.enum'
-import type { AggregationStages, IEntity } from './interfaces'
+import type { AggregationStages } from './interfaces'
+import type { IEntity } from './models/entity.model'
 import type { EmptyObject, ObjectPath } from './types-global'
 import type { ProjectionCriteria, QueryCriteria } from './types-mingo'
 

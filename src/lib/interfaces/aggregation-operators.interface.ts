@@ -1,10 +1,10 @@
 import { BSONTypeAlias } from '../enums/bson-type-alias.enum'
 import { BSONTypeCode } from '../enums/bson-type-code.enum'
+import type { IEntity } from '../models/entity.model'
 import type { JSONValue } from '../types-global'
 import type { Expression } from '../types-mingo'
 import type { AccumulatorOperators } from './accumulator-operators.interface'
 import { CustomAccumulator } from './custom-accumulator.interface'
-import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - AggregationOperators

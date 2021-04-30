@@ -1,5 +1,6 @@
 import type { RawObject } from 'mingo/util'
 import { SortOrder } from '../enums/sort-order.enum'
+import type { IEntity } from '../models/entity.model'
 import type { OneOrMany } from '../types-global'
 import type {
   Expression,
@@ -11,7 +12,6 @@ import type { EntityPath } from '../types-repository'
 import type { AccumulatorOperators } from './accumulator-operators.interface'
 import type { BucketStageAuto } from './bucket-stage-auto.interface'
 import type { BucketStage } from './bucket-stage.interface'
-import type { IEntity } from './entity.interface'
 import type { QueryOperators } from './query-operators.interface'
 
 /**
