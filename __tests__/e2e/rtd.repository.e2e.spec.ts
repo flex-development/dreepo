@@ -37,6 +37,12 @@ describe('e2e:RTDRepository', () => {
     return Subject
   }
 
+  const DTO: Readonly<EntityDTO<ICar>> = Object.freeze({
+    make: 'MAKE',
+    model: 'MODEL',
+    model_year: -1
+  })
+
   describe('#clear', () => {
     const Subject = getSubject()
 
@@ -58,11 +64,7 @@ describe('e2e:RTDRepository', () => {
     })
 
     it('should create new entity', async () => {
-      const dto: EntityDTO<ICar> = {
-        make: 'MAKE',
-        model: 'MODEL',
-        model_year: -1
-      }
+      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
 
       const entity = await Subject.create(dto)
 
@@ -105,7 +107,25 @@ describe('e2e:RTDRepository', () => {
   })
 
   describe('#patch', () => {
-    it.todo('should update an entity')
+    const Subject = getSubject()
+
+    beforeAll(async () => {
+      await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+    })
+
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
+
+    it('should update an entity', async () => {
+      const id = Subject.cache.collection[0].id
+
+      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
+
+      const entity = await Subject.patch(id, dto)
+
+      expect(entity).toMatchObject(dto)
+    })
   })
 
   describe('#refreshCache', () => {
