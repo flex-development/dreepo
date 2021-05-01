@@ -2,7 +2,6 @@ import type { EnvironmentVariables } from '@/lib/interfaces'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import isPlainObject from 'lodash.isplainobject'
-import isString from 'lodash.isstring'
 import URI from 'urijs'
 import isEmail from 'validator/lib/isEmail'
 import isURL from 'validator/lib/isURL'
@@ -59,7 +58,10 @@ const configuration = (env?: typeof process['env']): EnvironmentVariables => {
     exception = new Exception(ExceptionStatusCode.BAD_REQUEST, message, data)
   }
 
-  if (!isString(FIREBASE_PRIVATE_KEY) || !FIREBASE_PRIVATE_KEY.length) {
+  if (
+    typeof FIREBASE_PRIVATE_KEY !== 'string' ||
+    !FIREBASE_PRIVATE_KEY.length
+  ) {
     const message = `FIREBASE_PRIVATE_KEY invalid`
     const data = { errors: { FIREBASE_PRIVATE_KEY } }
 
