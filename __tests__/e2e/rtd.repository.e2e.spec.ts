@@ -1,6 +1,6 @@
-import { RTDRepository as TestSubject } from '@flex-development/rtd-repos'
-import { EntityDTO } from '@flex-development/rtd-repos/lib/dto'
-import type { QueryParams } from '@flex-development/rtd-repos/lib/types'
+import { RTDRepository as TestSubject } from '@flex-development/dreepo'
+import { EntityDTO } from '@flex-development/dreepo/lib/dto'
+import type { QueryParams } from '@flex-development/dreepo/lib/types'
 import {
   CarEntity as ICar,
   CARS_MOCK_CACHE as mockCache,

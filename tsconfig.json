@@ -28,8 +28,8 @@
       "@flex-development/exceptions/*": [
         "node_modules/@flex-development/exceptions/dist/*"
       ],
-      "@flex-development/rtd-repos": ["src/index.ts"],
-      "@flex-development/rtd-repos/*": ["src/*"],
+      "@flex-development/dreepo": ["src/index.ts"],
+      "@flex-development/dreepo/*": ["src/*"],
       "@tests/fixtures/*": ["__tests__/__fixtures__/*"],
       "@tests/*": ["__tests__/*"]
     },

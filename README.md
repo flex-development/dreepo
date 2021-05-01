@@ -1,4 +1,6 @@
-# Realtime Database Repository API
+# dreepo
+
+Repository Pattern implementation for Firebase Realtime Database
 
 [![TypeScript](https://badgen.net/badge/-/typescript?icon=typescript&label)](https://www.typescriptlang.org/)
 [![tested with jest](https://img.shields.io/badge/tested_with-jest-99424f.svg)](https://github.com/facebook/jest)
@@ -13,13 +15,13 @@
 
 ## Getting Started
 
-Inspired by [Fireorm][1], this project implements a Repository API for [Firebase
-Realtime Database][2] instances.
+Inspired by [Fireorm][1], Dreepo exposes a Repository Pattern implementation for
+[Firebase Realtime Database][2] instances.
 
 Alongside an abstract database access layer, repositories also support:
 
-- [runtypes][3] model validation
-- data aggregations and queries using [mingo][4], a MongoDB query language
+- aggregation pipelines and queries using [mingo][3], a MongoDB query language
+- [runtypes][4] model validation
 
 ## Installation
 
@@ -36,7 +38,7 @@ Alongside an abstract database access layer, repositories also support:
 2. Add project to `dependencies`
 
    ```zsh
-   yarn add @flex-development/rtd-repos # or npm i @flex-development/rtd-repos
+   yarn add @flex-development/dreepo # or npm i @flex-development/dreepo
    ```
 
 ## :construction: Usage
@@ -48,13 +50,13 @@ Alongside an abstract database access layer, repositories also support:
 - [Axios][7] - Promise based HTTP client
 - [Firebase Database REST API][2] - REST API for Firebase Realtime Database
 - [Google APIs Node.js Client][8] - Node.js client library for using Google APIs
-- [mingo][4] - MongoDB query language for in-memory objects
-- [runtypes][3] - Runtime validation for static types
+- [mingo][3] - MongoDB query language for in-memory objects
+- [runtypes][4] - Runtime validation for static types
 
 [1]: https://github.com/wovalle/fireorm
 [2]: https://firebase.google.com/docs/reference/rest/database
-[3]: https://github.com/pelotom/runtypes
-[4]: https://github.com/kofrasa/mingo
+[3]: https://github.com/kofrasa/mingo
+[4]: https://github.com/pelotom/runtypes
 [5]:
   https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token
 [6]:

@@ -6,4 +6,4 @@ import debug from 'debug'
  * @see https://github.com/visionmedia/debug
  */
 
-export default debug('rtd-repos')
+export default debug('dreepo')

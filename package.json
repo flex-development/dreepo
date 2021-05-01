@@ -1,17 +1,18 @@
 {
-  "name": "@flex-development/rtd-repos",
-  "description": "Repository API for Firebase Realtime Database",
-  "version": "1.0.0-beta",
+  "name": "@flex-development/dreepo",
+  "description": "Repository Pattern implementation for Firebase Realtime Database",
+  "version": "1.0.0",
   "keywords": [
+    "database access layer",
     "firebase admin",
     "realtime database",
     "repository pattern",
     "typescript"
   ],
-  "homepage": "https://github.com/flex-development/rtd-repos",
-  "repository": "git://github.com/flex-development/rtd-repos.git",
+  "homepage": "https://github.com/flex-development/dreepo",
+  "repository": "git://github.com/flex-development/dreepo.git",
   "bugs": {
-    "url": "https://github.com/flex-development/rtd-repos/issues",
+    "url": "https://github.com/flex-development/dreepo/issues",
     "email": "developers@flexdevelopment.llc"
   },
   "license": "BSD-3-Clause",

@@ -27,7 +27,7 @@ coding guidelines, as well as begin extending your own workflow.
 1. Copy the snippet below to clone the project onto your local machine:
 
    ```zsh
-   git clone https://github.com/flex-development/rtd-repos.git; cd rtd-repos
+   git clone https://github.com/flex-development/dreepo.git; cd dreepo
    yarn # or npm install
    ```
 
