@@ -128,11 +128,23 @@
   "release": {
     "allowBranch": "main"
   },
-  "required-env": [
-    "DEBUG",
-    "DEBUG_COLORS",
-    "FIREBASE_CLIENT_EMAIL",
-    "FIREBASE_DATABASE_URL",
-    "FIREBASE_PRIVATE_KEY"
-  ]
+  "required-env": {
+    "development": [
+      "DEBUG",
+      "DEBUG_COLORS",
+      "FIREBASE_CLIENT_EMAIL",
+      "FIREBASE_DATABASE_URL",
+      "FIREBASE_PRIVATE_KEY"
+    ],
+    "test": [
+      "FIREBASE_CLIENT_EMAIL",
+      "FIREBASE_DATABASE_URL",
+      "FIREBASE_PRIVATE_KEY"
+    ],
+    "production": [
+      "FIREBASE_CLIENT_EMAIL",
+      "FIREBASE_DATABASE_URL",
+      "FIREBASE_PRIVATE_KEY"
+    ]
+  }
 }

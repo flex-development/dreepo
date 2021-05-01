@@ -1,7 +1,7 @@
 # Contributing
 
 These instructions will help you begin making changes on your local machine, as
-well follow our coding guidelines.
+well as follow our coding guidelines.
 
 ## Overview
 
@@ -33,8 +33,14 @@ coding guidelines, as well as begin extending your own workflow.
 
 ### Environment Variables
 
-All required environment variables are documented in the `package.json` of each
-project, under the `required-env` field.
+Environment variables are documented in [`package.json`](../package.json), under
+the `required-env` field and organized by Node environment.
+
+Supported environments:
+
+- `development`
+- `test`
+- `production`
 
 ## Coding Standards
 
@@ -107,20 +113,98 @@ To review our linting guidelines, see our configuration files:
 - Configuration: [`.eslintrc.js`](../.eslintrc.js)
 - Ignore Patterns: [`.eslintignore`](../.eslintignore)
 
-## :construction: Making Changes
+## Making Changes
 
-**TODO**: Update documentation.
+All source code can be found in the [`src`](../src) directory.
+
+### Configuration
+
+Global configuration files.
+
+**Directory**: [`src/config`](../src/config)
+
+#### Axios
+
+Default HTTP client configuration used by the `RTDRepository` class.
+
+**File**: [`src/config/axios.ts`](../src/config/axios.ts)
+
+#### Environment Variables
+
+Environment variables used by this project.
+
+**File**: [`src/config/configuration.ts`](../src/config/configuration.ts)
+
+#### JWT
+
+JWT client configuration used to generate Google OAuth2 access tokens.
+
+**File**: [`src/config/jwt.ts`](../src/config/jwt.ts)
+
+#### Logger
+
+Logger used for debugging.
+
+**File**: [`src/config/logger.ts`](../src/config/logger.ts)
+
+#### Mingo
+
+Enables the MongoDB operators used by the `RTDRepository` class.
+
+**File**: [`src/config/mingo.ts`](../src/config/mingo.ts)
+
+### Library
+
+#### Data Transfer Objects
+
+[Data transfer objects (DTOs)][6] carry data between two separate systems.
+
+- **Directory**: [`src/lib/dto`](../src/lib/dto)
+
+#### Enums
+
+Named constants.
+
+- **Directory**: [`src/lib/dto`](../src/lib/enums)
+
+#### Interfaces
+
+Object types defined by this package.
+
+- **Directory**: [`src/lib/interfaces`](../src/lib/interfaces)
+
+#### Models
+
+Global [runtypes][7] models.
+
+- **Directory**: `src/lib/models`
+
+#### Utilities
+
+Global utility functions.
+
+- **Directory**: `src/lib/utils`
+
+#### Types
+
+Utility type definitions.
+
+- **Files**
+  - [`src/lib/types-global.ts`](../src/lib/types-global.ts)
+  - [`src/lib/types-mingo.ts`](../src/lib/types-mingo.ts)
+  - [`src/lib/types-repository.ts`](../src/lib/types-repository.ts)
+  - [`src/lib/types.ts`](../src/lib/types.ts)
 
 ## Documentation
 
-- JavaScript & TypeScript: [JSDoc][6], linted with [`eslint-plugin-jsdoc`][7]
+- JavaScript & TypeScript: [JSDoc][8], linted with [`eslint-plugin-jsdoc`][9]
 
 Before making a pull request, be sure your code is well documented, as it will
 be part of your code review.
 
 ## Testing
 
-This project uses [Jest][8] as its test runner. To run the tests in this
+This project uses [Jest][10] as its test runner. To run the tests in this
 project, run `yarn test` from the project root.
 
 Husky is configured to run tests before every push. If a bug report concerning a
@@ -151,6 +235,9 @@ this project.
 [3]: https://github.com/conventional-changelog/commitlint
 [4]: https://prettier.io/
 [5]: https://eslint.org/
-[6]: https://jsdoc.app
-[7]: https://github.com/gajus/eslint-plugin-jsdoc
-[8]: https://jestjs.io/
+[6]:
+  https://khalilstemmler.com/articles/typescript-domain-driven-design/repository-dto-mapper/#Data-Transfer-Objects
+[7]: https://github.com/pelotom/runtypes
+[8]: https://jsdoc.app
+[9]: https://github.com/gajus/eslint-plugin-jsdoc
+[10]: https://jestjs.io/
