@@ -5,7 +5,7 @@ const packagejson = require('../../package.json')
 
 /**
  * @file Create package.json in `dist` directory
- * @module scripts/js/dist-package-json
+ * @module scripts/js/create-dist-package-json
  */
 
 /**
