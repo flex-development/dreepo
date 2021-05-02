@@ -69,7 +69,7 @@ are used to authenticate requests.
 #### Mingo
 
 The `Repository` class integrates with [mingo][3], a MongoDB query language for
-in-memory objects, to support aggregration pipelines and querying.
+in-memory objects, to support aggregation pipelines and querying.
 
 Operators loaded by Dreepo can be viewed in the [config](src/config/mingo.ts)
 file. If additional operators are needed, you'll need to load them on your own
