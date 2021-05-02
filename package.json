@@ -5,8 +5,10 @@
   "keywords": [
     "database access layer",
     "firebase admin",
+    "mingo",
     "realtime database",
     "repository pattern",
+    "runtypes",
     "typescript"
   ],
   "homepage": "https://github.com/flex-development/dreepo",
@@ -26,14 +28,8 @@
     "directory": "./dist",
     "registry": "https://npm.pkg.github.com"
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
-  "files": [
-    "dist/**",
-    "CHANGELOG.md",
-    "LICENSE.md",
-    "README.md"
-  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
     "clean": "rm -rf node_modules || true",
     "clear:jest": "jest --clearCache",
@@ -43,9 +39,7 @@
     "test": "zsh scripts/jest.sh",
     "test:e2e": "zsh scripts/jest-e2e.sh",
     "compile": "zsh scripts/compile.sh",
-    "release": "zsh scripts/release.sh",
-    "prepublishOnly": "zsh scripts/prepublishOnly.sh",
-    "postpublish": "zsh scripts/postpublish.sh"
+    "release": "zsh scripts/release.sh"
   },
   "dependencies": {
     "@flex-development/exceptions": "1.0.0",

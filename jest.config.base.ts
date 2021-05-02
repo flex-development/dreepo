@@ -31,6 +31,7 @@ const config: Config.InitialOptions = {
     '__tests__/matchers.ts',
     '__tests__/setup.ts',
     '__tests__/utils.ts',
+    'dist/',
     'node_modules/',
     '(.*).d.ts'
   ],

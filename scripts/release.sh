@@ -19,9 +19,11 @@ if [[ $ALLOW_BRANCH != "\"$CURRENT_BRANCH\"" ]]; then
 fi
 
 # PRE-RELEASE WORKFLOW
-# 1. Pull commits from `origin/$CURRENT_BRANCH`
-# 2. Get latest updates from `next` branch
-# 3. Push changes
+# 1. Run test suite
+# 2. Pull commits from `origin/$CURRENT_BRANCH`
+# 3. Get latest updates from `next` branch
+# 4. Push changes
+yarn test
 git pull
 git rebase origin/next
 git push --no-verify
@@ -30,8 +32,10 @@ git push --no-verify
 # 1. Stage release artifacts
 # 2. Automate versioning and CHANGELOG generation (with CLI arguments)
 # 3. Push Git tags
-# 4. Publish package
+# 4. Compile project
+# 5. Publish package from `dist` directory
 git add .
 standard-version -a --no-verify $@
 git push --follow-tags origin $CURRENT_BRANCH --no-verify
-yarn publish
+yarn compile
+yarn --cwd dist publish

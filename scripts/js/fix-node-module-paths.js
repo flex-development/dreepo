@@ -2,7 +2,7 @@ const debug = require('debug')('scripts').extend('js/fix-node-module-paths')
 const replace = require('replace-in-file')
 
 /**
- * @file Implementation - fixNodeModulePaths
+ * @file Fix node module import paths
  * @module scripts/js/fix-node-module-paths
  * @see https://github.com/adamreisnz/replace-in-file
  */
