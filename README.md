@@ -83,8 +83,8 @@ For shorter import paths, TypeScript users can add the following aliases:
 {
   "compilerOptions": {
     "paths": {
-      "@dreepo": ["node_modules/@flex-development/dreepo/dist/index.js"],
-      "@dreepo/*": ["node_modules/@flex-development/dreepo/dist/*"]
+      "@dreepo": ["node_modules/@flex-development/dreepo/index.js"],
+      "@dreepo/*": ["node_modules/@flex-development/dreepo/*"]
     }
   }
 }
