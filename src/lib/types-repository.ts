@@ -85,7 +85,7 @@ export type RepoRoot<E extends IEntity = IEntity> =
 
 /**
  * Type representing the repository schema validation options accepted by the
- * RTDRepository class.
+ * Repository class.
  *
  * @template E - Entity
  */

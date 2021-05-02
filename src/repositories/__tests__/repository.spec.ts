@@ -20,11 +20,11 @@ import omit from 'lodash.omit'
 import type { RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
-import TestSubject from '../rtd.repository'
+import TestSubject from '../repository'
 
 /**
- * @file Unit Tests - RTDRepository
- * @module repositories/tests/RTDRepository
+ * @file Unit Tests - Repository
+ * @module repositories/tests/Repository
  */
 
 jest.mock('@/lib/utils/databaseRequest.util')
@@ -33,7 +33,7 @@ const mockDBRequest = dbRequest as jest.MockedFunction<typeof dbRequest>
 const mockMerge = merge as jest.MockedFunction<typeof merge>
 const mockOmit = omit as jest.MockedFunction<typeof omit>
 
-describe('unit:repositories/RTDRepository', () => {
+describe('unit:repositories/Repository', () => {
   const { FIREBASE_DATABASE_URL } = configuration()
 
   const EMPTY_CACHE = true

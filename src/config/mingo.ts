@@ -115,7 +115,7 @@ const enableOperators = (): void => {
   useOperators(OperatorType.QUERY, QueryOperators as OperatorMap)
 }
 
-// Enable RTDRepository operators
+// Enable Repository operators
 enableOperators()
 
 export default mingo

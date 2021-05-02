@@ -1,6 +1,6 @@
-import { RTDRepository as TestSubject } from '@flex-development/dreepo'
-import { EntityDTO } from '@flex-development/dreepo/lib/dto'
-import type { QueryParams } from '@flex-development/dreepo/lib/types'
+import { Repository as TestSubject } from '@dreepo'
+import { EntityDTO } from '@dreepo/lib/dto'
+import type { QueryParams } from '@dreepo/lib/types'
 import {
   CarEntity as ICar,
   CARS_MOCK_CACHE as mockCache,
@@ -11,15 +11,15 @@ import {
 import { clearRepository, loadRepository } from '@tests/utils'
 
 /**
- * @file E2E Tests - RTDRepository
- * @module tests/e2e/RTDRepository
+ * @file E2E Tests - Repository
+ * @module tests/e2e/Repository
  */
 
 jest.unmock('axios')
 jest.unmock('lodash.merge')
 jest.unmock('lodash.omit')
 
-describe('e2e:RTDRepository', () => {
+describe('e2e:Repository', () => {
   /**
    * Returns a test repository.
    *

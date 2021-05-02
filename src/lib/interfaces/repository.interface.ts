@@ -17,17 +17,17 @@ import type { DBRequestConfig } from './db-request-config.interface'
 import type { MingoOptions } from './mingo-options.interface'
 
 /**
- * @file Interface - IRTDRepository
- * @module lib/interfaces/RTDRepository
+ * @file Interface - IRepository
+ * @module lib/interfaces/Repository
  */
 
 /**
- * Repository API interface for Firebase Realtime Database.
+ * `Repository` class interface.
  *
  * @template E - Entity
  * @template P - Query parameters
  */
-export interface IRTDRepository<
+export interface IRepository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
 > {

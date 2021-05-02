@@ -3,6 +3,6 @@
  * @module repositories
  */
 
-export { default as RTDRepository } from './rtd.repository'
+export { default as Repository } from './repository'
 
 /* eslint-disable prettier/prettier */

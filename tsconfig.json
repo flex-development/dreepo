@@ -9,8 +9,8 @@
     "esModuleInterop": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
-    "lib": ["es6"],
-    "module": "commonjs",
+    "lib": ["esnext"],
+    "module": "esnext",
     "moduleResolution": "node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
@@ -28,20 +28,18 @@
       "@flex-development/exceptions/*": [
         "node_modules/@flex-development/exceptions/dist/*"
       ],
-      "@flex-development/dreepo": ["src/index.ts"],
-      "@flex-development/dreepo/*": ["src/*"],
+      "@dreepo": ["src/index.ts"],
+      "@dreepo/*": ["src/*"],
       "@tests/fixtures/*": ["__tests__/__fixtures__/*"],
       "@tests/*": ["__tests__/*"]
     },
     "preserveConstEnums": true,
     "pretty": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
     "strictPropertyInitialization": false,
     "suppressImplicitAnyIndexErrors": true,
     "strict": true,
-    "target": "es6"
+    "target": "es2018"
   },
   "exclude": ["node_modules"]
 }

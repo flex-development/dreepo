@@ -7,7 +7,7 @@ import { SortOrder } from '@/lib/enums/sort-order.enum'
 import type {
   AggregationStages,
   DBRequestConfig,
-  IRTDRepository,
+  IRepository,
   MingoOptions
 } from '@/lib/interfaces'
 import type { IEntity } from '@/lib/models/entity.model'
@@ -40,8 +40,8 @@ import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { v4 as uuid } from 'uuid'
 
 /**
- * @file Repositories - RTDRepository
- * @module repositories/RTD
+ * @file Repositories - Repository
+ * @module repositories/Base
  */
 
 /**
@@ -53,12 +53,12 @@ import { v4 as uuid } from 'uuid'
  * @template E - Entity
  * @template P - Query parameters
  *
- * @class RTDRepository
+ * @class Repository
  */
-export default class RTDRepository<
+export default class Repository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
-> implements IRTDRepository<E, P> {
+> implements IRepository<E, P> {
   /**
    * @readonly
    * @instance
@@ -85,7 +85,7 @@ export default class RTDRepository<
    * @instance
    * @property {Debugger} logger - Internal logger
    */
-  readonly logger: Debugger = logger.extend('RTDRepository')
+  readonly logger: Debugger = logger.extend('Repository')
 
   /**
    * @readonly
@@ -156,7 +156,7 @@ export default class RTDRepository<
    * Runs an aggregation pipeline for `this.cache.collection`.
    *
    * If the cache is empty, a warning will be logged to the console instructing
-   * developers to call {@method RTDRepository#refreshCache}.
+   * developers to call {@method Repository#refreshCache}.
    *
    * @param {OneOrMany<AggregationStages<E>>} pipeline - Aggregation stage(s)
    * @return {Array<PartialOr<EntityEnhanced<E>>> | RawArray} Pipeline results
@@ -325,7 +325,7 @@ export default class RTDRepository<
    * Performs a query on `this.cache.collection`.
    *
    * If the cache is empty, a warning will be logged to the console instructing
-   * developers to call {@method RTDRepository#refreshCache}.
+   * developers to call {@method Repository#refreshCache}.
    *
    * @param {P} [params] - Query parameters
    * @param {number} [params.$limit] - Limit number of results
@@ -595,7 +595,7 @@ export default class RTDRepository<
   }
 
   /**
-   * Validates {@param value} against {@see RTDRepository#model} if schema
+   * Validates {@param value} against {@see Repository#model} if schema
    * validation is enabled. If disabled, the original value will be returned.
    *
    * References:

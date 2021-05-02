@@ -125,7 +125,7 @@ Global configuration files.
 
 #### Axios
 
-Default HTTP client configuration used by the `RTDRepository` class.
+Default HTTP client configuration used by the `Repository` class.
 
 **File**: [`src/config/axios.ts`](../src/config/axios.ts)
 
@@ -149,7 +149,7 @@ Logger used for debugging.
 
 #### Mingo
 
-Enables the MongoDB operators used by the `RTDRepository` class.
+Enables the MongoDB operators used by the `Repository` class.
 
 **File**: [`src/config/mingo.ts`](../src/config/mingo.ts)
 

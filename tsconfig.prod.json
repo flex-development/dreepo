@@ -1,6 +1,8 @@
 {
   "compilerOptions": {
     "declaration": true,
+    "lib": ["es2018"],
+    "module": "commonjs",
     "noEmit": false,
     "outDir": "./dist",
     "plugins": [
@@ -11,7 +13,8 @@
       }
     ],
     "removeComments": false,
-    "rootDir": "./src"
+    "rootDir": "./src",
+    "sourceMap": true
   },
   "exclude": ["**/__mocks__/**", "**/__tests__/**"],
   "extends": "./tsconfig.json",
