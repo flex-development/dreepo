@@ -19,13 +19,13 @@ if [[ $ALLOW_BRANCH != "\"$CURRENT_BRANCH\"" ]]; then
 fi
 
 # PRE-RELEASE WORKFLOW
-# 1. Run test suites
-# 2. Pull commits from `origin/$CURRENT_BRANCH`
-# 3. Get latest updates from `next` branch
+# 1. Pull commits from `origin/$CURRENT_BRANCH`
+# 2. Get latest updates from `next` branch
+# 3. Run test suites (without cache)
 # 4. Push changes
-yarn test
 git pull
 git rebase origin/next
+yarn test --no-cache
 git pnv
 
 # RELEASE WORKFLOW
