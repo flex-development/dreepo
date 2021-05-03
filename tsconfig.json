@@ -22,12 +22,6 @@
     "paths": {
       "@": ["src/index.ts"],
       "@/*": ["src/*"],
-      "@flex-development/exceptions": [
-        "node_modules/@flex-development/exceptions/dist/index.js"
-      ],
-      "@flex-development/exceptions/*": [
-        "node_modules/@flex-development/exceptions/dist/*"
-      ],
       "@dreepo": ["src/index.ts"],
       "@dreepo/*": ["src/*"],
       "@tests/fixtures/*": ["__tests__/__fixtures__/*"],
