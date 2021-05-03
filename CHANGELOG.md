@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [1.1.0](https://github.com/flex-development/dreepo/compare/v1.0.0...v1.1.0) (2021-05-03)
+
+
+### :book: Documentation
+
+* fix typescript aliases example ([df5f4bb](https://github.com/flex-development/dreepo/commit/df5f4bb192f2263db16dfa165f27bc5f7059e8f7))
+* remove duplicate entries from changelog ([350c5d8](https://github.com/flex-development/dreepo/commit/350c5d89bb0ae2e5d80d1362c90dd38b65edb04c))
+
 ## 1.0.0 (2021-05-02)
 
 
