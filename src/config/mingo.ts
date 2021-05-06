@@ -102,7 +102,7 @@ const PipelineOperators = {
 }
 
 /**
- * Enables operators the {@module repositories/RTD} uses.
+ * Enables operators the {@module repositories/Repository} uses.
  * If other operators are needed, they must be enabled by the user.
  *
  * @return {void}
@@ -115,7 +115,7 @@ const enableOperators = (): void => {
   useOperators(OperatorType.QUERY, QueryOperators as OperatorMap)
 }
 
-// Enable Repository operators
+// Enable dreepo operators
 enableOperators()
 
 export default mingo
