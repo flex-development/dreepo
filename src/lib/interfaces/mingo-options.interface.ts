@@ -12,5 +12,5 @@ import type { Options } from 'mingo/core'
  * [1]: https://github.com/kofrasa/mingo
  */
 export interface MingoOptions extends Omit<Options, 'idKey'> {
-  idKey: `id`
+  idKey: 'id'
 }

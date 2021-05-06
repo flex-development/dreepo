@@ -17,6 +17,8 @@ import type { EntityPath } from './types-repository'
  *
  * ! Does not include `ExpressionObject` definition due to circular referencing.
  *
+ * @template E - Entity
+ *
  * [1]: https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#expressions
  */
 export type ExpressionBase<E extends IEntity = IEntity> =
@@ -33,6 +35,8 @@ export type ExpressionBase<E extends IEntity = IEntity> =
  *
  * ! Does not include `ExpressionObject` definition due to circular referencing.
  *
+ * @template E - Entity
+ *
  * [1]: https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#expression-objects
  */
 export type ExpressionObject<E extends IEntity = IEntity> = Record<
@@ -43,6 +47,8 @@ export type ExpressionObject<E extends IEntity = IEntity> = Record<
 /**
  * Type representing ALL [Expression objects][1].
  *
+ * @template E - Entity
+ *
  * [1]: https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#expression-objects
  */
 export type ExpressionObject2<E extends IEntity = IEntity> =
@@ -52,6 +58,8 @@ export type ExpressionObject2<E extends IEntity = IEntity> =
 /**
  * Type representing ALL [Aggregation expressions][1].
  *
+ * @template E - Entity
+ *
  * [1]: https://docs.mongodb.com/manual/meta/aggregation-quick-reference/#expressions
  */
 export type Expression<E extends IEntity = IEntity> =
@@ -60,6 +68,8 @@ export type Expression<E extends IEntity = IEntity> =
 
 /**
  * Type representing a nested or top level entity key used as MongoDB operator.
+ *
+ * @template E - Entity
  */
 export type FieldPath<E extends IEntity = IEntity> = `$${EntityPath<E>}`
 

@@ -10,7 +10,7 @@ import type { AxiosResponse } from 'axios'
  *
  * @template T - Shape of data
  *
- * @param {AxiosResponse<T>} response - Success response object
+ * @param {AxiosResponse<T>} response - Response object
  * @param {T} response.data - Response data
  * @return {T} Response data
  */

@@ -19,7 +19,7 @@ export const Entity = Record({
   id: String,
 
   /**
-   * Date and time entity was modified.
+   * Date and time entity was last modified.
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */

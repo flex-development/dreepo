@@ -19,6 +19,8 @@ import type { ProjectionCriteria, QueryCriteria } from './types-mingo'
 /**
  * Entity that can have additional properties after being evaluated during an
  * aggregation pipeline.
+ *
+ * @template E - Entity
  */
 export type EntityEnhanced<E extends IEntity = IEntity> = E & {
   [x: string]: unknown
@@ -26,6 +28,8 @@ export type EntityEnhanced<E extends IEntity = IEntity> = E & {
 
 /**
  * Type representing a nested or top level entity key.
+ *
+ * @template E - Entity
  */
 export type EntityPath<
   E extends IEntity = IEntity
@@ -52,6 +56,8 @@ export type QueryParams<E extends IEntity = IEntity> = QueryCriteria<E> &
 
 /**
  * Type representing a repository data cache.
+ *
+ * @template E - Entity
  */
 export type RepoCache<E extends IEntity = IEntity> = {
   collection: E[]
@@ -69,6 +75,8 @@ export type RepoHttpClient<T = any> = {
 
 /**
  * Function to perform additional validations.
+ *
+ * @template E - Entity
  */
 export type RepoModelRefinement<E extends IEntity = IEntity> = {
   (value: E): OrPromise

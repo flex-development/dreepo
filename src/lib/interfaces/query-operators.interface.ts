@@ -12,6 +12,8 @@ import type { Expression } from '../types-mingo'
 /**
  * [Query Selector][1] operators.
  *
+ * @template E - Entity
+ *
  * [1]: https://docs.mongodb.com/manual/reference/operator/query/#query-selectors
  */
 export interface QueryOperators<E extends IEntity = IEntity> {
