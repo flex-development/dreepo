@@ -136,6 +136,7 @@ module.exports = {
           'mopts',
           'nullable',
           'oauth2',
+          'perf',
           'postpublish',
           'readonly',
           'repo',

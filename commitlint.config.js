@@ -39,7 +39,7 @@ module.exports = {
      * Ignores commit messages that begin with "wip" as the scope or type.
      *
      * @param {string} commit - The commit message
-     * @return {boolean} True if message begins with "wip" as the scope or type
+     * @return {boolean} True if commit begins with "wip" as the scope or type
      */
     commit => [':', '('].some(char => commit.startsWith(`wip${char}`))
   ],
@@ -71,7 +71,33 @@ module.exports = {
         })
       }
 
-      return [2, 'always', [...directories(readdirSync(SRC)), 'rtd-repo']]
-    }
+      return [
+        2,
+        'always',
+        [...directories(readdirSync(SRC)), 'release', 'repo']
+      ]
+    },
+
+    /**
+     * Rules for valid commit types.
+     */
+    'type-enum': [
+      2,
+      'always',
+      [
+        'breaking',
+        'build',
+        'chore',
+        'ci',
+        'docs',
+        'feat',
+        'fix',
+        'perf',
+        'refactor',
+        'revert',
+        'style',
+        'test'
+      ]
+    ]
   }
 }

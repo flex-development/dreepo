@@ -4,12 +4,16 @@
  */
 
 const sections = {
+  breaking: ':boom: Breaking Changes',
+  build: ':hammer: Build',
+  chore: ':pencil2: Housekeeping',
   docs: ':book: Documentation',
-  feat: ':package: Features',
+  feat: ':sparkles: Features',
   fix: ':bug: Fixes',
-  other: ':page_facing_up: Other Changes',
   perf: ':zap: Performance Updates',
+  refactor: ':recycle: Code Improvements',
   revert: ':rewind: Revert',
+  style: ':nail_care: Formatting & Structure',
   test: ':robot: Testing',
   wip: ':construction: Work in Progress'
 }
@@ -17,17 +21,18 @@ const sections = {
 module.exports = {
   types: [
     { type: 'feat', section: sections.feat },
+    { type: 'breaking', section: sections.breaking },
     { type: 'fix', section: sections.fix },
-    { type: 'perf', section: sections.perf },
     { type: 'revert', section: sections.revert },
     { type: 'test', section: sections.test },
     { type: 'docs', section: sections.docs },
+    { type: 'build', section: sections.build },
+    { type: 'refactor', section: sections.refactor },
+    { type: 'perf', section: sections.perf },
+    { type: 'style', section: sections.style },
+    { type: 'chore', section: sections.chore },
     { type: 'wip', section: sections.wip },
-    { type: 'build', hidden: true },
-    { type: 'chore', hidden: true },
-    { type: 'ci', hidden: true },
-    { type: 'refactor', section: true },
-    { type: 'style', hidden: true }
+    { type: 'ci', hidden: true }
   ],
   releaseCommitMessageFormat: 'chore(release): publish v{{currentTag}}'
 }
