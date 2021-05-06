@@ -41,7 +41,7 @@ import { v4 as uuid } from 'uuid'
 
 /**
  * @file Repositories - Repository
- * @module repositories/Base
+ * @module repositories/Repository
  */
 
 /**
@@ -190,7 +190,7 @@ export default class Repository<
    * Clears all data from the repository.
    *
    * @async
-   * @return {Promise<true>} Promise with `true` indicating data was removed
+   * @return {Promise<true>} Promise containing `true`
    * @throws {Exception}
    */
   async clear(): Promise<true> {
@@ -223,8 +223,8 @@ export default class Repository<
    * The entity will be timestamped and assigned an UUID if {@param dto.id} is
    * nullable or an empty string.
    *
-   * Throws an error if an entity with the same `id` exists, or if schema
-   * validation is enabled and fails.
+   * Throws a `400 BAD_REQUEST` error if schema validation is enabled and fails.
+   * Throws a `409 CONFLICT` error if an entity with the same `id` exists.
    *
    * References:
    *
@@ -233,7 +233,7 @@ export default class Repository<
    *
    * @async
    * @param {EntityDTO<E>} dto - Data to create new entity
-   * @return {Promise<E>} Promise with new entity
+   * @return {Promise<E>} Promise containing new entity
    * @throws {Exception}
    */
   async create(dto: EntityDTO<E>): Promise<E> {
@@ -275,13 +275,13 @@ export default class Repository<
   /**
    * Deletes a single entity or group of entities.
    *
-   * If {@param should_exist} is `true`, an error will be thrown if the entity
-   * or one of the entities doesn't exist.
+   * If {@param should_exist} is `true`, a `404 NOT_FOUND` error will be thrown
+   * if the entity or one of the entities doesn't exist.
    *
    * @async
    * @param {OneOrMany<string>} id - Entity ID or array of IDs
    * @param {boolean} [should_exist] - Throw if any entities don't exist
-   * @return {Promise<string[]>} Promise with array of deleted entity IDs
+   * @return {Promise<string[]>} Promise containing array of deleted entity IDs
    * @throws {Exception}
    */
   async delete(
@@ -421,7 +421,7 @@ export default class Repository<
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Query parameters
-   * @return {PartialOr<E> | null} Promise with entity or null
+   * @return {PartialOr<E> | null} Promise containing entity or null
    * @throws {Exception}
    */
   findOne(id: E['id'], params: P = {} as P): PartialOr<E> | null {
@@ -441,7 +441,7 @@ export default class Repository<
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Query parameters
-   * @return {PartialOr<E>} Promise with entity or null
+   * @return {PartialOr<E>} Promise containing entity
    * @throws {Exception}
    */
   findOneOrFail(id: E['id'], params: P = {} as P): PartialOr<E> {
@@ -565,7 +565,7 @@ export default class Repository<
    *
    * @async
    * @param {OneOrMany<PartialOr<EntityDTO<E>>>} dto - Entities to upsert
-   * @return {Promise<E[]>} Promise with new or updated entities
+   * @return {Promise<E[]>} Promise containing new or updated entities
    */
   async save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]> {
     /**
@@ -576,7 +576,7 @@ export default class Repository<
      *
      * @async
      * @param {PartialOr<EntityDTO<E>>} dto - Data to upsert entity
-     * @return {Promise<E>} Promise with new or updated entiy
+     * @return {Promise<E>} Promise containing new or updated entiy
      */
     const upsert = async (dto: PartialOr<EntityDTO<E>>): Promise<E> => {
       const { id = '' } = dto
@@ -605,7 +605,7 @@ export default class Repository<
    * @template Value - Type of value being validated
    *
    * @param {Value} value - Data to validate
-   * @return {Promise<E | Value>} - Promise with value
+   * @return {Promise<E | Value>} - Promise containing value
    * @throws {Exception}
    */
   async validate<Value extends unknown = RawObject>(

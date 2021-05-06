@@ -23,7 +23,7 @@ import pick from 'lodash.pick'
  * - https://firebase.google.com/docs/database/rest/auth
  *
  * @async
- * @return {Promise<NullishString>} Promise with access token or null
+ * @return {Promise<NullishString>} Promise containing access token or null
  * @throws {Exception}
  */
 const databaseToken = async (): Promise<NullishString> => {
