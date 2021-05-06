@@ -38,7 +38,12 @@ module.exports = {
     ...PARSER_OPTIONS,
     project: ['./tsconfig.json']
   },
-  plugins: ['@typescript-eslint/eslint-plugin', 'jsdoc', 'tree-shaking'],
+  plugins: [
+    '@typescript-eslint/eslint-plugin',
+    'jsdoc',
+    'spellcheck',
+    'tree-shaking'
+  ],
   rules: {
     '@typescript-eslint/ban-ts-ignore': 0,
     '@typescript-eslint/ban-types': 1,
@@ -94,6 +99,56 @@ module.exports = {
         asyncArrow: 'always',
         named: 'never'
       }
+    ],
+    'spellcheck/spell-checker': [
+      1,
+      {
+        comments: true,
+        identifiers: false,
+        lang: 'en_US',
+        minLength: 3,
+        skipIfMatch: [],
+        skipWordIfMatch: [],
+        skipWords: [
+          'Axios',
+          'Enums',
+          'Firebase',
+          'Globals',
+          'Matcher',
+          'Mingo',
+          'Readonly',
+          'Realtime',
+          'axios',
+          'bool',
+          'bson',
+          'commitlint',
+          'dreepo',
+          'dto',
+          'enums',
+          'enum',
+          'europe',
+          'firebasedatabase',
+          'firebaseio',
+          'formatter',
+          'matchers',
+          'matcher',
+          'mingo',
+          'mopts',
+          'nullable',
+          'oauth2',
+          'postpublish',
+          'readonly',
+          'repo',
+          'rtd',
+          'timestamps',
+          'typeof',
+          'upsert',
+          'vopts',
+          'wip',
+          'zsh'
+        ],
+        strings: true
+      }
     ]
   },
   overrides: [
@@ -133,6 +188,12 @@ module.exports = {
       files: ['.eslintrc.*', 'scripts/js/create-dist-package-json.js'],
       rules: {
         'sort-keys': 0
+      }
+    },
+    {
+      files: ['.eslintrc.*'],
+      rules: {
+        'spellcheck/spell-checker': 0
       }
     }
   ],

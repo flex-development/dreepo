@@ -93,6 +93,7 @@
     "eslint-plugin-jsdoc": "latest",
     "eslint-plugin-node": "latest",
     "eslint-plugin-prettier": "latest",
+    "eslint-plugin-spellcheck": "latest",
     "eslint-plugin-tree-shaking": "latest",
     "faker": "latest",
     "husky": "4.3.8",

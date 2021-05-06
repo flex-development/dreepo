@@ -12,7 +12,7 @@ import type {
   RepoHttpClient,
   RepoValidatorOpts
 } from '../types-repository'
-import type { AggregationStages } from './aggregration-stages.interface'
+import type { AggregationStages } from './aggregation-stages.interface'
 import type { DBRequestConfig } from './db-request-config.interface'
 import type { MingoOptions } from './mingo-options.interface'
 

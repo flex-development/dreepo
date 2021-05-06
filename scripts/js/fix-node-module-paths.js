@@ -23,7 +23,7 @@ const OPTIONS = {
  * Because TypeScript path aliases must be relative, the correct `node_modules`
  * path cannot be produced.
  *
- * When publising packages, this is incorrect because `'node_modules'` should
+ * When publishing packages, this is incorrect because `'node_modules'` should
  * not be included in any module import paths.
  *
  * This function correctly formats all node module imports.
