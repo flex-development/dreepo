@@ -39,7 +39,8 @@
     "test": "zsh scripts/jest.sh",
     "test:e2e": "zsh scripts/jest-e2e.sh",
     "compile": "zsh scripts/compile.sh",
-    "release": "zsh scripts/release.sh"
+    "release": "zsh scripts/release.sh",
+    "release:github": "node scripts/js/release-github"
   },
   "dependencies": {
     "@flex-development/exceptions": "2.0.0",
@@ -80,8 +81,8 @@
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
     "@commitlint/format": "latest",
-    "@types/jest": "latest",
     "@types/faker": "latest",
+    "@types/jest": "latest",
     "@typescript-eslint/eslint-plugin": "latest",
     "@typescript-eslint/parser": "latest",
     "@zerollup/ts-transform-paths": "latest",

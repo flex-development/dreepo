@@ -34,8 +34,10 @@ git pnv
 # 3. Push Git tags
 # 4. Compile project (must be executed after CHANGELOG generation)
 # 5. Publish package from `dist` directory
+# 6. Create GitHub release
 git add .
 standard-version -a --no-verify $@
 git push --follow-tags origin $CURRENT_BRANCH --no-verify
 yarn compile
 yarn --cwd dist publish
+yarn release:github
