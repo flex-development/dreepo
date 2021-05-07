@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.1](https://github.com/flex-development/dreepo/compare/v1.1.0...v1.1.1) (2021-05-07)
+
+
+### :robot: Testing
+
+* add uuid mock ([bf3316e](https://github.com/flex-development/dreepo/commit/bf3316ea2155e37719a849c089c1b954060a6e78))
+
+
+### :nail_care: Formatting & Structure
+
+* spellcheck ([cfaab2d](https://github.com/flex-development/dreepo/commit/cfaab2dc450cc06fb7fdf27f914ea49b021457b9))
+
+
+### :bug: Fixes
+
+* **lib:** aggregation stages interface import ([34d76b1](https://github.com/flex-development/dreepo/commit/34d76b185216df32987c4da4263671a919041e5a))
+
+
+### :book: Documentation
+
+* **config:** qa ([00c4427](https://github.com/flex-development/dreepo/commit/00c44279796fcc4c753e5803172dcae22dec4d73))
+* **lib:** qa ([e355b17](https://github.com/flex-development/dreepo/commit/e355b178732699b8c7e10c787021d78e23bcd619))
+* **repo:** qa ([6c9be92](https://github.com/flex-development/dreepo/commit/6c9be92be3c5982bbe3f018619c883cc8958abad))
+
+
+### :pencil2: Housekeeping
+
+* github release workflow ([d620eab](https://github.com/flex-development/dreepo/commit/d620eabc91ef7e94d25d73e2ca9be70bfc9da156))
+* update conventional changelog config ([44b5e73](https://github.com/flex-development/dreepo/commit/44b5e73fa3418b375fea350b7ac2f1609e20fc3a))
+
 ## [1.1.0](https://github.com/flex-development/dreepo/compare/v1.0.0...v1.1.0) (2021-05-03)
 
 
