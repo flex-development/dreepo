@@ -1,7 +1,7 @@
 import { Number, Record, Static, String } from 'runtypes'
 
 /**
- * @file Models - Entity
+ * @file Model - Entity
  * @module lib/models/Entity
  */
 
