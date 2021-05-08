@@ -1,5 +1,3 @@
-import axios from '@/config/axios'
-import configuration from '@/config/configuration'
 import logger from '@/config/logger'
 import mingo from '@/config/mingo'
 import type { EntityDTO } from '@/lib/dto/entity.dto'
@@ -7,6 +5,7 @@ import { SortOrder } from '@/lib/enums/sort-order.enum'
 import type {
   AggregationStages,
   DBRequestConfig,
+  IDBConnection,
   IRepository,
   MingoOptions
 } from '@/lib/interfaces'
@@ -20,13 +19,11 @@ import type {
   ProjectStage,
   QueryParams,
   RepoCache,
-  RepoHttpClient,
   RepoModelRefinement,
   RepoRoot,
   RepoValidatorOpts,
   RepoValidatorOptsDTO
 } from '@/lib/types'
-import databaseRequest from '@/lib/utils/databaseRequest.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { Debugger } from 'debug'
@@ -62,13 +59,6 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {string} DATABASE_URL - Firebase Realtime Database URL
-   */
-  readonly DATABASE_URL: string
-
-  /**
-   * @readonly
-   * @instance
    * @property {RepoCache} cache - Repository data cache
    */
   readonly cache: RepoCache<E>
@@ -76,9 +66,9 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {RepoHttpClient} http - HTTP client used to request REST API
+   * @property {IDBConnection} connection - Database connection provider
    */
-  readonly http: RepoHttpClient
+  readonly connection: IDBConnection
 
   /**
    * @readonly
@@ -126,27 +116,23 @@ export default class Repository<
    * Instantiates a new Realtime Database repository.
    *
    * @param {string} path - Database repository path
+   * @param {IDBConnection} connection - Database connection provider
    * @param {RepoValidatorOptsDTO<E>} vopts - Schema validation options
    * @param {boolean} [vopts.enabled] - Toggle schema validation
    * @param {RuntypeBase<E>} vopts.model - Entity schema model
    * @param {RepoModelRefinement<E>} [vopts.refinement] - Function to perform
    * additional validations. Can be asynchronous
-   * @param {RepoHttpClient} [http] - HTTP client. Defaults to `axios`
    */
   constructor(
     path: string,
-    vopts: RepoValidatorOptsDTO<E>,
-    http: RepoHttpClient = axios
+    connection: IDBConnection,
+    vopts: RepoValidatorOptsDTO<E>
   ) {
-    // Environment variables
-    const { FIREBASE_DATABASE_URL } = configuration()
-
     // Schema validation options
     const { enabled: venabled = true, model, refinement } = vopts
 
-    this.DATABASE_URL = FIREBASE_DATABASE_URL
     this.cache = { collection: [], root: {} }
-    this.http = http
+    this.connection = connection
     this.model = model
     this.path = path
     this.vopts = { enabled: venabled, refinement: refinement }
@@ -554,7 +540,7 @@ export default class Repository<
    * @throws {Exception}
    */
   async request<T = any>(config: DBRequestConfig = {}): Promise<T> {
-    return await databaseRequest<T>(this.path, config, this.http)
+    return await this.connection.request<T>(this.path, config)
   }
 
   /**

@@ -179,8 +179,8 @@ export default class DBConnection implements IDBConnection {
    * To bypass Realtime Database Rules, requests will be authenticated with a
    * Google OAuth2 token, thus granting the server admin database privileges.
    *
-   * To use `process.env.FIREBASE_DATBASE_URL` as a REST endpoint, the request
-   * URL, {@param config.url} will have `.json` appended.
+   * To use {@see DBConnection#url} as a REST endpoint, {@param config.url} will
+   * have the string `.json` appended.
    *
    * @template T - Payload type
    *

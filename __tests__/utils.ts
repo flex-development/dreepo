@@ -1,7 +1,7 @@
 import type { IEntity } from '@/lib/models/entity.model'
 import type { EmptyObject } from '@/lib/types-global'
 import type { RepoRoot } from '@/lib/types-repository'
-import databaseRequest from '@/lib/utils/databaseRequest.util'
+import DBConnection from './__fixtures__/db-connection.fixture'
 
 /**
  * @file Test Utilities
@@ -16,7 +16,7 @@ import databaseRequest from '@/lib/utils/databaseRequest.util'
  * @return {Promise<void>} Empty promise when complete
  */
 export const clearRepository = async (path: string): Promise<void> => {
-  await databaseRequest<EmptyObject>(path, { data: {}, method: 'put' })
+  await DBConnection.request<EmptyObject>(path, { data: {}, method: 'put' })
   return
 }
 
@@ -34,6 +34,6 @@ export async function loadRepository<E extends IEntity = IEntity>(
   path: string,
   data: RepoRoot<E>
 ): Promise<void> {
-  await databaseRequest<RepoRoot<E>>(path, { data, method: 'put' })
+  await DBConnection.request<RepoRoot<E>>(path, { data, method: 'put' })
   return
 }

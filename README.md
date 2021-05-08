@@ -42,6 +42,7 @@ Alongside an abstract database access layer, repositories also support:
 [Configuration](#configuration)  
 [Creating a New Model](#creating-a-new-model)  
 [Schema Validation](#schema-validation)  
+[Database Connection](#database-connection)  
 [Creating a New Repository](#creating-a-new-repository)  
 [Repository Cache](#repository-cache)  
 [Repository Class API](#repository-class-api)
@@ -62,9 +63,6 @@ are used to authenticate requests.
 
 - `DEBUG`: Toggle [debug][7] logs from the `dreepo` namespace
 - `DEBUG_COLORS`: Toggle [debug][7] log namespace colors
-- `FIREBASE_CLIENT_EMAIL`: Firebase Admin service account `client_email`
-- `FIREBASE_DATABASE_URL`: Firebase Realtime Database URL
-- `FIREBASE_PRIVATE_KEY`: Firebase Admin service account `private_key`
 
 #### Mingo
 
@@ -101,7 +99,7 @@ For the next set of examples, the model `Car` will be used.
 
 ```typescript
 import { Entity } from '@dreepo'
-import type { QueryParams, RepoValidatorOptsDTO } from '@dreepo/lib/types'
+import type { QueryParams } from '@dreepo/lib/types'
 import { Number, Static, String } from 'runtypes'
 
 export const Car = Entity.extend({
@@ -148,22 +146,32 @@ Note that `vopts.enabled` and `vopts.refinement` are optional.
 By default, validation is enabled. If the `refinement` function is defined, it
 is only passed `value` if initial validation passes.
 
+### Database Connection
+
+To connect to your database, initialize a new `DBConnection` provider.
+
+```typescript
+import { DBConnection } from '@dreepo'
+
+const url = process.env.FIREBASE_DATABASE_URL || ''
+const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
+const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
+
+export const dbconn = new DBConnection(url, client_email, private_key)
+```
+
+Note:
+
+- An `Exception` will be thrown if any options are invalid
+- Private keys will be formatted using `private_key.replace(/\\n/g, '\n')`
+
 ### Creating a New Repository
 
 ```typescript
 import { Repository } from '@dreepo'
 
-export const REPO_PATH = 'cars'
-export const CarRepo = new Repository<CarEntity, CarQuery>(REPO_PATH, vopts)
-
-/**
- * Every repository uses the `FIREBASE_DATABASE_URL` environment variable to set
- * used the `DATABASE_URL` instance property. While implemented as `readonly`
- * property, it can be overridden.
- */
-
-// @ts-expect-error overriding database URL
-CarRepo.DATABASE_URL = 'https://other-database.firebaseio.com'
+export const rpath = 'cars'
+export const CarRepo = new Repository<CarEntity, CarQuery>(rpath, dbconn, vopts)
 ```
 
 ### Repository Cache
@@ -199,9 +207,8 @@ export interface IRepository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
 > {
-  readonly DATABASE_URL: string
   readonly cache: RepoCache<E>
-  readonly http: RepoHttpClient
+  readonly connection: IDBConnection
   readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly mopts: MingoOptions

@@ -129,18 +129,6 @@ Default HTTP client configuration used by the `Repository` class.
 
 **File**: [`src/config/axios.ts`](../src/config/axios.ts)
 
-#### Environment Variables
-
-Environment variables used by this project.
-
-**File**: [`src/config/configuration.ts`](../src/config/configuration.ts)
-
-#### JWT
-
-JWT client configuration used to generate Google OAuth2 access tokens.
-
-**File**: [`src/config/jwt.ts`](../src/config/jwt.ts)
-
 #### Logger
 
 Logger used for debugging.
@@ -165,7 +153,7 @@ Enables the MongoDB operators used by the `Repository` class.
 
 Named constants.
 
-- **Directory**: [`src/lib/dto`](../src/lib/enums)
+- **Directory**: [`src/lib/enums`](../src/lib/enums)
 
 #### Interfaces
 
@@ -177,13 +165,19 @@ Object types defined by this package.
 
 Global [runtypes][7] models.
 
-- **Directory**: `src/lib/models`
+- **Directory**: [`src/lib/models`](../src/lib/models)
+
+#### Providers
+
+Global factory, helper, and service classes.
+
+- **Directory**: [`src/lib/providers`](../src/lib/providers)
 
 #### Utilities
 
 Global utility functions.
 
-- **Directory**: `src/lib/utils`
+- **Directory**: [`src/lib/utils`](../src/lib/utils)
 
 #### Types
 
