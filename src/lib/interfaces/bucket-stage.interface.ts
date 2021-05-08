@@ -1,7 +1,7 @@
-import type { IEntity } from '../models/entity.model'
 import type { NumberString } from '../types-global'
 import type { Expression } from '../types-mingo'
 import type { AccumulatorOperators } from './accumulator-operators.interface'
+import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - BucketStage

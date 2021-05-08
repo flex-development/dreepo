@@ -1,27 +1,25 @@
-import { Number, Record, String } from 'runtypes'
-
 /**
- * @file Model - Entity
- * @module lib/models/Entity
+ * @file Interface - IEntity
+ * @module lib/interfaces/Entity
  */
 
-export const Entity = Record({
+export interface IEntity {
   /**
    * Date and time entity was created.
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */
-  created_at: Number,
+  readonly created_at: number
 
   /**
    * Unique identifier for the entity.
    */
-  id: String,
+  readonly id: string
 
   /**
    * Date and time entity was last modified.
    *
    * - Format: [Unix Timestamp](https://en.wikipedia.org/wiki/Unix_time)
    */
-  updated_at: Number.optional()
-}).asReadonly()
+  readonly updated_at?: number
+}

@@ -6,10 +6,10 @@ import type {
   AggregationStages,
   DBRequestConfig,
   IDBConnection,
+  IEntity,
   IRepository,
   MingoOptions
 } from '@/lib/interfaces'
-import type { IEntity } from '@/lib/models/entity.model'
 import type {
   EntityEnhanced,
   EntityPath,

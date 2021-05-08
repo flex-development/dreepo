@@ -1,6 +1,6 @@
-import type { IEntity } from '../models/entity.model'
 import type { Expression } from '../types-mingo'
 import type { CustomAccumulator } from './custom-accumulator.interface'
+import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - AccumulatorOperators

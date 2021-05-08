@@ -99,7 +99,7 @@ For the next set of examples, the model `Car` will be used.
 
 ```typescript
 import { Entity } from '@dreepo'
-import type { QueryParams } from '@dreepo/lib/types'
+import type { QueryParams } from '@dreepo'
 import { Number, Static, String } from 'runtypes'
 
 export const Car = Entity.extend({
@@ -118,7 +118,7 @@ The repository model and schema validation options are consumed by the
 `Repository` class as an options object:
 
 ```typescript
-import type { RepoValidatorOptsDTO } from '@dreepo/lib/types'
+import type { RepoValidatorOptsDTO } from '@dreepo'
 import { ValidationError } from 'runtypes/lib/errors'
 import type { Failure } from 'runtypes/lib/result'
 import { Failcode } from 'runtypes/lib/result'

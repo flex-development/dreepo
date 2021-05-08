@@ -1,5 +1,5 @@
+import type { QueryParams, RepoValidatorOptsDTO } from '@dreepo'
 import { DBConnection, Entity, Repository } from '@dreepo'
-import type { QueryParams, RepoValidatorOptsDTO } from '@dreepo/lib/types'
 import { Number, Static, String } from 'runtypes'
 import { ValidationError } from 'runtypes/lib/errors'
 import type { Failure } from 'runtypes/lib/result'

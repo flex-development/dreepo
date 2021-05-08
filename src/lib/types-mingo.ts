@@ -1,9 +1,9 @@
 import type {
   AggregationOperators,
+  IEntity,
   ProjectionOperators,
   QueryOperators
 } from './interfaces'
-import type { IEntity } from './models/entity.model'
 import type { JSONValue, OneOrMany } from './types-global'
 import type { EntityPath } from './types-repository'
 

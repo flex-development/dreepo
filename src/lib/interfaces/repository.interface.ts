@@ -3,7 +3,6 @@ import mingo from 'mingo'
 import type { RawArray, RawObject } from 'mingo/util'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import type { EntityDTO } from '../dto/entity.dto'
-import type { IEntity } from '../models/entity.model'
 import type { OneOrMany, PartialOr } from '../types-global'
 import type {
   EntityEnhanced,
@@ -14,6 +13,7 @@ import type {
 import type { AggregationStages } from './aggregation-stages.interface'
 import type { IDBConnection } from './db-connection.interface'
 import type { DBRequestConfig } from './db-request-config.interface'
+import type { IEntity } from './entity.interface'
 import type { MingoOptions } from './mingo-options.interface'
 
 /**

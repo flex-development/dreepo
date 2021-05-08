@@ -1,8 +1,7 @@
 import type { AxiosRequestConfig } from 'axios'
 import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { SortOrder } from './enums/sort-order.enum'
-import type { AggregationStages } from './interfaces'
-import type { IEntity } from './models/entity.model'
+import type { AggregationStages, IEntity } from './interfaces'
 import type { EmptyObject, ObjectPath, OrPromise } from './types-global'
 import type { ProjectionCriteria, QueryCriteria } from './types-mingo'
 

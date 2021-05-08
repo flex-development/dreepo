@@ -1,8 +1,8 @@
 import { BSONTypeAlias } from '../enums/bson-type-alias.enum'
 import { BSONTypeCode } from '../enums/bson-type-code.enum'
-import type { IEntity } from '../models/entity.model'
-import type { JSONValue } from '../types'
+import type { JSONValue } from '../types-global'
 import type { Expression } from '../types-mingo'
+import type { IEntity } from './entity.interface'
 
 /**
  * @file Interface - QueryOperators
