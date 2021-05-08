@@ -8,6 +8,7 @@ import {
   REPO_PATH_CARS,
   REPO_VOPTS_CARS as vopts
 } from '@tests/fixtures/cars.fixture'
+import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
 import { clearRepository, loadRepository } from '@tests/utils'
 
 /**
@@ -29,7 +30,11 @@ describe('e2e:Repository', () => {
   const getSubject = (
     cache: boolean = true
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, vopts)
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(
+      REPO_PATH,
+      DB_CONNECTION,
+      vopts
+    )
 
     // @ts-expect-error mocking
     if (cache) Subject.cache = Object.assign({}, mockCache)

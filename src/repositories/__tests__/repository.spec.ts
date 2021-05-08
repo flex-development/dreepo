@@ -1,8 +1,6 @@
-import configuration from '@/config/configuration'
 import { SortOrder } from '@/lib/enums'
-import type { AggregationStages } from '@/lib/interfaces'
+import type { AggregationStages, DBRequestConfig } from '@/lib/interfaces'
 import type { QueryParams } from '@/lib/types'
-import dbRequest from '@/lib/utils/databaseRequest.util'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
@@ -14,7 +12,7 @@ import {
   REPO_PATH_CARS as REPO_PATH,
   REPO_VOPTS_CARS as vopts
 } from '@tests/fixtures/cars.fixture'
-import type { AxiosRequestConfig } from 'axios'
+import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import type { RawObject } from 'mingo/util'
@@ -27,15 +25,12 @@ import TestSubject from '../repository'
  * @module repositories/tests/Repository
  */
 
-jest.mock('@/lib/utils/databaseRequest.util')
+jest.mock('@/lib/providers/db-connection.provider')
 
-const mockDBRequest = dbRequest as jest.MockedFunction<typeof dbRequest>
 const mockMerge = merge as jest.MockedFunction<typeof merge>
 const mockOmit = omit as jest.MockedFunction<typeof omit>
 
 describe('unit:repositories/Repository', () => {
-  const { FIREBASE_DATABASE_URL } = configuration()
-
   const EMPTY_CACHE = true
   const ENTITY = Object.assign({}, mockCache.collection[0])
   const NON_EXISTENT_ENTITY_ID = 'NON_EXISTENT_ENTITY_ID'
@@ -52,7 +47,11 @@ describe('unit:repositories/Repository', () => {
   const getSubject = (
     emptyCache?: boolean
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(REPO_PATH, vopts)
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(
+      REPO_PATH,
+      DB_CONNECTION,
+      vopts
+    )
 
     // @ts-expect-error mocking
     Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
@@ -60,20 +59,12 @@ describe('unit:repositories/Repository', () => {
     return Subject
   }
 
-  describe('exports', () => {
-    it('should export class by default', () => {
-      expect(TestSubject).toBeDefined()
-      expect(TestSubject.constructor.name).toBe('Function')
-    })
-  })
-
   describe('constructor', () => {
     it('should initialize instance properties', () => {
       const Subject = getSubject(EMPTY_CACHE)
 
-      expect(Subject.DATABASE_URL).toBe(FIREBASE_DATABASE_URL)
       expect(Subject.cache).toMatchObject(mockCacheEmpty)
-      expect(Subject.http).toBeDefined()
+      expect(Subject.connection).toBe(DB_CONNECTION)
       expect(isType<RuntypeBase<ICar>>(Subject.model as any)).toBeTruthy()
       expect(Subject.path).toBe(REPO_PATH)
       expect(Subject.vopts.enabled).toBeTruthy()
@@ -88,11 +79,11 @@ describe('unit:repositories/Repository', () => {
     const spy_aggregate = jest.spyOn(Subject.mingo, 'aggregate')
 
     it('should not call #mingo.aggregate if cache is empty', () => {
-      const ThisSubject = getSubject(EMPTY_CACHE)
+      const SubjectEC = getSubject(EMPTY_CACHE)
 
-      const this_spy_aggregate = jest.spyOn(ThisSubject.mingo, 'aggregate')
+      const this_spy_aggregate = jest.spyOn(SubjectEC.mingo, 'aggregate')
 
-      ThisSubject.aggregate()
+      SubjectEC.aggregate()
 
       expect(this_spy_aggregate).toBeCalledTimes(0)
     })
@@ -148,18 +139,13 @@ describe('unit:repositories/Repository', () => {
   describe('#clear', () => {
     const Subject = getSubject()
 
-    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      return config.data
-    })
-
     const spy_request = jest.spyOn(Subject, 'request')
 
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.http = mockHttp
-    })
-
     it('should clear cache and database', async () => {
+      spy_request.mockImplementationOnce(async (config?: DBRequestConfig) => {
+        return config?.data
+      })
+
       const cleared = await Subject.clear()
 
       expect(cleared).toBeTruthy()
@@ -209,16 +195,15 @@ describe('unit:repositories/Repository', () => {
   describe('#create', () => {
     const Subject = getSubject()
 
+    const spy_request = jest.spyOn(Subject, 'request')
+
     const dto = { ...ENTITY, id: `${ENTITY.id}-test` }
 
-    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config.url?.includes(dto.id)) return config.data
-      return mockCache.collection
-    })
-
     beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.http = mockHttp
+      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
+        if (config?.url?.includes(dto.id)) return config?.data
+        return mockCache.collection
+      })
     })
 
     it('should add timestamps to dto', async () => {
@@ -284,15 +269,6 @@ describe('unit:repositories/Repository', () => {
   describe('#delete', () => {
     const Subject = getSubject()
 
-    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      return config.data
-    })
-
-    beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.http = mockHttp
-    })
-
     it('should throw if any entity does not exist but should', async () => {
       const SHOULD_EXIST = true
       const ids = [NON_EXISTENT_ENTITY_ID]
@@ -323,6 +299,10 @@ describe('unit:repositories/Repository', () => {
     it('should remove entities from cache and database', async () => {
       const spy_request = jest.spyOn(Subject, 'request')
 
+      spy_request.mockImplementationOnce(async (config?: DBRequestConfig) => {
+        return config?.data
+      })
+
       const ids = [ENTITY.id, NON_EXISTENT_ENTITY_ID]
 
       await Subject.delete(ids)
@@ -350,18 +330,21 @@ describe('unit:repositories/Repository', () => {
 
     const mockFind = jest.fn().mockReturnValue(mockCursor)
 
+    const spy_mingo_find = jest.spyOn(Subject.mingo, 'find')
+
     beforeAll(() => {
-      Subject.mingo.find = mockFind
+      spy_mingo_find.mockImplementation(mockFind)
     })
 
     it('should not call #mingo.find if cache is empty', () => {
-      const ThisSubject = getSubject(EMPTY_CACHE)
+      const SubjectEC = getSubject(EMPTY_CACHE)
 
-      ThisSubject.mingo.find = mockFind
+      const this_spy_mingo_find = jest.spyOn(SubjectEC.mingo, 'find')
+      this_spy_mingo_find.mockImplementationOnce(mockFind)
 
-      ThisSubject.find()
+      SubjectEC.find()
 
-      expect(ThisSubject.mingo.find).toBeCalledTimes(0)
+      expect(SubjectEC.mingo.find).toBeCalledTimes(0)
     })
 
     it('should handle query criteria', () => {
@@ -559,14 +542,13 @@ describe('unit:repositories/Repository', () => {
   describe('#patch', () => {
     const Subject = getSubject()
 
-    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config.url?.includes(ENTITY.id)) return config.data
-      return mockCache.collection
-    })
+    const spy_request = jest.spyOn(Subject, 'request')
 
     beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.http = mockHttp
+      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
+        if (config?.url?.includes(ENTITY.id)) return config.data
+        return mockCache.collection
+      })
     })
 
     it('should call #findOneOrFail', async () => {
@@ -635,16 +617,19 @@ describe('unit:repositories/Repository', () => {
   describe('#request', () => {
     const Subject = getSubject()
 
-    const spy_http = jest.spyOn(Subject, 'http')
+    const spy_connection_request = jest.spyOn(Subject.connection, 'request')
 
     beforeEach(async () => {
-      spy_http.mockReturnValue(Promise.resolve([]))
+      spy_connection_request.mockImplementationOnce(() => {
+        return Promise.resolve([])
+      })
+
       await Subject.request()
     })
 
-    it('should call databaseRequest utility', () => {
-      expect(mockDBRequest).toBeCalledTimes(1)
-      expect(mockDBRequest).toBeCalledWith(Subject.path, {}, Subject.http)
+    it('should call #connection.request', () => {
+      expect(spy_connection_request).toBeCalledTimes(1)
+      expect(spy_connection_request).toBeCalledWith(Subject.path, {})
     })
   })
 
@@ -653,16 +638,14 @@ describe('unit:repositories/Repository', () => {
 
     const DTO_BASE = { make: 'MAKE', model: 'MODEL', model_year: -1 }
 
-    const mockHttp = jest.fn(async (config: AxiosRequestConfig) => {
-      if (config?.method === 'put') return config.data
-      return mockCache.root
-    })
-
     const spy_findOne = jest.spyOn(Subject, 'findOne')
+    const spy_request = jest.spyOn(Subject, 'request')
 
     beforeAll(() => {
-      // @ts-expect-error mocking
-      Subject.http = mockHttp
+      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
+        if (config?.method === 'put') return config.data
+        return mockCache.root
+      })
     })
 
     it('should create new entity', async () => {
@@ -691,46 +674,50 @@ describe('unit:repositories/Repository', () => {
   })
 
   describe('#validate', () => {
-    const Subject = getSubject()
-
-    const spy_model_check = jest.spyOn(Subject.model, 'check')
-
     it('should call #model.check if validation is enabled', async () => {
+      const Subject = getSubject()
+
+      const spy_model_check = jest.spyOn(Subject.model, 'check')
+
       await Subject.validate(ENTITY)
 
       expect(spy_model_check).toBeCalledTimes(1)
     })
 
     it('should not call #model.check if validation is disabled', async () => {
-      const ThisSubject = getSubject()
+      const Subject = getSubject()
 
-      ThisSubject.vopts.enabled = false
+      Subject.vopts.enabled = false
 
-      const this_model_check = jest.spyOn(ThisSubject.model, 'check')
+      const spy_model_check = jest.spyOn(Subject.model, 'check')
 
       const value = {}
-      const result = await ThisSubject.validate(value)
+      const result = await Subject.validate(value)
 
       expect(result).toMatchObject(value)
-      expect(this_model_check).toBeCalledTimes(0)
+      expect(spy_model_check).toBeCalledTimes(0)
     })
 
     it('should call #vopts.refinement', async () => {
-      const ThisSubject = getSubject()
+      const Subject = getSubject()
 
-      ThisSubject.vopts.refinement = jest.fn(args => Promise.resolve(args))
+      Subject.vopts.refinement = jest.fn(args => Promise.resolve(args))
 
-      await ThisSubject.validate(ENTITY)
+      await Subject.validate(ENTITY)
 
-      expect(ThisSubject.vopts.refinement).toBeCalledTimes(1)
-      expect(ThisSubject.vopts.refinement).toBeCalledWith(ENTITY)
+      expect(Subject.vopts.refinement).toBeCalledTimes(1)
+      expect(Subject.vopts.refinement).toBeCalledWith(ENTITY)
     })
 
     it('should return value if validation passes', async () => {
+      const Subject = getSubject()
+
       expect(await Subject.validate(ENTITY)).toMatchObject(ENTITY)
     })
 
     it('should throw Exception if validation fails', async () => {
+      const Subject = getSubject()
+
       const value = {}
 
       let exception = {} as Exception

@@ -1,4 +1,4 @@
-import { Entity, Repository } from '@dreepo'
+import { DBConnection, Entity, Repository } from '@dreepo'
 import type { QueryParams, RepoValidatorOptsDTO } from '@dreepo/lib/types'
 import { Number, Static, String } from 'runtypes'
 import { ValidationError } from 'runtypes/lib/errors'
@@ -9,6 +9,12 @@ import { Failcode } from 'runtypes/lib/result'
  * @file Examples - Cars
  * @module docs/examples/cars
  */
+
+const url = process.env.FIREBASE_DATABASE_URL || ''
+const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
+const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
+
+export const dbconn = new DBConnection(url, client_email, private_key)
 
 export const Car = Entity.extend({
   make: String,
@@ -36,17 +42,8 @@ export const vopts: RepoValidatorOptsDTO<CarEntity> = {
   }
 }
 
-export const REPO_PATH = 'cars'
-export const CarRepo = new Repository<CarEntity, CarQuery>(REPO_PATH, vopts)
-
-/**
- * Every repository uses the `FIREBASE_DATABASE_URL` environment variable to set
- * used the `DATABASE_URL` instance property. While implemented as `readonly`
- * property, it can be overridden.
- */
-
-// @ts-expect-error overriding database URL
-CarRepo.DATABASE_URL = 'https://other-database.firebaseio.com'
+export const rpath = 'cars'
+export const CarRepo = new Repository<CarEntity, CarQuery>(rpath, dbconn, vopts)
 
 /**
  * After instantiation, before calling any repository methods, the cache must be

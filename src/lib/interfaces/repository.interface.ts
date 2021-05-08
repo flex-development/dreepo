@@ -9,10 +9,10 @@ import type {
   EntityEnhanced,
   QueryParams,
   RepoCache,
-  RepoHttpClient,
   RepoValidatorOpts
 } from '../types-repository'
 import type { AggregationStages } from './aggregation-stages.interface'
+import type { IDBConnection } from './db-connection.interface'
 import type { DBRequestConfig } from './db-request-config.interface'
 import type { MingoOptions } from './mingo-options.interface'
 
@@ -31,9 +31,8 @@ export interface IRepository<
   E extends IEntity = IEntity,
   P extends QueryParams<E> = QueryParams<E>
 > {
-  readonly DATABASE_URL: string
   readonly cache: RepoCache<E>
-  readonly http: RepoHttpClient
+  readonly connection: IDBConnection
   readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly mopts: MingoOptions
