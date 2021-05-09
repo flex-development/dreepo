@@ -4,9 +4,8 @@ import type { EntityDTO, RepoOptionsDTO } from '@/dto'
 import { SortOrder } from '@/enums/sort-order.enum'
 import type {
   AggregationStages,
-  DBRequestConfig,
-  IDBConnection,
   IEntity,
+  IRepoDBConnection,
   IRepository,
   IRepoValidator,
   MingoOptions,
@@ -66,9 +65,9 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {IDBConnection} connection - Database connection provider
+   * @property {IRepoDBConnection} dbconn - Database connection provider
    */
-  readonly connection: IDBConnection
+  readonly dbconn: IRepoDBConnection
 
   /**
    * @readonly
@@ -101,13 +100,6 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {string} path - Repository database path
-   */
-  readonly path: string
-
-  /**
-   * @readonly
-   * @instance
    * @property {IRepoValidator<E>} validator - Repository Validation API client
    */
   readonly validator: IRepoValidator<E>
@@ -122,23 +114,20 @@ export default class Repository<
    * - https://github.com/MichalLytek/class-transformer-validator
    * - https://github.com/kofrasa/mingo
    *
-   * @param {string} path - Database repository path
-   * @param {IDBConnection} connection - Database connection provider
+   * @param {IRepoDBConnection} dbconn - Database connection provider
    * @param {EntityClass<E>} model - Entity model
    * @param {RepoOptionsDTO} options - Repository options
    * @param {MingoOptions} [options.mingo] - Global mingo options
    * @param {RepoValidatorOptions} [options.validation] - Validation API options
    */
   constructor(
-    path: string,
-    connection: IDBConnection,
+    dbconn: IRepoDBConnection,
     model: EntityClass<E>,
     options: RepoOptionsDTO = {}
   ) {
     this.cache = { collection: [], root: {} }
-    this.connection = connection
+    this.dbconn = dbconn
     this.model = model
-    this.path = path
     this.validator = new RepoValidator(this.model, options.validation)
 
     this.options = merge(options, {
@@ -163,7 +152,7 @@ export default class Repository<
     const { collection } = this.cache
 
     if (!collection.length) {
-      this.logger(`Repository at path "${this.path}" empty.`)
+      this.logger(`Repository at path "${this.dbconn.path}" empty.`)
       this.logger('Consider calling #refreshCache before running pipeline.')
 
       return collection
@@ -194,7 +183,10 @@ export default class Repository<
       Object.assign(this.cache, { collection: [], root: {} })
 
       // ! Clear database
-      await this.request<RepoRoot<E>>({ data: this.cache.root, method: 'put' })
+      await this.dbconn.send<RepoRoot<E>>({
+        data: this.cache.root,
+        method: 'put'
+      })
     } catch (error) {
       const data = { cache: this.cache }
 
@@ -251,7 +243,7 @@ export default class Repository<
       data = await this.validator.check<E>(data)
 
       // Create new entity
-      data = await this.request<E>({ data, method: 'put', url: data.id })
+      data = await this.dbconn.send<E>({ data, method: 'put', url: data.id })
 
       // ! Refresh cache
       await this.refreshCache()
@@ -298,7 +290,10 @@ export default class Repository<
       Object.assign(this.cache, { collection: Object.values(root), root })
 
       // ! Remove entities from database
-      await this.request<RepoRoot<E>>({ data: this.cache.root, method: 'put' })
+      await this.dbconn.send<RepoRoot<E>>({
+        data: this.cache.root,
+        method: 'put'
+      })
 
       return _ids
     } catch (error) {
@@ -343,7 +338,7 @@ export default class Repository<
     const { collection } = this.cache
 
     if (!collection.length) {
-      this.logger(`Repository at path "${this.path}" empty.`)
+      this.logger(`Repository at path "${this.dbconn.path}" empty.`)
       this.logger('Consider calling #refreshCache before performing search.')
 
       return collection
@@ -491,7 +486,7 @@ export default class Repository<
       data = await this.validator.check<E>(data)
 
       // Update entity
-      data = await this.request<E>({ data, method: 'put', url: data.id })
+      data = await this.dbconn.send<E>({ data, method: 'put', url: data.id })
 
       // ! Refresh cache
       await this.refreshCache()
@@ -521,7 +516,7 @@ export default class Repository<
   async refreshCache(): Promise<RepoCache<E>> {
     try {
       // Require repository root data
-      const root = await this.request<RepoRoot<E>>()
+      const root = await this.dbconn.send<RepoRoot<E>>()
 
       // Get entities
       const collection = Object.values(root)
@@ -538,20 +533,6 @@ export default class Repository<
 
       throw new Exception(code, message, {}, stack)
     }
-  }
-
-  /**
-   * Sends requests to the Firebase Database REST API.
-   *
-   * @template T - Payload type
-   *
-   * @async
-   * @param {DBRequestConfig} config - Axios request config
-   * @return {Promise<T>} Promise containing response payload
-   * @throws {Exception}
-   */
-  async request<T = any>(config: DBRequestConfig = {}): Promise<T> {
-    return await this.connection.request<T>(this.path, config)
   }
 
   /**

@@ -1,5 +1,5 @@
 import type { IEntity, QueryParams, RepoOptionsDTO } from '@dreepo'
-import { DBConnection, Entity, Repository } from '@dreepo'
+import { Entity, RepoDBConnection, Repository } from '@dreepo'
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 /**
@@ -7,11 +7,12 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
  * @module docs/examples/cars
  */
 
+const path = 'cars'
 const url = process.env.FIREBASE_DATABASE_URL || ''
 const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
 const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
 
-export const dbconn = new DBConnection(url, client_email, private_key)
+export const dbconn = new RepoDBConnection(path, url, client_email, private_key)
 
 export interface ICar extends IEntity {
   make: string
@@ -42,9 +43,7 @@ export const options: RepoOptionsDTO = {
   }
 }
 
-export const path = 'cars'
-
-export const Cars = new Repository<ICar, CarQuery>(path, dbconn, Car, options)
+export const Cars = new Repository<ICar, CarQuery>(dbconn, Car, options)
 
 /**
  * After instantiation, before calling any repository methods, the cache must be

@@ -1,6 +1,6 @@
 import type { IEntity } from '@/interfaces'
 import type { EmptyObject, RepoRoot } from '@/types'
-import DBConnection from './__fixtures__/db-connection.fixture'
+import DBConnection from './__fixtures__/repo-db-connection.fixture'
 
 /**
  * @file Test Utilities
