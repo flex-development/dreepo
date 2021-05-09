@@ -4,5 +4,6 @@
  */
 
 export { default as DBConnection } from './db-connection.provider'
+export { default as RepoDBConnection } from './repo-db-connection.provider'
 
 /* eslint-disable prettier/prettier */

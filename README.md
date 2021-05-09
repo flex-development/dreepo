@@ -92,17 +92,18 @@ These aliases will be used in following code examples.
 
 ### Database Connection
 
-Before creating a new repository, initialize a `DBConnection` provider to
+Before creating a new repository, initialize a `RepoDBConnection` provider to
 establish a connection between your database and repository.
 
 ```typescript
-import { DBConnection } from '@dreepo'
+import { RepoDBConnection } from '@dreepo'
 
+const path = 'cars'
 const url = process.env.FIREBASE_DATABASE_URL || ''
 const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
 const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
 
-export const dbconn = new DBConnection(url, client_email, private_key)
+export const dbconn = new RepoDBConnection(path, url, client_email, private_key)
 ```
 
 Note:
@@ -192,8 +193,7 @@ export const TVO_DEFAULTS: TVODefaults = Object.freeze({
 ```typescript
 import { Repository } from '@dreepo'
 
-export const path = 'cars'
-export const Cars = new Repository<ICar, CarQuery>(path, dbconn, Car, options)
+export const Cars = new Repository<ICar, CarQuery>(dbconn, Car, options)
 ```
 
 ### Repository Cache
@@ -230,12 +230,11 @@ export interface IRepository<
   P extends QueryParams<E> = QueryParams<E>
 > {
   readonly cache: RepoCache<E>
-  readonly connection: IDBConnection
+  readonly dbconn: IRepoDBConnection
   readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly model: EntityClass<E>
   readonly options: RepoOptions
-  readonly path: string
   readonly validator: IRepoValidator<E>
 
   aggregate(
@@ -250,7 +249,6 @@ export interface IRepository<
   findOneOrFail(id: E['id'], params?: P): PartialOr<E>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
   refreshCache(): Promise<RepoCache<E>>
-  request<T = any>(config?: DBRequestConfig): Promise<T>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]>
 }
 ```

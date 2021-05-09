@@ -13,10 +13,9 @@ import {
   CARS,
   CARS_MOCK_CACHE as mockCache,
   CARS_MOCK_CACHE_EMPTY as mockCacheEmpty,
-  CARS_ROOT,
-  REPO_PATH_CARS as REPO_PATH
+  CARS_ROOT
 } from '@tests/fixtures/cars.fixture'
-import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
+import DBCONN from '@tests/fixtures/repo-db-connection.fixture'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import type { RawObject } from 'mingo/util'
@@ -50,11 +49,7 @@ describe('unit:repositories/Repository', () => {
   const getSubject = (
     emptyCache?: boolean
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(
-      REPO_PATH,
-      DB_CONNECTION,
-      Car
-    )
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(DBCONN, Car)
 
     // @ts-expect-error mocking
     Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
@@ -69,10 +64,9 @@ describe('unit:repositories/Repository', () => {
       const Subject = getSubject(EMPTY_CACHE)
 
       expect(Subject.cache).toMatchObject(mockCacheEmpty)
-      expect(Subject.connection).toBe(DB_CONNECTION)
+      expect(Subject.dbconn).toBe(DBCONN)
       expect(isType<EntityClass<ICar>>(Subject.model as any)).toBeTruthy()
       expect(Subject.options).toMatchObject(eoptions)
-      expect(Subject.path).toBe(REPO_PATH)
       expect(isType<IValidator<ICar>>(Subject.validator as any)).toBeTruthy()
     })
   })
@@ -145,11 +139,11 @@ describe('unit:repositories/Repository', () => {
   describe('#clear', () => {
     const Subject = getSubject()
 
-    const spy_request = jest.spyOn(Subject, 'request')
+    const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
     it('should clear cache and database', async () => {
-      spy_request.mockImplementationOnce(async (config?: DBRequestConfig) => {
-        return config?.data
+      spy_dbconn_send.mockImplementationOnce(async (conf?: DBRequestConfig) => {
+        return conf?.data
       })
 
       const cleared = await Subject.clear()
@@ -157,7 +151,7 @@ describe('unit:repositories/Repository', () => {
       expect(cleared).toBeTruthy()
 
       expect(Subject.cache).toMatchObject(mockCacheEmpty)
-      expect(spy_request).toBeCalledWith({
+      expect(spy_dbconn_send).toBeCalledWith({
         data: Subject.cache.root,
         method: 'put'
       })
@@ -167,7 +161,7 @@ describe('unit:repositories/Repository', () => {
       let exception = {} as Exception
 
       try {
-        spy_request.mockImplementationOnce(() => {
+        spy_dbconn_send.mockImplementationOnce(() => {
           throw new Error()
         })
 
@@ -184,7 +178,7 @@ describe('unit:repositories/Repository', () => {
       let exception = {} as Exception
 
       try {
-        spy_request.mockImplementationOnce(() => {
+        spy_dbconn_send.mockImplementationOnce(() => {
           throw new Exception()
         })
 
@@ -201,12 +195,12 @@ describe('unit:repositories/Repository', () => {
   describe('#create', () => {
     const Subject = getSubject()
 
-    const spy_request = jest.spyOn(Subject, 'request')
+    const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
     const dto = { ...ENTITY, id: `${ENTITY.id}-test` }
 
     beforeAll(() => {
-      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
+      spy_dbconn_send.mockImplementation(async (config?: DBRequestConfig) => {
         if (config?.url?.includes(dto.id)) return config?.data
         return mockCache.collection
       })
@@ -258,15 +252,15 @@ describe('unit:repositories/Repository', () => {
     })
 
     it('should create new entity and call #refreshCache', async () => {
-      const spy_request = jest.spyOn(Subject, 'request')
+      const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
       const spy_refreshCache = jest.spyOn(Subject, 'refreshCache')
 
       const result = await Subject.create(dto)
 
       expect(result).toMatchObject(omit(dto, ['created_at']))
 
-      expect(spy_request.mock.calls[0][0]?.method).toBe('put')
-      expect(spy_request.mock.calls[0][0]?.url).toBe(dto.id)
+      expect(spy_dbconn_send.mock.calls[0][0]?.method).toBe('put')
+      expect(spy_dbconn_send.mock.calls[0][0]?.url).toBe(dto.id)
 
       expect(spy_refreshCache).toBeCalledTimes(1)
     })
@@ -303,10 +297,10 @@ describe('unit:repositories/Repository', () => {
     })
 
     it('should remove entities from cache and database', async () => {
-      const spy_request = jest.spyOn(Subject, 'request')
+      const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
-      spy_request.mockImplementationOnce(async (config?: DBRequestConfig) => {
-        return config?.data
+      spy_dbconn_send.mockImplementationOnce(async (conf?: DBRequestConfig) => {
+        return conf?.data
       })
 
       const ids = [ENTITY.id, NON_EXISTENT_ENTITY_ID]
@@ -316,8 +310,8 @@ describe('unit:repositories/Repository', () => {
       expect(Subject.cache.collection.find(e => e.id === ENTITY.id)).toBeFalsy()
       expect(Subject.cache.root[ENTITY.id]).not.toBeDefined()
 
-      expect(spy_request).toBeCalledTimes(1)
-      expect(spy_request).toBeCalledWith({
+      expect(spy_dbconn_send).toBeCalledTimes(1)
+      expect(spy_dbconn_send).toBeCalledWith({
         data: Subject.cache.root,
         method: 'put'
       })
@@ -548,11 +542,11 @@ describe('unit:repositories/Repository', () => {
   describe('#patch', () => {
     const Subject = getSubject()
 
-    const spy_request = jest.spyOn(Subject, 'request')
+    const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
     beforeAll(() => {
-      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
-        if (config?.url?.includes(ENTITY.id)) return config.data
+      spy_dbconn_send.mockImplementation(async (conf?: DBRequestConfig) => {
+        if (conf?.url?.includes(ENTITY.id)) return conf.data
         return mockCache.collection
       })
     })
@@ -583,15 +577,15 @@ describe('unit:repositories/Repository', () => {
     })
 
     it('should update entity and call #refreshCache', async () => {
-      const spy_request = jest.spyOn(Subject, 'request')
+      const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
       const spy_refreshCache = jest.spyOn(Subject, 'refreshCache')
 
       const dto = { make: 'MAKE' }
 
       await Subject.patch(ENTITY.id, dto)
 
-      expect(spy_request.mock.calls[0][0]?.data.make).toBe(dto.make)
-      expect(spy_request.mock.calls[0][0]?.url).toBe(ENTITY.id)
+      expect(spy_dbconn_send.mock.calls[0][0]?.data.make).toBe(dto.make)
+      expect(spy_dbconn_send.mock.calls[0][0]?.url).toBe(ENTITY.id)
 
       expect(spy_refreshCache).toBeCalledTimes(1)
     })
@@ -600,17 +594,17 @@ describe('unit:repositories/Repository', () => {
   describe('#refreshCache', () => {
     const Subject = getSubject()
 
-    const spy_request = jest.spyOn(Subject, 'request')
+    const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
     beforeEach(() => {
-      spy_request.mockReturnValue(Promise.resolve(CARS_ROOT))
+      spy_dbconn_send.mockReturnValue(Promise.resolve(CARS_ROOT))
     })
 
     it('should request repository root data', async () => {
       await Subject.refreshCache()
 
-      expect(spy_request).toBeCalledTimes(1)
-      expect(spy_request).toBeCalledWith()
+      expect(spy_dbconn_send).toBeCalledTimes(1)
+      expect(spy_dbconn_send).toBeCalledWith()
     })
 
     it('should update data cache', async () => {
@@ -620,36 +614,17 @@ describe('unit:repositories/Repository', () => {
     })
   })
 
-  describe('#request', () => {
-    const Subject = getSubject()
-
-    const spy_connection_request = jest.spyOn(Subject.connection, 'request')
-
-    beforeEach(async () => {
-      spy_connection_request.mockImplementationOnce(() => {
-        return Promise.resolve([])
-      })
-
-      await Subject.request()
-    })
-
-    it('should call #connection.request', () => {
-      expect(spy_connection_request).toBeCalledTimes(1)
-      expect(spy_connection_request).toBeCalledWith(Subject.path, {})
-    })
-  })
-
   describe('#save', () => {
     const Subject = getSubject()
 
     const DTO_BASE = { make: 'MAKE', model: 'MODEL', model_year: -1 }
 
     const spy_findOne = jest.spyOn(Subject, 'findOne')
-    const spy_request = jest.spyOn(Subject, 'request')
+    const spy_dbconn_send = jest.spyOn(Subject.dbconn, 'send')
 
     beforeAll(() => {
-      spy_request.mockImplementation(async (config?: DBRequestConfig) => {
-        if (config?.method === 'put') return config.data
+      spy_dbconn_send.mockImplementation(async (conf?: DBRequestConfig) => {
+        if (conf?.method === 'put') return conf.data
         return mockCache.root
       })
     })

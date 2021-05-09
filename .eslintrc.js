@@ -123,6 +123,7 @@ module.exports = {
           'bool',
           'bson',
           'commitlint',
+          'dbconn',
           'dreepo',
           'dto',
           'enums',

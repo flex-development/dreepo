@@ -11,9 +11,8 @@ import type { Debugger } from 'debug'
 import mingo from 'mingo'
 import type { RawArray } from 'mingo/util'
 import type { AggregationStages } from './aggregation-stages.interface'
-import type { IDBConnection } from './db-connection.interface'
-import type { DBRequestConfig } from './db-request-config.interface'
 import type { IEntity } from './entity.interface'
+import type { IRepoDBConnection } from './repo-db-connection.interface'
 import type { RepoOptions } from './repo-options.interface'
 import type { IRepoValidator } from './repo-validator.interface'
 
@@ -33,12 +32,11 @@ export interface IRepository<
   P extends QueryParams<E> = QueryParams<E>
 > {
   readonly cache: RepoCache<E>
-  readonly connection: IDBConnection
+  readonly dbconn: IRepoDBConnection
   readonly logger: Debugger
   readonly mingo: typeof mingo
   readonly model: EntityClass<E>
   readonly options: RepoOptions
-  readonly path: string
   readonly validator: IRepoValidator<E>
 
   aggregate(
@@ -53,6 +51,5 @@ export interface IRepository<
   findOneOrFail(id: E['id'], params?: P): PartialOr<E>
   patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
   refreshCache(): Promise<RepoCache<E>>
-  request<T = any>(config?: DBRequestConfig): Promise<T>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]>
 }

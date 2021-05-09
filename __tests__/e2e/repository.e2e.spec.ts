@@ -5,10 +5,9 @@ import type { ICar } from '@tests/fixtures/cars.fixture'
 import {
   Car,
   CARS_MOCK_CACHE as mockCache,
-  REPO_PATH_CARS as REPO_PATH,
   REPO_PATH_CARS
 } from '@tests/fixtures/cars.fixture'
-import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
+import DBCONN from '@tests/fixtures/repo-db-connection.fixture'
 import { clearRepository, loadRepository } from '@tests/utils'
 
 /**
@@ -30,11 +29,7 @@ describe('e2e:Repository', () => {
   const getSubject = (
     cache: boolean = true
   ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(
-      REPO_PATH,
-      DB_CONNECTION,
-      Car
-    )
+    const Subject = new TestSubject<ICar, QueryParams<ICar>>(DBCONN, Car)
 
     // @ts-expect-error mocking
     if (cache) Subject.cache = Object.assign({}, mockCache)
