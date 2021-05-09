@@ -1,16 +1,21 @@
 import logger from '@/config/logger'
 import mingo from '@/config/mingo'
-import type { EntityDTO } from '@/lib/dto/entity.dto'
-import { SortOrder } from '@/lib/enums/sort-order.enum'
+import type { EntityDTO } from '@/dto'
+import { SortOrder } from '@/enums/sort-order.enum'
 import type {
   AggregationStages,
   DBRequestConfig,
   IDBConnection,
   IEntity,
   IRepository,
-  MingoOptions
-} from '@/lib/interfaces'
+  IRepoValidator,
+  MingoOptions,
+  RepoOptions,
+  RepoValidatorOptions
+} from '@/interfaces'
+import RepoValidator from '@/mixins/repo-validator.mixin'
 import type {
+  EntityClass,
   EntityEnhanced,
   EntityPath,
   OneOrMany,
@@ -19,11 +24,8 @@ import type {
   ProjectStage,
   QueryParams,
   RepoCache,
-  RepoModelRefinement,
-  RepoRoot,
-  RepoValidatorOpts,
-  RepoValidatorOptsDTO
-} from '@/lib/types'
+  RepoRoot
+} from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { Debugger } from 'debug'
@@ -32,8 +34,6 @@ import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import uniq from 'lodash.uniq'
 import type { RawArray, RawObject } from 'mingo/util'
-import { ValidationError } from 'runtypes/lib/errors'
-import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { v4 as uuid } from 'uuid'
 
 /**
@@ -87,16 +87,16 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {MingoOptions} mopts - Global Mingo options
+   * @property {EntityClass<E>} model - Entity model
    */
-  readonly mopts: MingoOptions = { idKey: 'id' }
+  readonly model: EntityClass<E>
 
   /**
    * @readonly
    * @instance
-   * @property {RuntypeBase<E>} model - Entity schema model
+   * @property {RepoOptions} options - Repository options
    */
-  readonly model: RuntypeBase<E>
+  readonly options: RepoOptions
 
   /**
    * @readonly
@@ -108,34 +108,42 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {RepoValidatorOpts<E>} vopts - Schema validation options
+   * @property {IRepoValidator<E>} validator - Repository Validation API client
    */
-  readonly vopts: RepoValidatorOpts<E>
+  readonly validator: IRepoValidator<E>
 
   /**
    * Instantiates a new Realtime Database repository.
    *
+   * See:
+   *
+   * - https://github.com/kofrasa/mingo
+   * - https://github.com/pleerock/class-validator
+   * - https://github.com/typestack/class-transformer
+   *
    * @param {string} path - Database repository path
    * @param {IDBConnection} connection - Database connection provider
-   * @param {RepoValidatorOptsDTO<E>} vopts - Schema validation options
-   * @param {boolean} [vopts.enabled] - Toggle schema validation
-   * @param {RuntypeBase<E>} vopts.model - Entity schema model
-   * @param {RepoModelRefinement<E>} [vopts.refinement] - Function to perform
-   * additional validations. Can be asynchronous
+   * @param {EntityClass<E>} model - Entity model
+   * @param {RepoOptions} options - Repository options
+   * @param {MingoOptions} [options.mingo] - Global mingo options
+   * @param {RepoValidatorOptions} [options.validation] - Validation API options
    */
   constructor(
     path: string,
     connection: IDBConnection,
-    vopts: RepoValidatorOptsDTO<E>
+    model: EntityClass<E>,
+    options: RepoOptions = {}
   ) {
-    // Schema validation options
-    const { enabled: venabled = true, model, refinement } = vopts
-
     this.cache = { collection: [], root: {} }
     this.connection = connection
     this.model = model
     this.path = path
-    this.vopts = { enabled: venabled, refinement: refinement }
+    this.validator = new RepoValidator(this.model, options.validation)
+
+    this.options = merge(options, {
+      mingo: { idKey: 'id' },
+      validation: this.validator.tvo
+    })
   }
 
   /**
@@ -164,7 +172,7 @@ export default class Repository<
     if (!Array.isArray(_pipeline)) _pipeline = [_pipeline]
 
     try {
-      return this.mingo.aggregate(collection, _pipeline, this.mopts)
+      return this.mingo.aggregate(collection, _pipeline, this.options.mingo)
     } catch ({ message, stack }) {
       const data = { pipeline: _pipeline }
 
@@ -239,7 +247,7 @@ export default class Repository<
       }
 
       // Validate DTO schema
-      data = await this.validate<E>(data)
+      data = await this.validator.check<E>(data)
 
       // Create new entity
       data = await this.request<E>({ data, method: 'put', url: data.id })
@@ -340,9 +348,11 @@ export default class Repository<
       return collection
     }
 
+    const { mingo: mopts } = this.options
+
     try {
       // Handle query criteria
-      let cursor = this.mingo.find(collection, criteria, projection, this.mopts)
+      let cursor = this.mingo.find(collection, criteria, projection, mopts)
 
       // Apply sorting rules
       if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
@@ -477,7 +487,7 @@ export default class Repository<
       let data = merge(entity, { ...dto, updated_at: Date.now() }) as E
 
       // Validate DTO schema
-      data = await this.validate<E>(data)
+      data = await this.validator.check<E>(data)
 
       // Update entity
       data = await this.request<E>({ data, method: 'put', url: data.id })
@@ -578,45 +588,5 @@ export default class Repository<
 
     // Perform upsert
     return await Promise.all(dtos.map(async d => upsert(d)))
-  }
-
-  /**
-   * Validates {@param value} against {@see Repository#model} if schema
-   * validation is enabled. If disabled, the original value will be returned.
-   *
-   * References:
-   *
-   * - https://github.com/pelotom/runtypes
-   *
-   * @template Value - Type of value being validated
-   *
-   * @param {Value} value - Data to validate
-   * @return {Promise<E | Value>} - Promise containing value
-   * @throws {Exception}
-   */
-  async validate<Value extends unknown = RawObject>(
-    value: Value = {} as Value
-  ): Promise<E | Value> {
-    if (!this.vopts.enabled) return value
-
-    try {
-      const validated = this.model.check(value)
-
-      if (this.vopts.refinement) await this.vopts.refinement(validated)
-
-      return validated
-    } catch (error) {
-      let code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      let data = { value }
-
-      if (error.name === 'ValidationError') {
-        const { code: failcode, details } = error as ValidationError
-
-        code = ExceptionStatusCode.BAD_REQUEST
-        data = merge(data, { errors: details, failcode })
-      }
-
-      throw new Exception(code, error.message, data, error.stack)
-    }
   }
 }

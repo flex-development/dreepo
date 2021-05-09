@@ -1,12 +1,12 @@
+import type { QueryParams } from '@/types'
 import { Repository as TestSubject } from '@dreepo'
-import { EntityDTO } from '@dreepo/lib/dto'
-import type { QueryParams } from '@dreepo/lib/types'
+import { EntityDTO } from '@dreepo/dto'
+import type { ICar } from '@tests/fixtures/cars.fixture'
 import {
-  CarEntity as ICar,
+  Car,
   CARS_MOCK_CACHE as mockCache,
   REPO_PATH_CARS as REPO_PATH,
-  REPO_PATH_CARS,
-  REPO_VOPTS_CARS as vopts
+  REPO_PATH_CARS
 } from '@tests/fixtures/cars.fixture'
 import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
 import { clearRepository, loadRepository } from '@tests/utils'
@@ -33,7 +33,7 @@ describe('e2e:Repository', () => {
     const Subject = new TestSubject<ICar, QueryParams<ICar>>(
       REPO_PATH,
       DB_CONNECTION,
-      vopts
+      Car
     )
 
     // @ts-expect-error mocking

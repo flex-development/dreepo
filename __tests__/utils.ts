@@ -1,6 +1,5 @@
-import type { IEntity } from '@/lib/interfaces/entity.interface'
-import type { EmptyObject } from '@/lib/types-global'
-import type { RepoRoot } from '@/lib/types-repository'
+import type { IEntity } from '@/interfaces'
+import type { EmptyObject, RepoRoot } from '@/types'
 import DBConnection from './__fixtures__/db-connection.fixture'
 
 /**

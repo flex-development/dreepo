@@ -1,5 +1,5 @@
-import onFulfilled from '@/lib/utils/onFulfilled.util'
-import onRejected from '@/lib/utils/onRejected.util'
+import onFulfilled from '@/utils/onFulfilled.util'
+import onRejected from '@/utils/onRejected.util'
 import axios from 'axios'
 
 /**

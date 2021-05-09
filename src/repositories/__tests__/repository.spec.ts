@@ -1,22 +1,25 @@
-import { SortOrder } from '@/lib/enums'
-import type { AggregationStages, DBRequestConfig } from '@/lib/interfaces'
-import type { QueryParams } from '@/lib/types'
+import { SortOrder } from '@/enums'
+import type {
+  AggregationStages,
+  DBRequestConfig,
+  IRepoValidator as IValidator
+} from '@/interfaces'
+import type { EntityClass, QueryParams } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import type { CarEntity as ICar } from '@tests/fixtures/cars.fixture'
+import type { ICar } from '@tests/fixtures/cars.fixture'
 import {
+  Car,
   CARS,
   CARS_MOCK_CACHE as mockCache,
   CARS_MOCK_CACHE_EMPTY as mockCacheEmpty,
   CARS_ROOT,
-  REPO_PATH_CARS as REPO_PATH,
-  REPO_VOPTS_CARS as vopts
+  REPO_PATH_CARS as REPO_PATH
 } from '@tests/fixtures/cars.fixture'
 import DB_CONNECTION from '@tests/fixtures/db-connection.fixture'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import type { RawObject } from 'mingo/util'
-import type { RuntypeBase } from 'runtypes/lib/runtype'
 import { isType } from 'type-plus'
 import TestSubject from '../repository'
 
@@ -25,7 +28,7 @@ import TestSubject from '../repository'
  * @module repositories/tests/Repository
  */
 
-jest.mock('@/lib/providers/db-connection.provider')
+jest.mock('@/providers/db-connection.provider')
 
 const mockMerge = merge as jest.MockedFunction<typeof merge>
 const mockOmit = omit as jest.MockedFunction<typeof omit>
@@ -50,7 +53,7 @@ describe('unit:repositories/Repository', () => {
     const Subject = new TestSubject<ICar, QueryParams<ICar>>(
       REPO_PATH,
       DB_CONNECTION,
-      vopts
+      Car
     )
 
     // @ts-expect-error mocking
@@ -61,13 +64,16 @@ describe('unit:repositories/Repository', () => {
 
   describe('constructor', () => {
     it('should initialize instance properties', () => {
+      const eoptions = { mingo: { idKey: 'id' }, validation: {} }
+
       const Subject = getSubject(EMPTY_CACHE)
 
       expect(Subject.cache).toMatchObject(mockCacheEmpty)
       expect(Subject.connection).toBe(DB_CONNECTION)
-      expect(isType<RuntypeBase<ICar>>(Subject.model as any)).toBeTruthy()
+      expect(isType<EntityClass<ICar>>(Subject.model as any)).toBeTruthy()
+      expect(Subject.options).toMatchObject(eoptions)
       expect(Subject.path).toBe(REPO_PATH)
-      expect(Subject.vopts.enabled).toBeTruthy()
+      expect(isType<IValidator<ICar>>(Subject.validator as any)).toBeTruthy()
     })
   })
 
@@ -117,7 +123,7 @@ describe('unit:repositories/Repository', () => {
         expect(spy_aggregate).toBeCalledWith(
           Subject.cache.collection,
           [stage],
-          Subject.mopts
+          Subject.options.mingo
         )
       })
 
@@ -130,7 +136,7 @@ describe('unit:repositories/Repository', () => {
         expect(spy_aggregate).toBeCalledWith(
           Subject.cache.collection,
           pipeline,
-          Subject.mopts
+          Subject.options.mingo
         )
       })
     })
@@ -243,12 +249,12 @@ describe('unit:repositories/Repository', () => {
       expect(ejson.message).toMatch(emessage_match)
     })
 
-    it('should call #validate', async () => {
-      const spy_validate = jest.spyOn(Subject, 'validate')
+    it('should call #validator.check', async () => {
+      const spy_validator_check = jest.spyOn(Subject.validator, 'check')
 
       await Subject.create(dto)
 
-      expect(spy_validate).toBeCalledTimes(1)
+      expect(spy_validator_check).toBeCalledTimes(1)
     })
 
     it('should create new entity and call #refreshCache', async () => {
@@ -357,7 +363,7 @@ describe('unit:repositories/Repository', () => {
         Subject.cache.collection,
         { id: params.id },
         {},
-        Subject.mopts
+        Subject.options.mingo
       )
     })
 
@@ -568,12 +574,12 @@ describe('unit:repositories/Repository', () => {
       expect(mockMerge.mock.results[0].value.id).not.toBe(dto.id)
     })
 
-    it('should call #validate', async () => {
-      const spy_validate = jest.spyOn(Subject, 'validate')
+    it('should call #validator.check', async () => {
+      const spy_validator_check = jest.spyOn(Subject.validator, 'check')
 
       await Subject.patch(ENTITY.id, {})
 
-      expect(spy_validate).toBeCalledTimes(1)
+      expect(spy_validator_check).toBeCalledTimes(1)
     })
 
     it('should update entity and call #refreshCache', async () => {
@@ -670,71 +676,6 @@ describe('unit:repositories/Repository', () => {
 
       expect(spy_patch).toBeCalledTimes(1)
       expect(spy_patch).toBeCalledWith(dto.id, dto)
-    })
-  })
-
-  describe('#validate', () => {
-    it('should call #model.check if validation is enabled', async () => {
-      const Subject = getSubject()
-
-      const spy_model_check = jest.spyOn(Subject.model, 'check')
-
-      await Subject.validate(ENTITY)
-
-      expect(spy_model_check).toBeCalledTimes(1)
-    })
-
-    it('should not call #model.check if validation is disabled', async () => {
-      const Subject = getSubject()
-
-      Subject.vopts.enabled = false
-
-      const spy_model_check = jest.spyOn(Subject.model, 'check')
-
-      const value = {}
-      const result = await Subject.validate(value)
-
-      expect(result).toMatchObject(value)
-      expect(spy_model_check).toBeCalledTimes(0)
-    })
-
-    it('should call #vopts.refinement', async () => {
-      const Subject = getSubject()
-
-      Subject.vopts.refinement = jest.fn(args => Promise.resolve(args))
-
-      await Subject.validate(ENTITY)
-
-      expect(Subject.vopts.refinement).toBeCalledTimes(1)
-      expect(Subject.vopts.refinement).toBeCalledWith(ENTITY)
-    })
-
-    it('should return value if validation passes', async () => {
-      const Subject = getSubject()
-
-      expect(await Subject.validate(ENTITY)).toMatchObject(ENTITY)
-    })
-
-    it('should throw Exception if validation fails', async () => {
-      const Subject = getSubject()
-
-      const value = {}
-
-      let exception = {} as Exception
-
-      try {
-        await Subject.validate(value)
-      } catch (error) {
-        exception = error
-      }
-
-      const ejson = exception.toJSON()
-
-      expect(ejson.code).toBe(ExceptionStatusCode.BAD_REQUEST)
-      expect(ejson.data.failcode).toBeDefined()
-      expect(ejson.data.value).toMatchObject(value)
-      expect(ejson.errors).toBePlainObject()
-      expect(ejson.message.length).toBeTruthy()
     })
   })
 })

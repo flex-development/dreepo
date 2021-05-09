@@ -1,4 +1,4 @@
-import MockDBConnection from '@/lib/providers/db-connection.provider'
+import MockDBConnection from '@/providers/db-connection.provider'
 import CLIENT_EMAIL from './client-email.fixture'
 import URL from './database-url.fixture'
 import PRIVATE_KEY from './private-key.fixture'

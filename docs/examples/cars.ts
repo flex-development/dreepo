@@ -1,14 +1,33 @@
-import type { QueryParams, RepoValidatorOptsDTO } from '@dreepo'
+import type { IEntity, QueryParams, RepoOptions } from '@dreepo'
 import { DBConnection, Entity, Repository } from '@dreepo'
-import { Number, Static, String } from 'runtypes'
-import { ValidationError } from 'runtypes/lib/errors'
-import type { Failure } from 'runtypes/lib/result'
-import { Failcode } from 'runtypes/lib/result'
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
 /**
  * @file Examples - Cars
  * @module docs/examples/cars
  */
+
+export interface ICar extends IEntity {
+  make: string
+  model: string
+  model_year: number
+}
+
+export type CarQuery = QueryParams<ICar>
+export class Car extends Entity implements ICar {
+  @IsString()
+  @IsNotEmpty()
+  make: ICar['make']
+
+  @IsString()
+  @IsNotEmpty()
+  model: ICar['model']
+
+  @IsNumber()
+  model_year: ICar['model_year']
+}
+
+export const path = 'cars'
 
 const url = process.env.FIREBASE_DATABASE_URL || ''
 const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
@@ -16,34 +35,13 @@ const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
 
 export const dbconn = new DBConnection(url, client_email, private_key)
 
-export const Car = Entity.extend({
-  make: String,
-  model: String,
-  model_year: Number
-})
-
-export type CarEntity = Static<typeof Car>
-export type CarQuery = QueryParams<CarEntity>
-
-export const vopts: RepoValidatorOptsDTO<CarEntity> = {
-  enabled: true,
-  model: Car,
-  refinement: async (value: CarEntity) => {
-    if (!value.model.length) {
-      const failure: Failure = {
-        code: Failcode.CONTENT_INCORRECT,
-        details: { model: value.model },
-        message: 'Invalid model',
-        success: false
-      }
-
-      throw new ValidationError(failure)
-    }
+export const options: RepoOptions = {
+  validation: {
+    enabled: true
   }
 }
 
-export const rpath = 'cars'
-export const CarRepo = new Repository<CarEntity, CarQuery>(rpath, dbconn, vopts)
+export const Cars = new Repository<ICar, CarQuery>(path, dbconn, Car, options)
 
 /**
  * After instantiation, before calling any repository methods, the cache must be
@@ -55,4 +53,4 @@ export const CarRepo = new Repository<CarEntity, CarQuery>(rpath, dbconn, vopts)
  * Not refreshing the cache before a write operation (`create` or `patch`) could
  * lead to accidental overwrites or other database inconsistencies.
  */
-await CarRepo.refreshCache()
+await Cars.refreshCache()
