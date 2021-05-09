@@ -1,4 +1,4 @@
-import type { IEntity, QueryParams, RepoOptions } from '@dreepo'
+import type { IEntity, QueryParams, RepoOptionsDTO } from '@dreepo'
 import { DBConnection, Entity, Repository } from '@dreepo'
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 
@@ -6,6 +6,12 @@ import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
  * @file Examples - Cars
  * @module docs/examples/cars
  */
+
+const url = process.env.FIREBASE_DATABASE_URL || ''
+const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
+const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
+
+export const dbconn = new DBConnection(url, client_email, private_key)
 
 export interface ICar extends IEntity {
   make: string
@@ -27,19 +33,16 @@ export class Car extends Entity implements ICar {
   model_year: ICar['model_year']
 }
 
-export const path = 'cars'
-
-const url = process.env.FIREBASE_DATABASE_URL || ''
-const client_email = process.env.FIREBASE_CLIENT_EMAIL || ''
-const private_key = process.env.FIREBASE_PRIVATE_KEY || ''
-
-export const dbconn = new DBConnection(url, client_email, private_key)
-
-export const options: RepoOptions = {
+export const options: RepoOptionsDTO = {
+  mingo: {},
   validation: {
-    enabled: true
+    enabled: true,
+    transformer: {},
+    validator: {}
   }
 }
+
+export const path = 'cars'
 
 export const Cars = new Repository<ICar, CarQuery>(path, dbconn, Car, options)
 

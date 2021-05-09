@@ -65,6 +65,7 @@
     "lodash.pick": "4.4.0",
     "lodash.uniq": "4.5.0",
     "mingo": "4.1.2",
+    "reflect-metadata": "0.1.13",
     "urijs": "1.19.6",
     "uuid": "8.3.2"
   },

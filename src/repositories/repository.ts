@@ -1,6 +1,6 @@
 import logger from '@/config/logger'
 import mingo from '@/config/mingo'
-import type { EntityDTO } from '@/dto'
+import type { EntityDTO, RepoOptionsDTO } from '@/dto'
 import { SortOrder } from '@/enums/sort-order.enum'
 import type {
   AggregationStages,
@@ -117,14 +117,15 @@ export default class Repository<
    *
    * See:
    *
-   * - https://github.com/kofrasa/mingo
    * - https://github.com/pleerock/class-validator
    * - https://github.com/typestack/class-transformer
+   * - https://github.com/MichalLytek/class-transformer-validator
+   * - https://github.com/kofrasa/mingo
    *
    * @param {string} path - Database repository path
    * @param {IDBConnection} connection - Database connection provider
    * @param {EntityClass<E>} model - Entity model
-   * @param {RepoOptions} options - Repository options
+   * @param {RepoOptionsDTO} options - Repository options
    * @param {MingoOptions} [options.mingo] - Global mingo options
    * @param {RepoValidatorOptions} [options.validation] - Validation API options
    */
@@ -132,7 +133,7 @@ export default class Repository<
     path: string,
     connection: IDBConnection,
     model: EntityClass<E>,
-    options: RepoOptions = {}
+    options: RepoOptionsDTO = {}
   ) {
     this.cache = { collection: [], root: {} }
     this.connection = connection

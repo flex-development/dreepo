@@ -15,12 +15,12 @@ export interface RepoOptions {
    *
    * See: https://github.com/kofrasa/mingo
    */
-  mingo?: MingoOptions
+  mingo: MingoOptions
 
   /**
    * Repository Validation API options.
    *
    * @default {}
    */
-  validation?: RepoValidatorOptions
+  validation: RepoValidatorOptions
 }

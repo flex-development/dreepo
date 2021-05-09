@@ -117,88 +117,18 @@ To review our linting guidelines, see our configuration files:
 
 All source code can be found in the [`src`](../src) directory.
 
-### Configuration
-
-Global configuration files.
-
-**Directory**: [`src/config`](../src/config)
-
-#### Axios
-
-Default HTTP client configuration used by the `Repository` class.
-
-**File**: [`src/config/axios.ts`](../src/config/axios.ts)
-
-#### Logger
-
-Logger used for debugging.
-
-**File**: [`src/config/logger.ts`](../src/config/logger.ts)
-
-#### Mingo
-
-Enables the MongoDB operators used by the `Repository` class.
-
-**File**: [`src/config/mingo.ts`](../src/config/mingo.ts)
-
-### Library
-
-#### Data Transfer Objects
-
-[Data transfer objects (DTOs)][6] carry data between two separate systems.
-
-- **Directory**: [`src/lib/dto`](../src/lib/dto)
-
-#### Enums
-
-Named constants.
-
-- **Directory**: [`src/lib/enums`](../src/lib/enums)
-
-#### Interfaces
-
-Object types defined by this package.
-
-- **Directory**: [`src/lib/interfaces`](../src/lib/interfaces)
-
-#### Models
-
-Global [runtypes][7] models.
-
-- **Directory**: [`src/lib/models`](../src/lib/models)
-
-#### Providers
-
-Global factory, helper, and service classes.
-
-- **Directory**: [`src/lib/providers`](../src/lib/providers)
-
-#### Utilities
-
-Global utility functions.
-
-- **Directory**: [`src/lib/utils`](../src/lib/utils)
-
-#### Types
-
-Utility type definitions.
-
-- **Files**
-  - [`src/lib/types-global.ts`](../src/lib/types-global.ts)
-  - [`src/lib/types-mingo.ts`](../src/lib/types-mingo.ts)
-  - [`src/lib/types-repository.ts`](../src/lib/types-repository.ts)
-  - [`src/lib/types.ts`](../src/lib/types.ts)
+The purpose of each module is documented using the `@file` annotation.
 
 ## Documentation
 
-- JavaScript & TypeScript: [JSDoc][8], linted with [`eslint-plugin-jsdoc`][9]
+- JavaScript & TypeScript: [JSDoc][6], linted with [`eslint-plugin-jsdoc`][7]
 
 Before making a pull request, be sure your code is well documented, as it will
 be part of your code review.
 
 ## Testing
 
-This project uses [Jest][10] as its test runner. To run the tests in this
+This project uses [Jest][8] as its test runner. To run the tests in this
 project, run `yarn test` from the project root.
 
 Husky is configured to run tests before every push. If a bug report concerning a
@@ -229,9 +159,6 @@ this project.
 [3]: https://github.com/conventional-changelog/commitlint
 [4]: https://prettier.io/
 [5]: https://eslint.org/
-[6]:
-  https://khalilstemmler.com/articles/typescript-domain-driven-design/repository-dto-mapper/#Data-Transfer-Objects
-[7]: https://github.com/pelotom/runtypes
-[8]: https://jsdoc.app
-[9]: https://github.com/gajus/eslint-plugin-jsdoc
-[10]: https://jestjs.io/
+[6]: https://jsdoc.app
+[7]: https://github.com/gajus/eslint-plugin-jsdoc
+[8]: https://jestjs.io/

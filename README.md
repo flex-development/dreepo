@@ -21,7 +21,7 @@ Inspired by [Fireorm][1], Dreepo exposes a Repository Pattern implementation for
 Alongside an abstract database access layer, repositories also support:
 
 - aggregation pipelines and queries using [mingo][3]
-- [runtypes][4] model validation
+- model validation using [class-validator][4]
 
 ## Installation
 
@@ -40,9 +40,9 @@ Alongside an abstract database access layer, repositories also support:
 ## Usage
 
 [Configuration](#configuration)  
-[Creating a New Model](#creating-a-new-model)  
-[Schema Validation](#schema-validation)  
 [Database Connection](#database-connection)  
+[Modelling Entities](#modelling-entities)  
+[Repository Options](#repository-options)  
 [Creating a New Repository](#creating-a-new-repository)  
 [Repository Cache](#repository-cache)  
 [Repository Class API](#repository-class-api)
@@ -90,65 +90,10 @@ For shorter import paths, TypeScript users can add the following aliases:
 
 These aliases will be used in following code examples.
 
-### Creating a New Model
-
-Before instantiating a new repository, a [runtypes][4] model needs to be
-created.
-
-For the next set of examples, the model `Car` will be used.
-
-```typescript
-import { Entity } from '@dreepo'
-import type { QueryParams } from '@dreepo'
-import { Number, Static, String } from 'runtypes'
-
-export const Car = Entity.extend({
-  make: String,
-  model: String,
-  model_year: Number
-})
-
-export type CarEntity = Static<typeof Car>
-export type CarQuery = QueryParams<CarEntity>
-```
-
-### Schema Validation
-
-The repository model and schema validation options are consumed by the
-`Repository` class as an options object:
-
-```typescript
-import type { RepoValidatorOptsDTO } from '@dreepo'
-import { ValidationError } from 'runtypes/lib/errors'
-import type { Failure } from 'runtypes/lib/result'
-import { Failcode } from 'runtypes/lib/result'
-
-export const vopts: RepoValidatorOptsDTO<CarEntity> = {
-  enabled: true,
-  model: Car,
-  refinement: async (value: CarEntity) => {
-    if (!value.model.length) {
-      const failure: Failure = {
-        code: Failcode.CONTENT_INCORRECT,
-        details: { model: value.model },
-        message: 'Invalid model',
-        success: false
-      }
-
-      throw new ValidationError(failure)
-    }
-  }
-}
-```
-
-Note that `vopts.enabled` and `vopts.refinement` are optional.
-
-By default, validation is enabled. If the `refinement` function is defined, it
-is only passed `value` if initial validation passes.
-
 ### Database Connection
 
-To connect to your database, initialize a new `DBConnection` provider.
+Before creating a new repository, initialize a `DBConnection` provider to
+establish a connection between your database and repository.
 
 ```typescript
 import { DBConnection } from '@dreepo'
@@ -165,13 +110,90 @@ Note:
 - An `Exception` will be thrown if any options are invalid
 - Private keys will be formatted using `private_key.replace(/\\n/g, '\n')`
 
+### Modelling Entities
+
+Before instantiating a new repository, a model needs to be created.
+
+For the next set of examples, the model `Car` will be used.
+
+```typescript
+import type { IEntity, QueryParams } from '@dreepo'
+import { Entity } from '@dreepo'
+import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
+
+export interface ICar extends IEntity {
+  make: string
+  model: string
+  model_year: number
+}
+
+export type CarQuery = QueryParams<ICar>
+
+export class Car extends Entity implements ICar {
+  @IsString()
+  @IsNotEmpty()
+  make: ICar['make']
+
+  @IsString()
+  @IsNotEmpty()
+  model: ICar['model']
+
+  @IsNumber()
+  model_year: ICar['model_year']
+}
+```
+
+For more information about validation decorators, see the [class-validator][4]
+package.
+
+Dreepo also exposes a set of [custom decorators](src/decorators/index.ts).
+
+### Repository Options
+
+The `Repository` class accepts an `options` object that passes additional
+options to [mingo][3] and [class-transformer-validator][4].
+
+```typescript
+import type { RepoOptionsDTO } from '@dreepo'
+
+export const options: RepoOptionsDTO = {
+  mingo: {},
+  validation: {
+    enabled: true,
+    transformer: {},
+    validator: {}
+  }
+}
+```
+
+Note that all properties are optional and will be merged with following options:
+
+```typescript
+import type { TVODefaults } from '@dreepo'
+
+/**
+ * @property {TVODefaults} TVO_DEFAULTS - `class-transformer-validator` options
+ * @see https://github.com/MichalLytek/class-transformer-validator
+ */
+export const TVO_DEFAULTS: TVODefaults = Object.freeze({
+  transformer: {},
+  validator: {
+    enableDebugMessages: true,
+    forbidNonWhitelisted: true,
+    stopAtFirstError: false,
+    validationError: { target: false, value: true },
+    whitelist: true
+  }
+})
+```
+
 ### Creating a New Repository
 
 ```typescript
 import { Repository } from '@dreepo'
 
-export const rpath = 'cars'
-export const CarRepo = new Repository<CarEntity, CarQuery>(rpath, dbconn, vopts)
+export const path = 'cars'
+export const Cars = new Repository<ICar, CarQuery>(path, dbconn, Car, options)
 ```
 
 ### Repository Cache
@@ -186,7 +208,7 @@ Not refreshing the cache before a write operation (`create`, `patch`, or `save`)
 could lead to accidental overwrites or other database inconsistencies.
 
 ```typescript
-await CarRepo.refreshCache()
+await Cars.refreshCache()
 ```
 
 ### Repository Class API
@@ -211,10 +233,10 @@ export interface IRepository<
   readonly connection: IDBConnection
   readonly logger: Debugger
   readonly mingo: typeof mingo
-  readonly mopts: MingoOptions
-  readonly model: RuntypeBase<E>
+  readonly model: EntityClass<E>
+  readonly options: RepoOptions
   readonly path: string
-  readonly vopts: RepoValidatorOpts<E>
+  readonly validator: IRepoValidator<E>
 
   aggregate(
     pipeline?: OneOrMany<AggregationStages<E>>
@@ -230,7 +252,6 @@ export interface IRepository<
   refreshCache(): Promise<RepoCache<E>>
   request<T = any>(config?: DBRequestConfig): Promise<T>
   save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]>
-  validate<Value extends unknown = RawObject>(value?: Value): Promise<E | Value>
 }
 ```
 
@@ -239,17 +260,21 @@ export interface IRepository<
 - [Axios][8] - Promise based HTTP client
 - [Firebase Database REST API][2] - REST API for Firebase Realtime Database
 - [Google Auth Library Node.js Client][9] - Node.js library for Google OAuth2
+- [class-transformer-validator][10] - Plugin class-transformer/validator
+- [class-transformer][11] - Convert plain objects to class instances
+- [class-validator][4] - Decorator and non-decorator based validation
 - [debug][9] - JavaScript debugging utility
 - [mingo][3] - MongoDB query language for in-memory objects
-- [runtypes][4] - Runtime validation for static types
 
 [1]: https://github.com/wovalle/fireorm
 [2]: https://firebase.google.com/docs/reference/rest/database
 [3]: https://github.com/kofrasa/mingo
-[4]: https://github.com/pelotom/runtypes
+[4]: https://github.com/typestack/class-validator
 [5]: https://developers.google.com/identity/protocols/oauth2
 [6]:
   https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk
 [7]: https://github.com/visionmedia/debug
 [8]: https://github.com/axios/axios
 [9]: https://github.com/googleapis/google-auth-library-nodejs
+[10]: https://github.com/MichalLytek/class-transformer-validator
+[11]: https://github.com/typestack/class-transformer
