@@ -16,7 +16,7 @@
   bdel= "!f() { git branch -D $@; }; f"
  
   # Delete a branch remotely
-  bdelr= "!f() { git push origin --delete $@; }; f"
+  bdelr= "!f() { git push origin --delete $@ --no-verify; }; f"
 
   # Git Commit with message
   cm = "!f() { git commit -m \"$@\"; }; f"
