@@ -3,12 +3,14 @@
   "description": "Repository Pattern implementation for Firebase Realtime Database",
   "version": "2.0.0",
   "keywords": [
+    "class-transformer",
+    "class-transformer-validator",
+    "class-validator",
     "database access layer",
     "firebase admin",
     "mingo",
     "realtime database",
     "repository pattern",
-    "runtypes",
     "typescript"
   ],
   "homepage": "https://github.com/flex-development/dreepo",
