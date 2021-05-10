@@ -167,7 +167,8 @@ export const options: RepoOptionsDTO = {
 }
 ```
 
-Note that all properties are optional and will be merged with following options:
+Note that all properties are optional and will be merged with the following
+options:
 
 ```typescript
 import type { TVODefaults } from '@dreepo'
