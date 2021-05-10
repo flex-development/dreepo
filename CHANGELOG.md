@@ -2,6 +2,38 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/flex-development/dreepo/compare/v1.1.1...v2.0.0) (2021-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **providers:** add RepoDBConnection
+* **models:** migrate to class-validator
+* **repo:** integrate db connection provider
+
+### :hammer: Build
+
+* add class-transformer, class-transformer-validator, class-validator ([abbf510](https://github.com/flex-development/dreepo/commit/abbf510bf4e4cc36a6c8d58e2beb03639641007c))
+
+
+### :book: Documentation
+
+* update readme and contributing guide ([c0c4eb0](https://github.com/flex-development/dreepo/commit/c0c4eb0bd28677e4f2e6191c341b53ef3ea4d7e9))
+
+
+### :sparkles: Features
+
+* **lib:** add IEntity interface ([66ae4c1](https://github.com/flex-development/dreepo/commit/66ae4c1e4895d1951d914186f27fec0a36d5b6a5))
+* **lib:** db connection provider ([752e115](https://github.com/flex-development/dreepo/commit/752e1150497503f88bfe18f1d2baed4f0b24abf0))
+* **models:** migrate to class-validator ([36b1e6f](https://github.com/flex-development/dreepo/commit/36b1e6f64067755ce7f801f26bc39e8579159940))
+* **providers:** add RepoDBConnection ([d2a764a](https://github.com/flex-development/dreepo/commit/d2a764a79fed8ff2eed7fa87a3d65462caaf87d0))
+* **repo:** integrate db connection provider ([81eeb30](https://github.com/flex-development/dreepo/commit/81eeb306e3f5610a85baaf136e8809e55bf91b6b))
+
+
+### :pencil2: Housekeeping
+
+* update gitconfig ([c6c69e6](https://github.com/flex-development/dreepo/commit/c6c69e6164d8b1902cf34e02351ddcbfc4bf21c1))
+
 ### [1.1.1](https://github.com/flex-development/dreepo/compare/v1.1.0...v1.1.1) (2021-05-07)
 
 
