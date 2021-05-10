@@ -6,8 +6,8 @@ import type {
 import { isNumber, ValidatorConstraint as Constraint } from 'class-validator'
 
 /**
- * @file Mixin - IsUnixTimestampConstraint
- * @module mixins/IsUnixTimestampConstraint
+ * @file Constraint - IsUnixTimestampConstraint
+ * @module constraints/IsUnixTimestampConstraint
  * @see https://github.com/typestack/class-validator#custom-validation-classes
  */
 
