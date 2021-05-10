@@ -87,7 +87,10 @@ const releaseNotes = (remove = false) => {
   let notes = readFileSync(RELEASE_NOTES_PATH, 'utf8').split('---')[1]
 
   // Get index of first heading
-  const first_heading_index = notes.indexOf('### :')
+  let first_heading_index = notes.indexOf('### :')
+
+  // Check for BREAKING CHANGES header
+  first_heading_index = notes.indexOf('### ⚠')
 
   // Check if index is equal to -1 (no headings)
   if (first_heading_index === -1) {
