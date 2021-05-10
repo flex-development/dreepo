@@ -2,6 +2,35 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/flex-development/dreepo/compare/v2.0.0...v3.0.0) (2021-05-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* **interfaces:** remove EnvironmentVariables
+
+### :book: Documentation
+
+* fix package keywords ([634b580](https://github.com/flex-development/dreepo/commit/634b580507356876639bc3c27e1ed8c298ed11c6))
+* **constraints:** fix IsUnixTimestampConstraint annotations ([40eba12](https://github.com/flex-development/dreepo/commit/40eba12e16c7536817db358cf1dd42f7d5c4711c))
+* fix typo ([6268a2f](https://github.com/flex-development/dreepo/commit/6268a2f456928e0be44b4cb659e97541baf0c006))
+
+
+### :hammer: Build
+
+* remove unused dependencies ([f26478d](https://github.com/flex-development/dreepo/commit/f26478d3945409f41a6de6258e75431cbf889bb2))
+
+
+### :sparkles: Features
+
+* **interfaces:** remove EnvironmentVariables ([940eb79](https://github.com/flex-development/dreepo/commit/940eb79f92fa02b807f52777a3e027f17c9c8a56))
+
+
+### :pencil2: Housekeeping
+
+* **deps:** pin prettier to v2.2.1 ([771886e](https://github.com/flex-development/dreepo/commit/771886e4cfe71ca91038f495232f77d7f24b774b))
+* **release:** update release-github logic ([edede6d](https://github.com/flex-development/dreepo/commit/edede6d557b64fbfe92202220f0fa98badfeb8f8))
+
 ## [2.0.0](https://github.com/flex-development/dreepo/compare/v1.1.1...v2.0.0) (2021-05-10)
 
 
