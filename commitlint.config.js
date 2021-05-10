@@ -74,7 +74,7 @@ module.exports = {
       return [
         2,
         'always',
-        [...directories(readdirSync(SRC)), 'release', 'repo']
+        [...directories(readdirSync(SRC)), 'deps', 'release', 'repo']
       ]
     },
 
