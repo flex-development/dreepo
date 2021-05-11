@@ -344,11 +344,21 @@ export default class Repository<
       return collection
     }
 
-    const { mingo: mopts } = this.options
+    let source = Object.assign([], collection) as PartialOr<E>[]
 
     try {
+      // Pick fields from each entity
+      if ($project && !isEmpty($project)) {
+        source = this.aggregate({ $project }) as PartialOr<E>[]
+      }
+
       // Handle query criteria
-      let cursor = this.mingo.find(collection, criteria, projection, mopts)
+      let cursor = this.mingo.find(
+        source,
+        criteria,
+        projection,
+        this.options.mingo
+      )
 
       // Apply sorting rules
       if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
@@ -359,18 +369,16 @@ export default class Repository<
       // Limit results
       if (typeof $limit === 'number') cursor = cursor.limit($limit)
 
-      // Get entities
-      let entities = cursor.all() as PartialOr<E>[]
-
-      // Pick entity fields from each entity
-      if ($project && !isEmpty($project)) {
-        entities = this.aggregate({ $project }) as PartialOr<E>[]
-      }
-
       // Return search results
-      return entities
-    } catch ({ message, stack }) {
+      return cursor.all() as PartialOr<E>[]
+    } catch (error) {
+      const { message, stack } = error
       const data = { params, projection }
+
+      if (error.constructor.name === 'Exception') {
+        error.data = merge(error.data, data)
+        throw error
+      }
 
       throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
     }

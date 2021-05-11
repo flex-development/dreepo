@@ -347,6 +347,17 @@ describe('unit:repositories/Repository', () => {
       expect(SubjectEC.mingo.find).toBeCalledTimes(0)
     })
 
+    it('should run aggregation pipeline with $project stage', () => {
+      const spy_aggregate = jest.spyOn(Subject, 'aggregate')
+
+      const params = { $project: { model: true } }
+
+      Subject.find(params)
+
+      expect(spy_aggregate).toBeCalledTimes(1)
+      expect(spy_aggregate).toBeCalledWith({ $project: params.$project })
+    })
+
     it('should handle query criteria', () => {
       const params = { id: Subject.cache.collection[0].id }
 
@@ -386,17 +397,6 @@ describe('unit:repositories/Repository', () => {
 
       expect(Subject.mingo.find).toBeCalledTimes(1)
       expect(mockCursor.limit).toBeCalledWith(params.$limit)
-    })
-
-    it('should run aggregation pipeline with $project stage', () => {
-      const spy_aggregate = jest.spyOn(Subject, 'aggregate')
-
-      const params = { $project: { model: true } }
-
-      Subject.find(params)
-
-      expect(spy_aggregate).toBeCalledTimes(1)
-      expect(spy_aggregate).toBeCalledWith({ $project: params.$project })
     })
 
     it('should throw Exception if error occurs', () => {
