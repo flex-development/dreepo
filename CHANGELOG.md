@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/flex-development/dreepo/compare/v3.0.0...v3.0.1) (2021-05-11)
+
+
+### :bug: Fixes
+
+* **repo:** query. logic ([f9b37ae](https://github.com/flex-development/dreepo/commit/f9b37ae44d625b5e04fa156138ad71150cf49cce))
+
 ## [3.0.0](https://github.com/flex-development/dreepo/compare/v2.0.0...v3.0.0) (2021-05-10)
 
 

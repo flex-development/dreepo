@@ -1,7 +1,7 @@
 {
   "name": "@flex-development/dreepo",
   "description": "Repository Pattern implementation for Firebase Realtime Database",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "keywords": [
     "class-transformer",
     "class-transformer-validator",
