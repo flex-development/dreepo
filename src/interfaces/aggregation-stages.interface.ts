@@ -1,10 +1,10 @@
 import type {
+  Criteria,
   EntityPath,
   Expression,
   FieldPath,
   OneOrMany,
-  ProjectStage,
-  QueryCriteria
+  ProjectStage
 } from '@/types'
 import type { RawObject } from 'mingo/util'
 import { SortOrder } from '../enums/sort-order.enum'
@@ -103,7 +103,7 @@ export interface AggregationStages<E extends IEntity = IEntity> {
    *
    * - https://docs.mongodb.com/manual/reference/operator/aggregation/match
    */
-  $match?: QueryCriteria<E> | QueryOperators | { $expr: Expression<E> }
+  $match?: Criteria<E> | QueryOperators | { $expr: Expression<E> }
 
   /**
    * Passes along the entities with the requested fields to the next stage in
