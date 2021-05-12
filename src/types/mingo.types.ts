@@ -83,6 +83,17 @@ export type FieldPath<E extends IEntity = IEntity> = `$${EntityPath<E>}`
 export type LiteralExpression<T = any> = { $literal: T }
 
 /**
+ * Entity attributes mapped to [Projection Operators][1].
+ *
+ * @template E - Entity
+ *
+ * [1]: https://docs.mongodb.com/manual/reference/operator/query/#projection-operators
+ */
+export type Projection<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, ProjectionOperators>
+>
+
+/**
  * [Aggregation Pipeline Stage - `$project`][1].
  *
  * @template E - Entity
@@ -91,15 +102,6 @@ export type LiteralExpression<T = any> = { $literal: T }
  */
 export type ProjectStage<E extends IEntity = IEntity> = Partial<
   Record<EntityPath<E>, boolean | 0 | 1>
->
-
-/**
- * Projection query parameters mapped to entity field names.
- *
- * @template E - Entity
- */
-export type ProjectionCriteria<E extends IEntity = IEntity> = Partial<
-  Record<EntityPath<E>, ProjectionOperators>
 >
 
 /**

@@ -19,7 +19,7 @@ import type {
   EntityPath,
   OneOrMany,
   PartialOr,
-  ProjectionCriteria,
+  Projection,
   ProjectStage,
   QueryParams,
   RepoCache,
@@ -322,7 +322,7 @@ export default class Repository<
    * @param {ProjectStage<E>} [params.$project] - Fields to include
    * @param {number} [params.$skip] - Skips the first n entities
    * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
-   * @param {ProjectionCriteria<E>} [params.projection] - Projection operators
+   * @param {Projection<E>} [params.projection] - Projection operators
    * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
