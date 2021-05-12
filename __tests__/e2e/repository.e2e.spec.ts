@@ -1,4 +1,4 @@
-import type { QueryParams } from '@/types'
+import type { RepoSearchParams } from '@/types'
 import { Repository as TestSubject } from '@dreepo'
 import { EntityDTO } from '@dreepo/dto'
 import type { ICar } from '@tests/fixtures/cars.fixture'
@@ -24,12 +24,12 @@ describe('e2e:Repository', () => {
    * Returns a test repository.
    *
    * @param {boolean} [cache] - If `true`, return with mock cache intialized
-   * @return {TestSubject<ICar, QueryParams<ICar>>} Test repo
+   * @return {TestSubject<ICar, RepoSearchParams<ICar>>} Test repo
    */
   const getSubject = (
     cache: boolean = true
-  ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(DBCONN, Car)
+  ): TestSubject<ICar, RepoSearchParams<ICar>> => {
+    const Subject = new TestSubject<ICar, RepoSearchParams<ICar>>(DBCONN, Car)
 
     // @ts-expect-error mocking
     if (cache) Subject.cache = Object.assign({}, mockCache)

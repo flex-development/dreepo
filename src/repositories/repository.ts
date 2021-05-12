@@ -21,9 +21,9 @@ import type {
   PartialOr,
   Projection,
   ProjectStage,
-  QueryParams,
   RepoCache,
-  RepoRoot
+  RepoRoot,
+  RepoSearchParams
 } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -47,13 +47,13 @@ import { v4 as uuid } from 'uuid'
  * A Realtime Database repository is a JSON object located at a database path.
  *
  * @template E - Entity
- * @template P - Query parameters
+ * @template P - Repository search parameters
  *
  * @class Repository
  */
 export default class Repository<
   E extends IEntity = IEntity,
-  P extends QueryParams<E> = QueryParams<E>
+  P extends RepoSearchParams<E> = RepoSearchParams<E>
 > implements IRepository<E, P> {
   /**
    * @readonly
@@ -312,17 +312,17 @@ export default class Repository<
   }
 
   /**
-   * Performs a query on `this.cache.collection`.
+   * Executes a search against `this.cache.collection`.
    *
    * If the cache is empty, a warning will be logged to the console instructing
    * developers to call {@method Repository#refreshCache}.
    *
-   * @param {P} [params] - Query parameters
+   * @param {P} [params] - Repository search parameters
    * @param {number} [params.$limit] - Limit number of results
    * @param {ProjectStage<E>} [params.$project] - Fields to include
    * @param {number} [params.$skip] - Skips the first n entities
    * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
-   * @param {Projection<E>} [params.projection] - Projection operators
+   * @param {Projection<E>} [params.projection] - Projection map
    * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
@@ -388,7 +388,7 @@ export default class Repository<
    * Finds multiple entities by id.
    *
    * @param {string[]} [ids] - Array of entity IDs
-   * @param {P} [params] - Query parameters
+   * @param {P} [params] - Repository search parameters
    * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
@@ -420,7 +420,7 @@ export default class Repository<
    *
    * @async
    * @param {string} id - ID of entity to find
-   * @param {P} [params] - Query parameters
+   * @param {P} [params] - Repository search parameters
    * @return {PartialOr<E> | null} Promise containing entity or null
    * @throws {Exception}
    */
@@ -440,7 +440,7 @@ export default class Repository<
    *
    * @async
    * @param {string} id - ID of entity to find
-   * @param {P} [params] - Query parameters
+   * @param {P} [params] - Repository search parameters
    * @return {PartialOr<E>} Promise containing entity
    * @throws {Exception}
    */

@@ -50,17 +50,6 @@ export type EntityPath<
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
 
 /**
- * Query parameters.
- *
- * @template E - Entity
- */
-export type QueryParams<E extends IEntity = IEntity> = Criteria<E> &
-  Pick<AggregationStages<E>, '$limit' | '$project' | '$skip'> & {
-    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
-    projection?: Projection<E>
-  }
-
-/**
  * Type representing a repository data cache.
  *
  * @template E - Entity
@@ -87,3 +76,14 @@ export type RepoHttpClient<T = any> = {
 export type RepoRoot<E extends IEntity = IEntity> =
   | Record<E['id'], E>
   | EmptyObject
+
+/**
+ * Repository search parameters.
+ *
+ * @template E - Entity
+ */
+export type RepoSearchParams<E extends IEntity = IEntity> = Criteria<E> &
+  Pick<AggregationStages<E>, '$limit' | '$project' | '$skip'> & {
+    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
+    projection?: Projection<E>
+  }
