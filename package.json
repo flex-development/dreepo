@@ -9,6 +9,7 @@
     "database access layer",
     "firebase admin",
     "mingo",
+    "qs-to-mingo",
     "realtime database",
     "repository pattern",
     "typescript"

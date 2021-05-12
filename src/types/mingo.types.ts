@@ -10,6 +10,7 @@ import type { EntityPath } from './repository.types'
 /**
  * @file Type Definitions - Mingo
  * @module types.mingo
+ * @see https://github.com/kofrasa/mingo
  */
 
 /**

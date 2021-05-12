@@ -350,12 +350,12 @@ describe('unit:repositories/Repository', () => {
     it('should run aggregation pipeline with $project stage', () => {
       const spy_aggregate = jest.spyOn(Subject, 'aggregate')
 
-      const params = { $project: { model: true } }
+      const options = { $project: { model: true } }
 
-      Subject.find(params)
+      Subject.find({ options })
 
       expect(spy_aggregate).toBeCalledTimes(1)
-      expect(spy_aggregate).toBeCalledWith({ $project: params.$project })
+      expect(spy_aggregate).toBeCalledWith({ $project: options.$project })
     })
 
     it('should handle query criteria', () => {
@@ -373,30 +373,30 @@ describe('unit:repositories/Repository', () => {
     })
 
     it('should sort results', () => {
-      const params = { $sort: { id: SortOrder.ASCENDING } }
+      const options = { sort: { id: SortOrder.ASCENDING } }
 
-      Subject.find(params)
+      Subject.find({ options })
 
       expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.sort).toBeCalledWith(params.$sort)
+      expect(mockCursor.sort).toBeCalledWith(options.sort)
     })
 
     it('should offset results', () => {
-      const params = { $skip: 2 }
+      const options = { skip: 2 }
 
-      Subject.find(params)
+      Subject.find({ options })
 
       expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.skip).toBeCalledWith(params.$skip)
+      expect(mockCursor.skip).toBeCalledWith(options.skip)
     })
 
     it('should limit results', () => {
-      const params = { $limit: 1 }
+      const options = { limit: 1 }
 
-      Subject.find(params)
+      Subject.find({ options })
 
       expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.limit).toBeCalledWith(params.$limit)
+      expect(mockCursor.limit).toBeCalledWith(options.limit)
     })
 
     it('should throw Exception if error occurs', () => {
@@ -414,7 +414,7 @@ describe('unit:repositories/Repository', () => {
       }
 
       expect(exception.code).toBe(ExceptionStatusCode.BAD_REQUEST)
-      expect(exception.data).toMatchObject({ params: {}, projection: {} })
+      expect(exception.data).toMatchObject({ params: {} })
       expect(exception.message).toBe(error_message)
     })
   })
