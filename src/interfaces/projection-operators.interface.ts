@@ -6,7 +6,7 @@ import type { QueryOperators } from './query-operators.interface'
  */
 
 /**
- * [Projection Selector][1] operators.
+ * [Projection Operators][1].
  *
  * [1]: https://docs.mongodb.com/manual/reference/operator/query/#projection-operators
  */
