@@ -9,7 +9,7 @@ import type { IEntity } from './entity.interface'
  */
 
 /**
- * [Query Selector][1] operators.
+ * [Query Operators][1].
  *
  * @template E - Entity
  *

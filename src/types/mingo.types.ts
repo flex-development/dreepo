@@ -13,6 +13,18 @@ import type { EntityPath } from './repository.types'
  */
 
 /**
+ * Entity attributes mapped to [JSON Values][1] and [Query Operators][2].
+ *
+ * @template E - Entity
+ *
+ * [1]: https://restfulapi.net/json-data-types
+ * [2]: https://docs.mongodb.com/manual/reference/operator/query/#query-selectors
+ */
+export type Criteria<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, JSONValue | QueryOperators>
+>
+
+/**
  * Type representing an [Aggregation expression][1].
  *
  * ! Does not include `ExpressionObject` definition due to circular referencing.
@@ -102,13 +114,4 @@ export type Projection<E extends IEntity = IEntity> = Partial<
  */
 export type ProjectStage<E extends IEntity = IEntity> = Partial<
   Record<EntityPath<E>, boolean | 0 | 1>
->
-
-/**
- * Query parameters mapped to entity field names.
- *
- * @template E - Entity
- */
-export type QueryCriteria<E extends IEntity = IEntity> = Partial<
-  Record<EntityPath<E>, JSONValue | QueryOperators>
 >

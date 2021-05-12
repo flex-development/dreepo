@@ -3,7 +3,7 @@ import type { ClassType } from 'class-transformer-validator'
 import { SortOrder } from '../enums/sort-order.enum'
 import type { AggregationStages, IEntity } from '../interfaces'
 import type { EmptyObject, ObjectPath } from './global.types'
-import type { Projection, QueryCriteria } from './mingo.types'
+import type { Criteria, Projection } from './mingo.types'
 
 /**
  * @file Type Definitions - Repositories
@@ -54,7 +54,7 @@ export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
  *
  * @template E - Entity
  */
-export type QueryParams<E extends IEntity = IEntity> = QueryCriteria<E> &
+export type QueryParams<E extends IEntity = IEntity> = Criteria<E> &
   Pick<AggregationStages<E>, '$limit' | '$project' | '$skip'> & {
     $sort?: Partial<Record<EntityPath<E>, SortOrder>>
     projection?: Projection<E>
