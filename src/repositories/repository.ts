@@ -1,7 +1,6 @@
 import logger from '@/config/logger'
 import mingo from '@/config/mingo'
 import type { EntityDTO, RepoOptionsDTO } from '@/dto'
-import { SortOrder } from '@/enums/sort-order.enum'
 import type {
   AggregationStages,
   IEntity,
@@ -9,6 +8,7 @@ import type {
   IRepository,
   IRepoValidator,
   MingoOptions,
+  QSMongoParsedOptions,
   RepoOptions,
   RepoValidatorOptions
 } from '@/interfaces'
@@ -16,14 +16,13 @@ import RepoValidator from '@/mixins/repo-validator.mixin'
 import type {
   EntityClass,
   EntityEnhanced,
-  EntityPath,
   OneOrMany,
   PartialOr,
-  Projection,
   ProjectStage,
   RepoCache,
   RepoRoot,
-  RepoSearchParams
+  RepoSearchParams,
+  RepoSort
 } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
@@ -318,33 +317,26 @@ export default class Repository<
    * developers to call {@method Repository#refreshCache}.
    *
    * @param {P} [params] - Repository search parameters
-   * @param {number} [params.$limit] - Limit number of results
-   * @param {ProjectStage<E>} [params.$project] - Fields to include
-   * @param {number} [params.$skip] - Skips the first n entities
-   * @param {Record<EntityPath<E>, SortOrder>} [params.$sort] - Sorting rules
-   * @param {Projection<E>} [params.projection] - Projection map
+   * @param {QSMongoParsedOptions} [params.options] - Repository search options
+   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
+   * @param {number} [params.options.limit] - Limit number of results
+   * @param {number} [params.options.skip] - Skips the first n entities
+   * @param {RepoSort} [params.options.sort] - Sorting rules
    * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
   find(params: P = {} as P): PartialOr<E>[] {
-    const {
-      $limit,
-      $project = {},
-      $skip,
-      $sort,
-      projection = {},
-      ...criteria
-    } = params
-    const { collection } = this.cache
+    const { options = {}, ...criteria } = params
+    const { $project = {}, limit, skip, sort } = options
 
-    if (!collection.length) {
+    if (!this.cache.collection.length) {
       this.logger(`Repository at path "${this.dbconn.path}" empty.`)
       this.logger('Consider calling #refreshCache before performing search.')
 
-      return collection
+      return this.cache.collection
     }
 
-    let source = Object.assign([], collection) as PartialOr<E>[]
+    let source = Object.assign([], this.cache.collection) as PartialOr<E>[]
 
     try {
       // Pick fields from each entity
@@ -353,27 +345,22 @@ export default class Repository<
       }
 
       // Handle query criteria
-      let cursor = this.mingo.find(
-        source,
-        criteria,
-        projection,
-        this.options.mingo
-      )
+      let cursor = this.mingo.find(source, criteria, {}, this.options.mingo)
 
       // Apply sorting rules
-      if ($sort && !isEmpty($sort)) cursor = cursor.sort($sort)
+      if (sort && !isEmpty(sort)) cursor = cursor.sort(sort)
 
       // Apply offset
-      if (typeof $skip === 'number') cursor = cursor.skip($skip)
+      if (typeof skip === 'number') cursor = cursor.skip(skip)
 
       // Limit results
-      if (typeof $limit === 'number') cursor = cursor.limit($limit)
+      if (typeof limit === 'number') cursor = cursor.limit(limit)
 
       // Return search results
       return cursor.all() as PartialOr<E>[]
     } catch (error) {
       const { message, stack } = error
-      const data = { params, projection }
+      const data = { params }
 
       if (error.constructor.name === 'Exception') {
         error.data = merge(error.data, data)
@@ -389,6 +376,11 @@ export default class Repository<
    *
    * @param {string[]} [ids] - Array of entity IDs
    * @param {P} [params] - Repository search parameters
+   * @param {QSMongoParsedOptions} [params.options] - Repository search options
+   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
+   * @param {number} [params.options.limit] - Limit number of results
+   * @param {number} [params.options.skip] - Skips the first n entities
+   * @param {RepoSort} [params.options.sort] - Sorting rules
    * @return {PartialOr<E>[]} Search results
    * @throws {Exception}
    */
@@ -421,6 +413,11 @@ export default class Repository<
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Repository search parameters
+   * @param {QSMongoParsedOptions} [params.options] - Repository search options
+   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
+   * @param {number} [params.options.limit] - Limit number of results
+   * @param {number} [params.options.skip] - Skips the first n entities
+   * @param {RepoSort} [params.options.sort] - Sorting rules
    * @return {PartialOr<E> | null} Promise containing entity or null
    * @throws {Exception}
    */
@@ -441,6 +438,11 @@ export default class Repository<
    * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Repository search parameters
+   * @param {QSMongoParsedOptions} [params.options] - Repository search options
+   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
+   * @param {number} [params.options.limit] - Limit number of results
+   * @param {number} [params.options.skip] - Skips the first n entities
+   * @param {RepoSort} [params.options.sort] - Sorting rules
    * @return {PartialOr<E>} Promise containing entity
    * @throws {Exception}
    */

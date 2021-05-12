@@ -1,9 +1,10 @@
+import { SortOrder } from '@/enums/sort-order.enum'
+import type { QSMongoOptions } from '@/interfaces/qs-mongo-options.interface'
 import type { AxiosRequestConfig } from 'axios'
 import type { ClassType } from 'class-transformer-validator'
-import { SortOrder } from '../enums/sort-order.enum'
-import type { AggregationStages, IEntity } from '../interfaces'
-import type { EmptyObject, ObjectPath } from './global.types'
-import type { Criteria, Projection } from './mingo.types'
+import type { IEntity, QSMongoParsedOptions } from '../interfaces'
+import type { EmptyObject, ObjectPath, OneOrMany } from './global.types'
+import type { Criteria } from './mingo.types'
 
 /**
  * @file Type Definitions - Repositories
@@ -30,6 +31,23 @@ export type EntityClass<E extends IEntity = IEntity> = ClassType<E>
  */
 export type EntityEnhanced<E extends IEntity = IEntity> = E & {
   [x: string]: unknown
+}
+
+/**
+ * Entity attributes mapped to URL query parameters (strings or string arrays).
+ *
+ * @template E - Entity
+ */
+export type EntityParsedUrlQuery<E extends IEntity = IEntity> = Record<
+  EntityPath<E>,
+  OneOrMany<string>
+> & {
+  fields?: OneOrMany<string>
+  limit?: string
+  omit?: OneOrMany<string>
+  q?: string
+  skip?: string
+  sort?: OneOrMany<string>
 }
 
 /**
@@ -78,12 +96,27 @@ export type RepoRoot<E extends IEntity = IEntity> =
   | EmptyObject
 
 /**
+ * `RepoSearchParamsBuilder` options.
+ */
+export type RepoSearchParamsBuilderOptions = Omit<
+  QSMongoOptions,
+  'objectIdFields' | 'parameters'
+>
+
+/**
  * Repository search parameters.
  *
  * @template E - Entity
  */
-export type RepoSearchParams<E extends IEntity = IEntity> = Criteria<E> &
-  Pick<AggregationStages<E>, '$limit' | '$project' | '$skip'> & {
-    $sort?: Partial<Record<EntityPath<E>, SortOrder>>
-    projection?: Projection<E>
-  }
+export type RepoSearchParams<E extends IEntity = IEntity> = Criteria<E> & {
+  options?: Partial<QSMongoParsedOptions<E>>
+}
+
+/**
+ * Repository sorting rules.
+ *
+ * @template E - Entity
+ */
+export type RepoSort<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, SortOrder>
+>
