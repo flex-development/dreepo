@@ -4,8 +4,8 @@ import type {
   EntityEnhanced,
   OneOrMany,
   PartialOr,
-  QueryParams,
-  RepoCache
+  RepoCache,
+  RepoSearchParams
 } from '@/types'
 import type { Debugger } from 'debug'
 import mingo from 'mingo'
@@ -25,11 +25,11 @@ import type { IRepoValidator } from './repo-validator.interface'
  * `Repository` class interface.
  *
  * @template E - Entity
- * @template P - Query parameters
+ * @template P - Repository search parameters
  */
 export interface IRepository<
   E extends IEntity = IEntity,
-  P extends QueryParams<E> = QueryParams<E>
+  P extends RepoSearchParams<E> = RepoSearchParams<E>
 > {
   readonly cache: RepoCache<E>
   readonly dbconn: IRepoDBConnection

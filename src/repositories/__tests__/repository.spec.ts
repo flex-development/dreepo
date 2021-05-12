@@ -4,7 +4,7 @@ import type {
   DBRequestConfig,
   IRepoValidator as IValidator
 } from '@/interfaces'
-import type { EntityClass, QueryParams } from '@/types'
+import type { EntityClass, RepoSearchParams } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
 import type { ICar } from '@tests/fixtures/cars.fixture'
@@ -44,12 +44,12 @@ describe('unit:repositories/Repository', () => {
    * an empty cache. Otherwise the mockCache will be used.
    *
    * @param {boolean} [emptyCache] - Initialize with empty mock cache
-   * @return {TestSubject<ICar, QueryParams<ICar>>} Test repo
+   * @return {TestSubject<ICar, RepoSearchParams<ICar>>} Test repo
    */
   const getSubject = (
     emptyCache?: boolean
-  ): TestSubject<ICar, QueryParams<ICar>> => {
-    const Subject = new TestSubject<ICar, QueryParams<ICar>>(DBCONN, Car)
+  ): TestSubject<ICar, RepoSearchParams<ICar>> => {
+    const Subject = new TestSubject<ICar, RepoSearchParams<ICar>>(DBCONN, Car)
 
     // @ts-expect-error mocking
     Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
