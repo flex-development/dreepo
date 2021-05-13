@@ -2,12 +2,13 @@ import { SortOrder } from '@/enums'
 import type {
   AggregationStages,
   DBRequestConfig,
+  IRepoSearchParamsBuilder as IQBuilder,
   IRepoValidator as IValidator
 } from '@/interfaces'
-import type { EntityClass, RepoSearchParams } from '@/types'
+import type { EntityClass } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import type { ICar } from '@tests/fixtures/cars.fixture'
+import type { CarParams, CarQuery, ICar } from '@tests/fixtures/cars.fixture'
 import {
   Car,
   CARS,
@@ -44,12 +45,12 @@ describe('unit:repositories/Repository', () => {
    * an empty cache. Otherwise the mockCache will be used.
    *
    * @param {boolean} [emptyCache] - Initialize with empty mock cache
-   * @return {TestSubject<ICar, RepoSearchParams<ICar>>} Test repo
+   * @return {TestSubject<ICar, CarParams, CarQuery>} Test repo
    */
   const getSubject = (
     emptyCache?: boolean
-  ): TestSubject<ICar, RepoSearchParams<ICar>> => {
-    const Subject = new TestSubject<ICar, RepoSearchParams<ICar>>(DBCONN, Car)
+  ): TestSubject<ICar, CarParams, CarQuery> => {
+    const Subject = new TestSubject<ICar, CarParams, CarQuery>(DBCONN, Car)
 
     // @ts-expect-error mocking
     Subject.cache = Object.assign({}, emptyCache ? mockCacheEmpty : mockCache)
@@ -67,6 +68,7 @@ describe('unit:repositories/Repository', () => {
       expect(Subject.dbconn).toBe(DBCONN)
       expect(isType<EntityClass<ICar>>(Subject.model as any)).toBeTruthy()
       expect(Subject.options).toMatchObject(eoptions)
+      expect(isType<IQBuilder<ICar>>(Subject.qbuilder as any)).toBeTruthy()
       expect(isType<IValidator<ICar>>(Subject.validator as any)).toBeTruthy()
     })
   })
@@ -588,6 +590,86 @@ describe('unit:repositories/Repository', () => {
       expect(spy_dbconn_send.mock.calls[0][0]?.url).toBe(ENTITY.id)
 
       expect(spy_refreshCache).toBeCalledTimes(1)
+    })
+  })
+
+  describe('#query', () => {
+    const Subject = getSubject()
+
+    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
+    const spy_find = jest.spyOn(Subject, 'find')
+
+    beforeEach(() => {
+      Subject.query()
+    })
+
+    it('should call #qbuilder.params', () => {
+      expect(spy_qbuilder_params).toBeCalledTimes(1)
+      expect(spy_qbuilder_params).toBeCalledWith(undefined)
+    })
+
+    it('should call #find', () => {
+      expect(spy_find).toBeCalledTimes(1)
+    })
+  })
+
+  describe('#queryByIds', () => {
+    const Subject = getSubject()
+
+    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
+    const spy_findByIds = jest.spyOn(Subject, 'findByIds')
+
+    beforeEach(() => {
+      Subject.queryByIds()
+    })
+
+    it('should call #qbuilder.params', () => {
+      expect(spy_qbuilder_params).toBeCalledTimes(1)
+      expect(spy_qbuilder_params).toBeCalledWith(undefined)
+    })
+
+    it('should call #findByIds', () => {
+      expect(spy_findByIds).toBeCalledTimes(1)
+    })
+  })
+
+  describe('#queryOne', () => {
+    const Subject = getSubject()
+
+    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
+    const spy_findOne = jest.spyOn(Subject, 'findOne')
+
+    beforeEach(() => {
+      Subject.queryOne(ENTITY.id)
+    })
+
+    it('should call #qbuilder.params', () => {
+      expect(spy_qbuilder_params).toBeCalledTimes(1)
+      expect(spy_qbuilder_params).toBeCalledWith(undefined)
+    })
+
+    it('should call #findOne', () => {
+      expect(spy_findOne).toBeCalledTimes(1)
+    })
+  })
+
+  describe('#queryOneOrFail', () => {
+    const Subject = getSubject()
+
+    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
+    const spy_findOneOrFail = jest.spyOn(Subject, 'findOneOrFail')
+
+    beforeEach(() => {
+      Subject.queryOneOrFail(ENTITY.id)
+    })
+
+    it('should call #qbuilder.params', () => {
+      expect(spy_qbuilder_params).toBeCalledTimes(1)
+      expect(spy_qbuilder_params).toBeCalledWith(undefined)
+    })
+
+    it('should call #findOneOrFail', () => {
+      expect(spy_findOneOrFail).toBeCalledTimes(1)
     })
   })
 

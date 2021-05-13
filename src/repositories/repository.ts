@@ -5,6 +5,7 @@ import type {
   AggregationStages,
   IEntity,
   IRepoDBConnection,
+  IRepoSearchParamsBuilder,
   IRepository,
   IRepoValidator,
   MingoOptions,
@@ -12,16 +13,19 @@ import type {
   RepoOptions,
   RepoValidatorOptions
 } from '@/interfaces'
-import RepoValidator from '@/mixins/repo-validator.mixin'
+import { RepoSearchParamsBuilder, RepoValidator } from '@/mixins'
 import type {
   EntityClass,
   EntityEnhanced,
   OneOrMany,
+  PartialEntity,
   PartialOr,
   ProjectStage,
   RepoCache,
+  RepoParsedUrlQuery,
   RepoRoot,
   RepoSearchParams,
+  RepoSearchParamsBuilderOptions as QBuilderOptions,
   RepoSort
 } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
@@ -47,13 +51,16 @@ import { v4 as uuid } from 'uuid'
  *
  * @template E - Entity
  * @template P - Repository search parameters
+ * @template Q - URL query parameters
  *
  * @class Repository
+ * @implements {IRepository<E, P, Q>}
  */
 export default class Repository<
   E extends IEntity = IEntity,
-  P extends RepoSearchParams<E> = RepoSearchParams<E>
-> implements IRepository<E, P> {
+  P extends RepoSearchParams<E> = RepoSearchParams<E>,
+  Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
+> implements IRepository<E, P, Q> {
   /**
    * @readonly
    * @instance
@@ -99,6 +106,13 @@ export default class Repository<
   /**
    * @readonly
    * @instance
+   * @property {IRepoSearchParamsBuilder<E>} qbuilder - Search params builder
+   */
+  readonly qbuilder: IRepoSearchParamsBuilder<E>
+
+  /**
+   * @readonly
+   * @instance
    * @property {IRepoValidator<E>} validator - Repository Validation API client
    */
   readonly validator: IRepoValidator<E>
@@ -115,8 +129,9 @@ export default class Repository<
    *
    * @param {IRepoDBConnection} dbconn - Database connection provider
    * @param {EntityClass<E>} model - Entity model
-   * @param {RepoOptionsDTO} options - Repository options
-   * @param {MingoOptions} [options.mingo] - Global mingo options
+   * @param {RepoOptionsDTO} [options] - Repository options
+   * @param {Partial<MingoOptions>} [options.mingo] - Global mingo options
+   * @param {QBuilderOptions} [options.qbuilder] - Search params builder options
    * @param {RepoValidatorOptions} [options.validation] - Validation API options
    */
   constructor(
@@ -133,6 +148,8 @@ export default class Repository<
       mingo: { idKey: 'id' },
       validation: this.validator.tvo
     })
+
+    this.qbuilder = new RepoSearchParamsBuilder<E>(this.options.qbuilder)
   }
 
   /**
@@ -322,10 +339,10 @@ export default class Repository<
    * @param {number} [params.options.limit] - Limit number of results
    * @param {number} [params.options.skip] - Skips the first n entities
    * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialOr<E>[]} Search results
+   * @return {PartialEntity<E>[]} Search results
    * @throws {Exception}
    */
-  find(params: P = {} as P): PartialOr<E>[] {
+  find(params: P = {} as P): PartialEntity<E>[] {
     const { options = {}, ...criteria } = params
     const { $project = {}, limit, skip, sort } = options
 
@@ -336,12 +353,12 @@ export default class Repository<
       return this.cache.collection
     }
 
-    let source = Object.assign([], this.cache.collection) as PartialOr<E>[]
+    let source = Object.assign([], this.cache.collection) as PartialEntity<E>[]
 
     try {
       // Pick fields from each entity
       if ($project && !isEmpty($project)) {
-        source = this.aggregate({ $project }) as PartialOr<E>[]
+        source = this.aggregate({ $project }) as PartialEntity<E>[]
       }
 
       // Handle query criteria
@@ -357,7 +374,7 @@ export default class Repository<
       if (typeof limit === 'number') cursor = cursor.limit(limit)
 
       // Return search results
-      return cursor.all() as PartialOr<E>[]
+      return cursor.all() as PartialEntity<E>[]
     } catch (error) {
       const { message, stack } = error
       const data = { params }
@@ -381,10 +398,10 @@ export default class Repository<
    * @param {number} [params.options.limit] - Limit number of results
    * @param {number} [params.options.skip] - Skips the first n entities
    * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialOr<E>[]} Search results
+   * @return {PartialEntity<E>[]} Entities
    * @throws {Exception}
    */
-  findByIds(ids: E['id'][] = [], params: P = {} as P): PartialOr<E>[] {
+  findByIds(ids: E['id'][] = [], params: P = {} as P): PartialEntity<E>[] {
     try {
       // Perform search
       const entities = this.find(params)
@@ -410,7 +427,6 @@ export default class Repository<
    *
    * Returns `null` if the entity isn't found.
    *
-   * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Repository search parameters
    * @param {QSMongoParsedOptions} [params.options] - Repository search options
@@ -418,10 +434,10 @@ export default class Repository<
    * @param {number} [params.options.limit] - Limit number of results
    * @param {number} [params.options.skip] - Skips the first n entities
    * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialOr<E> | null} Promise containing entity or null
+   * @return {PartialEntity<E> | null} Entity or null
    * @throws {Exception}
    */
-  findOne(id: E['id'], params: P = {} as P): PartialOr<E> | null {
+  findOne(id: E['id'], params: P = {} as P): PartialEntity<E> | null {
     // Perform search
     const entities = this.find({ ...params, id })
     const entity = entities[0]
@@ -435,7 +451,6 @@ export default class Repository<
    *
    * Throws an error if the entity isn't found.
    *
-   * @async
    * @param {string} id - ID of entity to find
    * @param {P} [params] - Repository search parameters
    * @param {QSMongoParsedOptions} [params.options] - Repository search options
@@ -443,10 +458,10 @@ export default class Repository<
    * @param {number} [params.options.limit] - Limit number of results
    * @param {number} [params.options.skip] - Skips the first n entities
    * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialOr<E>} Promise containing entity
+   * @return {PartialEntity<E>} Entity
    * @throws {Exception}
    */
-  findOneOrFail(id: E['id'], params: P = {} as P): PartialOr<E> {
+  findOneOrFail(id: E['id'], params: P = {} as P): PartialEntity<E> {
     const entity = this.findOne(id, params)
 
     if (!entity) {
@@ -511,6 +526,56 @@ export default class Repository<
       /* eslint-disable-next-line sort-keys */
       throw new Exception(code, message, { id, dto, rfields }, stack)
     }
+  }
+
+  /**
+   * Queries `this.cache.collection`.
+   *
+   * If the cache is empty, a warning will be logged to the console instructing
+   * developers to call {@method Repository#refreshCache}.
+   *
+   * @param {Q | string} [query] - Entity query object or string
+   * @return {PartialEntity<E>[]} Search results
+   */
+  query(query?: Q | string): PartialEntity<E>[] {
+    return this.find(this.qbuilder.params(query) as P)
+  }
+
+  /**
+   * Queries multiple entities by id.
+   *
+   * @param {string[]} [ids] - Array of entity IDs
+   * @param {Q | string} [query] - Entity query object or string
+   * @return {PartialEntity<E>[]} Entities
+   */
+  queryByIds(ids: E['id'][] = [], query?: Q | string): PartialEntity<E>[] {
+    return this.findByIds(ids, this.qbuilder.params(query) as P)
+  }
+
+  /**
+   * Queries an entity by ID.
+   *
+   * Returns `null` if the entity isn't found.
+   *
+   * @param {string} id - ID of entity to find
+   * @param {Q | string} [query] - Entity query object or string
+   * @return {PartialEntity<E> | null} Entity or null
+   */
+  queryOne(id: E['id'], query?: Q | string): PartialEntity<E> | null {
+    return this.findOne(id, this.qbuilder.params(query) as P)
+  }
+
+  /**
+   * Queries an entity by ID.
+   *
+   * Throws an error if the entity isn't found.
+   *
+   * @param {string} id - ID of entity to find
+   * @param {Q | string} [query] - Entity query object or string
+   * @return {PartialEntity<E>} Entity
+   */
+  queryOneOrFail(id: E['id'], query?: Q | string): PartialEntity<E> {
+    return this.findOneOrFail(id, this.qbuilder.params(query) as P)
   }
 
   /**

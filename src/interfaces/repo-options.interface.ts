@@ -1,3 +1,4 @@
+import type { RepoSearchParamsBuilderOptions } from '@/types'
 import type { MingoOptions } from './mingo-options.interface'
 import type { RepoValidatorOptions } from './repo-validator-options.interface'
 
@@ -16,6 +17,11 @@ export interface RepoOptions {
    * See: https://github.com/kofrasa/mingo
    */
   mingo: MingoOptions
+
+  /**
+   * `RepoSearchParamsBuilder` client options.
+   */
+  qbuilder?: RepoSearchParamsBuilderOptions
 
   /**
    * Repository Validation API options.

@@ -9,6 +9,7 @@
     "database access layer",
     "firebase admin",
     "mingo",
+    "mongodb url query",
     "qs-to-mingo",
     "realtime database",
     "repository pattern",

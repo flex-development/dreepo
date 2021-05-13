@@ -141,6 +141,7 @@ module.exports = {
           'oauth2',
           'perf',
           'postpublish',
+          'qbuilder',
           'readonly',
           'repo',
           'rtd',

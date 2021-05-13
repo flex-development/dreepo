@@ -3,7 +3,12 @@ import type { QSMongoOptions } from '@/interfaces/qs-mongo-options.interface'
 import type { AxiosRequestConfig } from 'axios'
 import type { ClassType } from 'class-transformer-validator'
 import type { IEntity, QSMongoParsedOptions } from '../interfaces'
-import type { EmptyObject, ObjectPath, OneOrMany } from './global.types'
+import type {
+  EmptyObject,
+  ObjectPath,
+  OneOrMany,
+  PartialOr
+} from './global.types'
 import type { Criteria } from './mingo.types'
 
 /**
@@ -29,7 +34,7 @@ export type EntityClass<E extends IEntity = IEntity> = ClassType<E>
  *
  * @template E - Entity
  */
-export type EntityEnhanced<E extends IEntity = IEntity> = E & {
+export type EntityEnhanced<E extends IEntity = IEntity> = PartialEntity<E> & {
   [x: string]: unknown
 }
 
@@ -49,6 +54,19 @@ export type EntityPath<
  * can only be updated internally by the `EntityRepository` class.
  */
 export type EntityReadonlyProps = 'created_at' | 'id' | 'updated_at'
+
+/**
+ * Response include all attributes of an entity or a subset.
+ *
+ * Even when a subset of attributes are requested, a partial `IEntity` response
+ * will always include the `id` field.
+ *
+ * @template E - Entity
+ */
+export type PartialEntity<E extends IEntity = IEntity> = Omit<
+  PartialOr<E>,
+  'id'
+> & { id: E['id'] }
 
 /**
  * Type representing a repository data cache.
