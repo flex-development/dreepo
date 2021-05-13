@@ -11,6 +11,11 @@ const { name, version } = require('../../package.json')
  */
 
 /**
+ * @property {string} CHANGELOG - Name of GitHub CHANGELOG file
+ */
+const CHANGELOG = 'CHANGELOG.md'
+
+/**
  * @property {string} RELEASE_NOTES - Name of GitHub release notes file
  */
 const RELEASE_NOTES = 'RELEASE_NOTES.md'
@@ -80,28 +85,53 @@ const releaseNotes = (remove = false) => {
     if (remove) return null
   }
 
-  // Generate initial release notes content
-  execa.commandSync(`standard-version --dry-run >>${RELEASE_NOTES}`, sync)
+  // Read CHANGELOG
+  let notes = readFileSync(CHANGELOG, 'utf8')
 
-  // Read notes file and get what would be new CHANGELOG content
-  let notes = readFileSync(RELEASE_NOTES_PATH, 'utf8').split('---')[1]
+  // Get index of recent changes
+  let first_heading_index = notes.indexOf(`## [${version}]`)
 
-  // Get index of first heading
-  let first_heading_index = notes.indexOf('### :')
+  // Check for minor / patch headings
+  first_heading_index = notes.indexOf(`### [${version}]`)
+
+  // Check if index is equal to -1 (no recent changes)
+  if (first_heading_index === -1) {
+    debug(`${RELEASE_NOTES} does not contain any recent changes.`)
+    return null
+  }
+
+  // Get index of first heading with emoji
+  first_heading_index = notes.indexOf('### :')
 
   // Check for BREAKING CHANGES header
-  first_heading_index = notes.indexOf('### ⚠')
+  if (first_heading_index === -1) first_heading_index = notes.indexOf('### ⚠')
 
   // Check if index is equal to -1 (no headings)
   if (first_heading_index === -1) {
-    debug(`${RELEASE_NOTES} does not contain any headings.`)
-    debug('Assumed to have no body content.')
+    debug(`${RELEASE_NOTES} ${version} does not contain any headings.`)
+    debug('Assumed to contain no recent changes.')
 
     return null
   }
 
   // Trim notes
   notes = notes.substring(first_heading_index, notes.length)
+
+  // Get last heading index
+  let last_heading_index = notes.indexOf('## [')
+
+  // Check for minor / patch headings
+  if (last_heading_index === -1) last_heading_index = notes.indexOf('### [')
+
+  if (last_heading_index === -1) {
+    debug(`${RELEASE_NOTES} ${version} changes do not terminate.`)
+    debug('Cannot find heading associated with previous version.')
+
+    return null
+  }
+
+  // Trim notes
+  notes = notes.substring(0, last_heading_index)
 
   // Change heading sizes
   notes = notes.replaceAll('###', '##')
