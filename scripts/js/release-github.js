@@ -68,12 +68,8 @@ const releaseAssets = (remove = false) => {
 /**
  * Deletes or formats the GitHub release notes file.
  *
- * The function will return the GitHub release notes content or `null` if the
- * file content does not contain the pattern `### :` anywhere. This pattern
- * indicates a level three heading that starts with an emoji.
- *
- * If the notes have been successfully formatted, the original GitHub release
- * notes file will be updated to contain the formatted content.
+ * If the notes have been successfully formatted, a GitHub release notes file
+ * will be created with the formatted content.
  *
  * @param {boolean} remove - If `true`, remove release notes file
  * @return {string | null} Formatted release notes or null
@@ -92,11 +88,13 @@ const releaseNotes = (remove = false) => {
   let first_heading_index = notes.indexOf(`## [${version}]`)
 
   // Check for minor / patch headings
-  first_heading_index = notes.indexOf(`### [${version}]`)
+  if (first_heading_index === -1) {
+    first_heading_index = notes.indexOf(`### [${version}]`)
+  }
 
   // Check if index is equal to -1 (no recent changes)
   if (first_heading_index === -1) {
-    debug(`${RELEASE_NOTES} does not contain any recent changes.`)
+    debug(`Cannot find [${version}] header in ${CHANGELOG}.`)
     return null
   }
 
@@ -108,8 +106,8 @@ const releaseNotes = (remove = false) => {
 
   // Check if index is equal to -1 (no headings)
   if (first_heading_index === -1) {
-    debug(`${RELEASE_NOTES} ${version} does not contain any headings.`)
-    debug('Assumed to contain no recent changes.')
+    debug(`Cannot find first heading under ${CHANGELOG} / [${version}].`)
+    debug(`${CHANGELOG} [${version}] assumed to be empty.`)
 
     return null
   }
@@ -124,21 +122,20 @@ const releaseNotes = (remove = false) => {
   if (last_heading_index === -1) last_heading_index = notes.indexOf('### [')
 
   if (last_heading_index === -1) {
-    debug(`${RELEASE_NOTES} ${version} changes do not terminate.`)
-    debug('Cannot find heading associated with previous version.')
+    debug(`Cannot find ending of ${CHANGELOG} / [${version}].`)
+    debug('Heading associated with previous version unknown.')
 
     return null
   }
 
-  // Trim notes
-  notes = notes.substring(0, last_heading_index)
+  // Trim notes again and change heading sizes
+  notes = notes.substring(0, last_heading_index).replaceAll('###', '##')
 
-  // Change heading sizes
-  notes = notes.replaceAll('###', '##')
-
-  // Update release notes file
+  // Create release notes file
+  debug('Writing release notes...')
   writeFileSync(RELEASE_NOTES_PATH, notes)
-  debug(`Finished formatting ${RELEASE_NOTES}`)
+
+  debug('Finished release notes')
 
   return notes
 }

@@ -81,4 +81,5 @@ coverage/
 
 # Builds & Distributions
 dist/
+*.zip
 RELEASE_NOTES.md
