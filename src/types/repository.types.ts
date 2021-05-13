@@ -34,23 +34,6 @@ export type EntityEnhanced<E extends IEntity = IEntity> = E & {
 }
 
 /**
- * Entity attributes mapped to URL query parameters (strings or string arrays).
- *
- * @template E - Entity
- */
-export type EntityParsedUrlQuery<E extends IEntity = IEntity> = Record<
-  EntityPath<E>,
-  OneOrMany<string>
-> & {
-  fields?: OneOrMany<string>
-  limit?: string
-  omit?: OneOrMany<string>
-  q?: string
-  skip?: string
-  sort?: OneOrMany<string>
-}
-
-/**
  * Type representing a nested or top level entity key.
  *
  * @template E - Entity
@@ -84,6 +67,21 @@ export type RepoCache<E extends IEntity = IEntity> = {
  */
 export type RepoHttpClient<T = any> = {
   (config: AxiosRequestConfig): Promise<T>
+}
+
+/**
+ * Repository URL query parameters.
+ *
+ * @template E - Entity
+ */
+export type RepoParsedUrlQuery<E extends IEntity = IEntity> = Partial<
+  Record<EntityPath<E>, OneOrMany<string>>
+> & {
+  fields?: string
+  limit?: string
+  q?: string
+  skip?: string
+  sort?: string
 }
 
 /**

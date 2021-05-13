@@ -1,3 +1,5 @@
+import type { ParsedOptions as OriginalParsedOptions } from 'qs-to-mongo/lib/query/options-to-mongo'
+
 /**
  * @file Type Definitions - Querystring to Mongo
  * @module types.qs-mongo
@@ -17,3 +19,8 @@ export type QSMongoParameters = {
   q: string
   sort: string
 }
+
+/**
+ * Parsed query options object with correct type definitions.
+ */
+export type ParsedOptions = Partial<OriginalParsedOptions>
