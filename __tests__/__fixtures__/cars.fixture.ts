@@ -1,5 +1,6 @@
 import { IEntity } from '@/interfaces'
 import { Entity } from '@/models'
+import type { RepoParsedUrlQuery, RepoSearchParams } from '@/types'
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 import ROOT from './cars-root.fixture.json'
 
@@ -13,6 +14,10 @@ export interface ICar extends IEntity {
   model: string
   model_year: number
 }
+
+export type CarParams = RepoSearchParams<ICar>
+
+export type CarQuery = RepoParsedUrlQuery<ICar>
 
 export class Car extends Entity implements ICar {
   @IsString()
@@ -37,8 +42,3 @@ export const CARS_MOCK_CACHE = Object.freeze({
   collection: CARS,
   root: CARS_ROOT
 })
-
-export const REPO_VOPTS_CARS = {
-  enabled: true,
-  model: Car
-}

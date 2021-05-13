@@ -1,4 +1,4 @@
-import type { MingoOptions, RepoValidatorOptions } from '@/interfaces'
+import type { RepoOptions } from '@/interfaces'
 
 /**
  * @file Data Transfer Objects - RepoOptionsDTO
@@ -14,12 +14,17 @@ export interface RepoOptionsDTO {
    *
    * See: https://github.com/kofrasa/mingo
    */
-  mingo?: Partial<MingoOptions>
+  mingo?: Partial<RepoOptions['mingo']>
+
+  /**
+   * `RepoSearchParamsBuilder` client options.
+   */
+  qbuilder?: RepoOptions['qbuilder']
 
   /**
    * Repository Validation API options.
    *
-   * @default {}
+   * @default { enabled: true }
    */
-  validation?: RepoValidatorOptions
+  validation?: RepoOptions['validation']
 }
