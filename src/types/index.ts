@@ -5,6 +5,7 @@
 
 export * from './global.types'
 export * from './mingo.types'
+export * from './qs-mongo.types'
 export * from './repository.types'
 export * from './validation.types'
 

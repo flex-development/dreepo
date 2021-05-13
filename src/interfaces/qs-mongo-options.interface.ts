@@ -1,5 +1,6 @@
+import type { OneOrMany } from '@/types'
 import type { QSMongoParameters } from '@/types/qs-mongo.types'
-import type { ParsedUrlQuery } from 'node:querystring'
+import { CustomQSMongoQueryParser } from './custom-qs-mongo-query-parser.interface'
 
 /**
  * @file Interface - QSMongoOptions
@@ -19,12 +20,12 @@ export interface QSMongoOptions {
    *
    * [1]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toISOString
    */
-  dateFields?: string | string[]
+  dateFields?: OneOrMany<string>
 
   /**
    * Fields that will be used as criteria when passing `text` query parameter.
    */
-  fullTextFields?: string | string[]
+  fullTextFields?: OneOrMany<string>
 
   /**
    * Array of query parameters that are ignored, in addition to the defaults:
@@ -36,7 +37,7 @@ export interface QSMongoOptions {
    * - `sort`
    * - `text`
    */
-  ignoredFields?: string | string[]
+  ignoredFields?: OneOrMany<string>
 
   /**
    * Maximum limit that could be passed to limit option.
@@ -48,7 +49,7 @@ export interface QSMongoOptions {
    *
    * [1]: https://docs.mongodb.com/manual/reference/method/ObjectId/
    */
-  objectIdFields?: string | string[]
+  objectIdFields?: OneOrMany<string>
 
   /**
    * Override default parameters used as query options.
@@ -58,13 +59,7 @@ export interface QSMongoOptions {
   /**
    * Custom query parser.
    */
-  parser?: {
-    parse(query: string, options?: QSMongoOptions['parserOptions']): any
-    stringify(
-      obj: ParsedUrlQuery,
-      options?: QSMongoOptions['parserOptions']
-    ): string
-  }
+  parser?: CustomQSMongoQueryParser
 
   /**
    * Options to pass to the query parser.

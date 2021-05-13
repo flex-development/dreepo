@@ -1,5 +1,4 @@
-import type { ProjectStage, RepoSort } from '@/types'
-import type { ParsedOptions } from 'qs-to-mongo/lib/query/options-to-mongo'
+import type { ParsedOptions, ProjectStage, RepoSort } from '@/types'
 import type { IEntity } from './entity.interface'
 
 /**
@@ -9,6 +8,6 @@ import type { IEntity } from './entity.interface'
 
 export interface QSMongoParsedOptions<E extends IEntity = IEntity>
   extends Omit<ParsedOptions, 'projection' | 'sort'> {
-  $project: ProjectStage<E>
-  sort: RepoSort<E>
+  $project?: ProjectStage<E>
+  sort?: RepoSort<E>
 }

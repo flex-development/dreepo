@@ -1,3 +1,4 @@
+import { ProjectRule } from '@/enums'
 import type {
   AggregationOperators,
   IEntity,
@@ -114,5 +115,5 @@ export type Projection<E extends IEntity = IEntity> = Partial<
  * [1]: https://docs.mongodb.com/manual/reference/operator/aggregation/project
  */
 export type ProjectStage<E extends IEntity = IEntity> = Partial<
-  Record<EntityPath<E>, boolean | 0 | 1>
+  Record<EntityPath<E>, ProjectRule | boolean>
 >
