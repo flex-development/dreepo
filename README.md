@@ -42,7 +42,7 @@ Alongside an abstract database access layer, repositories also support:
 
 [Configuration](#configuration)  
 [Database Connection](#database-connection)  
-[Modelling Entities](#modelling-entities)  
+[Modeling Entities](#modeling-entities)  
 [Repository Options](#repository-options)  
 [Creating a New Repository](#creating-a-new-repository)  
 [Repository Cache](#repository-cache)  
@@ -112,7 +112,7 @@ Note:
 - An `Exception` will be thrown if any options are invalid
 - Private keys will be formatted using `private_key.replace(/\\n/g, '\n')`
 
-### Modelling Entities
+### Modeling Entities
 
 Before instantiating a new repository, a model needs to be created.
 
