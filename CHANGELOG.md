@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/flex-development/dreepo/compare/v3.0.1...v4.0.0) (2021-05-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* **repo:** repository search parameters
+* **types:** QueryParams -> RepoSearchParams
+* **types:** QueryCriteria -> Criteria
+* **types:** ProjectionCriteria -> Projection
+
+### :hammer: Build
+
+* install qs-to-mongo@2.0.0 ([e45db33](https://github.com/flex-development/dreepo/commit/e45db33927d7ecaa6ba89fc6d5c67a06e5d7252c))
+
+
+### :recycle: Code Improvements
+
+* **repo:** repository search parameters ([959b715](https://github.com/flex-development/dreepo/commit/959b7150f2db754db573ae15e08d70786ee8dda3))
+* **types:** ProjectionCriteria -> Projection ([e766561](https://github.com/flex-development/dreepo/commit/e766561ca2ea8c9ebcfc6673bae782db38ecb630))
+* **types:** QueryCriteria -> Criteria ([2cdf1c7](https://github.com/flex-development/dreepo/commit/2cdf1c7e872dd24aa7617abced5ea89d38b03a1d))
+* **types:** QueryParams -> RepoSearchParams ([387c592](https://github.com/flex-development/dreepo/commit/387c5925b281ebd0d2baadf409a22968b4167d8e))
+
+
+### :sparkles: Features
+
+* **interfaces:** add IRepoSearchParamsBuilder ([c83a43f](https://github.com/flex-development/dreepo/commit/c83a43f4495a79a05dc5b5f8968f9e8b6b551ede))
+* **mixins:** add RepoSearchParamsBuilder ([42375f2](https://github.com/flex-development/dreepo/commit/42375f208b189fa7a5a77a6d50475cca524ac5de))
+* **repo:** query, queryByIds, queryOne, queryOneOrFail ([166f00e](https://github.com/flex-development/dreepo/commit/166f00ed62b0d3183bef739c34e426f621f4d262))
+
+
+### :pencil2: Housekeeping
+
+* fix release-github script ([1fb310c](https://github.com/flex-development/dreepo/commit/1fb310c5142e6875a40b7dd738940a7f881688fe))
+
 ### [3.0.1](https://github.com/flex-development/dreepo/compare/v3.0.0...v3.0.1) (2021-05-11)
 
 
