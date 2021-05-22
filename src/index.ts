@@ -13,5 +13,3 @@ export * from './models'
 export * from './providers'
 export * from './repositories'
 export * from './types'
-
-/* eslint-disable prettier/prettier */

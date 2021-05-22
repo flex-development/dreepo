@@ -5,5 +5,3 @@
 
 export type { EntityDTO } from './entity.dto'
 export type { RepoOptionsDTO } from './repo-options.dto'
-
-/* eslint-disable prettier/prettier */

@@ -5,5 +5,3 @@
  */
 
 export { default as IsUnixTimestampConstraint } from '../constraints/is-unix-timestamp.constraint'
-
-/* eslint-disable prettier/prettier */

@@ -147,6 +147,7 @@ module.exports = {
           'rtd',
           'tgz',
           'timestamps',
+          'tutils',
           'tvo',
           'typeof',
           'unix',

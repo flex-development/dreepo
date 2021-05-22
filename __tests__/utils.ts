@@ -1,5 +1,6 @@
 import type { IEntity } from '@/interfaces'
-import type { EmptyObject, RepoRoot } from '@/types'
+import type { RepoRoot } from '@/types'
+import type { EmptyObject } from '@flex-development/tutils'
 import DBConnection from './__fixtures__/repo-db-connection.fixture'
 
 /**

@@ -1,5 +1,5 @@
 import type { EntityClass } from '@/types'
-import type { PlainObject } from '@flex-development/exceptions/types'
+import type { PlainObject } from '@flex-development/tutils'
 import type { transformAndValidate } from 'class-transformer-validator'
 import type { IEntity } from './entity.interface'
 import type { RepoValidatorOptions } from './repo-validator-options.interface'

@@ -22,7 +22,7 @@ describe('e2e:Repository', () => {
   /**
    * Returns a test repository.
    *
-   * @param {boolean} [cache] - If `true`, return with mock cache intialized
+   * @param {boolean} [cache] - If `true`, return with mock cache initialized
    * @return {TestSubject<ICar, CarParams, CarQuery>} Test repo
    */
   const getSubject = (

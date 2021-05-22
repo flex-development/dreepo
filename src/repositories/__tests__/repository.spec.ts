@@ -1,13 +1,11 @@
-import { SortOrder } from '@/enums'
 import type {
-  AggregationStages,
   DBRequestConfig,
-  IRepoSearchParamsBuilder as IQBuilder,
   IRepoValidator as IValidator
 } from '@/interfaces'
 import type { EntityClass } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { UnknownObject } from '@flex-development/tutils'
 import type { CarParams, CarQuery, ICar } from '@tests/fixtures/cars.fixture'
 import {
   Car,
@@ -19,7 +17,6 @@ import {
 import DBCONN from '@tests/fixtures/repo-db-connection.fixture'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
-import type { RawObject } from 'mingo/util'
 import { isType } from 'type-plus'
 import TestSubject from '../repository'
 
@@ -68,73 +65,7 @@ describe('unit:repositories/Repository', () => {
       expect(Subject.dbconn).toBe(DBCONN)
       expect(isType<EntityClass<ICar>>(Subject.model as any)).toBeTruthy()
       expect(Subject.options).toMatchObject(eoptions)
-      expect(isType<IQBuilder<ICar>>(Subject.qbuilder as any)).toBeTruthy()
       expect(isType<IValidator<ICar>>(Subject.validator as any)).toBeTruthy()
-    })
-  })
-
-  describe('#aggregate', () => {
-    const Subject = getSubject()
-
-    const stage: AggregationStages<ICar> = { $count: 'count' }
-
-    const spy_aggregate = jest.spyOn(Subject.mingo, 'aggregate')
-
-    it('should not call #mingo.aggregate if cache is empty', () => {
-      const SubjectEC = getSubject(EMPTY_CACHE)
-
-      const this_spy_aggregate = jest.spyOn(SubjectEC.mingo, 'aggregate')
-
-      SubjectEC.aggregate()
-
-      expect(this_spy_aggregate).toBeCalledTimes(0)
-    })
-
-    it('should throw Exception if error occurs', () => {
-      const pipeline = [stage]
-      const error_message = 'Test aggregate error'
-
-      let exception = {} as Exception
-
-      try {
-        jest.spyOn(Subject.mingo, 'aggregate').mockImplementationOnce(() => {
-          throw new Error(error_message)
-        })
-
-        Subject.aggregate(pipeline)
-      } catch (error) {
-        exception = error
-      }
-
-      expect(exception.code).toBe(ExceptionStatusCode.BAD_REQUEST)
-      expect(exception.data).toMatchObject({ pipeline })
-      expect(exception.message).toBe(error_message)
-    })
-
-    describe('runs pipeline', () => {
-      it('should run pipeline after converting stage into stages array', () => {
-        Subject.aggregate(stage)
-
-        expect(spy_aggregate).toBeCalledTimes(1)
-        expect(spy_aggregate).toBeCalledWith(
-          Subject.cache.collection,
-          [stage],
-          Subject.options.mingo
-        )
-      })
-
-      it('should run pipeline with stages array', () => {
-        const pipeline = [stage]
-
-        Subject.aggregate(pipeline)
-
-        expect(spy_aggregate).toBeCalledTimes(1)
-        expect(spy_aggregate).toBeCalledWith(
-          Subject.cache.collection,
-          pipeline,
-          Subject.options.mingo
-        )
-      })
     })
   })
 
@@ -241,7 +172,7 @@ describe('unit:repositories/Repository', () => {
 
       expect(ejson.code).toBe(ExceptionStatusCode.CONFLICT)
       expect(ejson.data.dto).toMatchObject(omit(this_dto, ['created_at']))
-      expect((ejson.errors as RawObject).id).toBe(this_dto.id)
+      expect((ejson.errors as UnknownObject).id).toBe(this_dto.id)
       expect(ejson.message).toMatch(emessage_match)
     })
 
@@ -320,227 +251,6 @@ describe('unit:repositories/Repository', () => {
     })
   })
 
-  describe('#find', () => {
-    const Subject = getSubject()
-
-    const mockCursor = {
-      all: jest.fn().mockReturnValue(mockCache.collection),
-      limit: jest.fn().mockReturnThis(),
-      skip: jest.fn().mockReturnThis(),
-      sort: jest.fn().mockReturnThis()
-    }
-
-    const mockFind = jest.fn().mockReturnValue(mockCursor)
-
-    const spy_mingo_find = jest.spyOn(Subject.mingo, 'find')
-
-    beforeAll(() => {
-      spy_mingo_find.mockImplementation(mockFind)
-    })
-
-    it('should not call #mingo.find if cache is empty', () => {
-      const SubjectEC = getSubject(EMPTY_CACHE)
-
-      const this_spy_mingo_find = jest.spyOn(SubjectEC.mingo, 'find')
-      this_spy_mingo_find.mockImplementationOnce(mockFind)
-
-      SubjectEC.find()
-
-      expect(SubjectEC.mingo.find).toBeCalledTimes(0)
-    })
-
-    it('should run aggregation pipeline with $project stage', () => {
-      const spy_aggregate = jest.spyOn(Subject, 'aggregate')
-
-      const options = { $project: { model: true } }
-
-      Subject.find({ options })
-
-      expect(spy_aggregate).toBeCalledTimes(1)
-      expect(spy_aggregate).toBeCalledWith({ $project: options.$project })
-    })
-
-    it('should handle query criteria', () => {
-      const params = { id: Subject.cache.collection[0].id }
-
-      Subject.find(params)
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(Subject.mingo.find).toBeCalledWith(
-        Subject.cache.collection,
-        { id: params.id },
-        {},
-        Subject.options.mingo
-      )
-    })
-
-    it('should sort results', () => {
-      const options = { sort: { id: SortOrder.ASCENDING } }
-
-      Subject.find({ options })
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.sort).toBeCalledWith(options.sort)
-    })
-
-    it('should offset results', () => {
-      const options = { skip: 2 }
-
-      Subject.find({ options })
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.skip).toBeCalledWith(options.skip)
-    })
-
-    it('should limit results', () => {
-      const options = { limit: 1 }
-
-      Subject.find({ options })
-
-      expect(Subject.mingo.find).toBeCalledTimes(1)
-      expect(mockCursor.limit).toBeCalledWith(options.limit)
-    })
-
-    it('should throw Exception if error occurs', () => {
-      const error_message = 'Test find error'
-      let exception = {} as Exception
-
-      try {
-        jest.spyOn(Subject.mingo, 'find').mockImplementationOnce(() => {
-          throw new Error(error_message)
-        })
-
-        Subject.find()
-      } catch (error) {
-        exception = error
-      }
-
-      expect(exception.code).toBe(ExceptionStatusCode.BAD_REQUEST)
-      expect(exception.data).toMatchObject({ params: {} })
-      expect(exception.message).toBe(error_message)
-    })
-  })
-
-  describe('#findByIds', () => {
-    const Subject = getSubject()
-
-    const spy_find = jest.spyOn(Subject, 'find')
-
-    it('return specified entities', () => {
-      const ids = [ENTITY.id]
-
-      const entities = Subject.findByIds(ids)
-
-      expect(spy_find).toBeCalledTimes(1)
-      expect(spy_find).toBeCalledWith({})
-
-      expect(entities.length).toBe(ids.length)
-    })
-
-    describe('throws Exception', () => {
-      it('should throw Exception if error is Error class type', () => {
-        let exception = {} as Exception
-
-        try {
-          // @ts-expect-error mocking
-          jest.spyOn(Array.prototype, 'includes').mockImplementationOnce(() => {
-            throw new Error()
-          })
-
-          Subject.findByIds()
-        } catch (error) {
-          exception = error
-        }
-
-        expect(exception.constructor.name).toBe('Exception')
-        expect(exception.data).toMatchObject({ ids: [], params: {} })
-      })
-
-      it('should throw Exception if error is Exception class type', () => {
-        let exception = {} as Exception
-
-        try {
-          spy_find.mockImplementationOnce(() => {
-            throw new Exception()
-          })
-
-          Subject.findByIds()
-        } catch (error) {
-          exception = error
-        }
-
-        expect(exception.constructor.name).toBe('Exception')
-        expect(exception.data).toMatchObject({ ids: [], params: {} })
-      })
-    })
-  })
-
-  describe('#findOne', () => {
-    const Subject = getSubject()
-
-    const spy_find = jest.spyOn(Subject, 'find')
-
-    it('should return entity', () => {
-      spy_find.mockReturnValue([ENTITY])
-
-      const result = Subject.findOne(ENTITY.id)
-
-      expect(spy_find).toBeCalledTimes(1)
-      expect(spy_find).toBeCalledWith({ id: ENTITY.id })
-
-      expect(result).toMatchObject(ENTITY)
-    })
-
-    it('should return null if entity is not found', () => {
-      const id = NON_EXISTENT_ENTITY_ID
-
-      spy_find.mockReturnValue([])
-
-      const result = Subject.findOne(id)
-
-      expect(spy_find).toBeCalledTimes(1)
-      expect(spy_find).toBeCalledWith({ id })
-
-      expect(result).toBe(null)
-    })
-  })
-
-  describe('#findOneOrFail', () => {
-    const Subject = getSubject()
-
-    const spy_findOne = jest.spyOn(Subject, 'findOne')
-
-    it('should return entity', () => {
-      spy_findOne.mockReturnValue(ENTITY)
-
-      const result = Subject.findOneOrFail(ENTITY.id)
-
-      expect(spy_findOne).toBeCalledTimes(1)
-      expect(spy_findOne).toBeCalledWith(ENTITY.id, {})
-
-      expect(result).toMatchObject(ENTITY)
-    })
-
-    it('should throw Exception if entity is not found', () => {
-      const id = NON_EXISTENT_ENTITY_ID
-
-      let exception = {} as Exception
-
-      spy_findOne.mockReturnValue(null)
-
-      try {
-        Subject.findOneOrFail(id)
-      } catch (error) {
-        exception = error
-      }
-
-      expect(exception.code).toBe(ExceptionStatusCode.NOT_FOUND)
-      expect(exception.data).toMatchObject({ params: {} })
-      expect((exception.errors as RawObject).id).toBe(id)
-      expect(exception.message).toMatch(new RegExp(`"${id}" does not exist`))
-    })
-  })
-
   describe('#patch', () => {
     const Subject = getSubject()
 
@@ -593,86 +303,6 @@ describe('unit:repositories/Repository', () => {
     })
   })
 
-  describe('#query', () => {
-    const Subject = getSubject()
-
-    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
-    const spy_find = jest.spyOn(Subject, 'find')
-
-    beforeEach(() => {
-      Subject.query()
-    })
-
-    it('should call #qbuilder.params', () => {
-      expect(spy_qbuilder_params).toBeCalledTimes(1)
-      expect(spy_qbuilder_params).toBeCalledWith(undefined)
-    })
-
-    it('should call #find', () => {
-      expect(spy_find).toBeCalledTimes(1)
-    })
-  })
-
-  describe('#queryByIds', () => {
-    const Subject = getSubject()
-
-    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
-    const spy_findByIds = jest.spyOn(Subject, 'findByIds')
-
-    beforeEach(() => {
-      Subject.queryByIds()
-    })
-
-    it('should call #qbuilder.params', () => {
-      expect(spy_qbuilder_params).toBeCalledTimes(1)
-      expect(spy_qbuilder_params).toBeCalledWith(undefined)
-    })
-
-    it('should call #findByIds', () => {
-      expect(spy_findByIds).toBeCalledTimes(1)
-    })
-  })
-
-  describe('#queryOne', () => {
-    const Subject = getSubject()
-
-    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
-    const spy_findOne = jest.spyOn(Subject, 'findOne')
-
-    beforeEach(() => {
-      Subject.queryOne(ENTITY.id)
-    })
-
-    it('should call #qbuilder.params', () => {
-      expect(spy_qbuilder_params).toBeCalledTimes(1)
-      expect(spy_qbuilder_params).toBeCalledWith(undefined)
-    })
-
-    it('should call #findOne', () => {
-      expect(spy_findOne).toBeCalledTimes(1)
-    })
-  })
-
-  describe('#queryOneOrFail', () => {
-    const Subject = getSubject()
-
-    const spy_qbuilder_params = jest.spyOn(Subject.qbuilder, 'params')
-    const spy_findOneOrFail = jest.spyOn(Subject, 'findOneOrFail')
-
-    beforeEach(() => {
-      Subject.queryOneOrFail(ENTITY.id)
-    })
-
-    it('should call #qbuilder.params', () => {
-      expect(spy_qbuilder_params).toBeCalledTimes(1)
-      expect(spy_qbuilder_params).toBeCalledWith(undefined)
-    })
-
-    it('should call #findOneOrFail', () => {
-      expect(spy_findOneOrFail).toBeCalledTimes(1)
-    })
-  })
-
   describe('#refreshCache', () => {
     const Subject = getSubject()
 
@@ -689,9 +319,12 @@ describe('unit:repositories/Repository', () => {
       expect(spy_dbconn_send).toBeCalledWith()
     })
 
-    it('should update data cache', async () => {
+    it('should update #cache.collection & #cache.root', async () => {
+      const spy_resetCache = jest.spyOn(Subject, 'resetCache')
+
       const result = await Subject.refreshCache()
 
+      expect(spy_resetCache).toBeCalledTimes(1)
       expect(result).toMatchObject({ collection: CARS, root: CARS_ROOT })
     })
   })

@@ -1,4 +1,6 @@
-import type { RepoOptions } from '@/interfaces'
+import type { IEntity, RepoOptions } from '@/interfaces'
+import type { EUID } from '@/types'
+import type { MangoOptionsDTO } from '@flex-development/mango/dto'
 
 /**
  * @file Data Transfer Objects - RepoOptionsDTO
@@ -7,24 +9,15 @@ import type { RepoOptions } from '@/interfaces'
 
 /**
  * Options accepted by the `Repository` class constructor.
+ *
+ * @template E - Entity
  */
-export interface RepoOptionsDTO {
-  /**
-   * Aggregation and query client options.
-   *
-   * See: https://github.com/kofrasa/mingo
-   */
-  mingo?: Partial<RepoOptions['mingo']>
-
-  /**
-   * `RepoSearchParamsBuilder` client options.
-   */
-  qbuilder?: RepoOptions['qbuilder']
-
+export interface RepoOptionsDTO<E extends IEntity = IEntity>
+  extends MangoOptionsDTO<E, EUID> {
   /**
    * Repository Validation API options.
    *
    * @default { enabled: true }
    */
-  validation?: RepoOptions['validation']
+  validation?: RepoOptions<E>['validation']
 }

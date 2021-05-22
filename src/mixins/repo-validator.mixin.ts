@@ -1,18 +1,18 @@
+import { TVO_DEFAULTS } from '@/constants'
+import type {
+  IEntity,
+  IRepoValidator,
+  RepoValidatorOptions
+} from '@/interfaces'
+import { EntityClass } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import type { PlainObject } from '@flex-development/exceptions/types'
+import type { PlainObject } from '@flex-development/tutils'
 import type { ClassTransformOptions as TransformOpts } from 'class-transformer'
 import { plainToClass } from 'class-transformer'
 import { transformAndValidate } from 'class-transformer-validator'
 import type { ValidationError, ValidatorOptions } from 'class-validator'
 import merge from 'lodash.merge'
-import { TVO_DEFAULTS } from '../constants'
-import type {
-  IEntity,
-  IRepoValidator,
-  RepoValidatorOptions
-} from '../interfaces'
-import { EntityClass } from '../types'
 
 /**
  * @file Mixin - RepoValidator

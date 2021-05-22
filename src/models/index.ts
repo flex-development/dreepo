@@ -4,5 +4,3 @@
  */
 
 export { default as Entity } from './entity.model'
-
-/* eslint-disable prettier/prettier */

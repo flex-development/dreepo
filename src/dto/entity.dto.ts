@@ -1,5 +1,6 @@
-import type { IEntity } from '../interfaces/entity.interface'
-import type { EntityReadonlyProps, PartialBy } from '../types'
+import type { IEntity } from '@/interfaces'
+import type { EntityReadonlyProps } from '@/types'
+import type { ObjectPath, PartialBy } from '@flex-development/tutils'
 
 /**
  * @file Data Transfer Objects - EntityDTO
@@ -9,10 +10,11 @@ import type { EntityReadonlyProps, PartialBy } from '../types'
 /**
  * Base data transfer object for entities.
  *
- * @template E - Entity shape
+ * @template E - Entity
  * @template P - Properties not required for data transfer
  */
 export type EntityDTO<
   E extends IEntity = IEntity,
-  P extends keyof E = EntityReadonlyProps
+  P extends keyof E | ObjectPath<E> = EntityReadonlyProps
+  // @ts-expect-error need to update type definition in @flex-development/tutils
 > = PartialBy<E, P>

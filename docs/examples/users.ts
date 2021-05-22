@@ -1,10 +1,7 @@
-import type {
-  IEntity,
-  RepoOptionsDTO,
-  RepoParsedUrlQuery,
-  RepoSearchParams
-} from '@dreepo'
 import { Entity, RepoDBConnection, Repository } from '@dreepo'
+import type { RepoOptionsDTO } from '@dreepo/dto'
+import type { IEntity } from '@dreepo/interfaces'
+import type { RepoParsedUrlQuery, RepoSearchParams } from '@dreepo/types'
 import {
   IsEmail,
   IsNotEmpty,
@@ -33,7 +30,6 @@ export interface IUser extends IEntity {
 }
 
 export type UserParams = RepoSearchParams<IUser>
-
 export type UserQuery = RepoParsedUrlQuery<IUser>
 
 export class User extends Entity implements IUser {
@@ -53,9 +49,10 @@ export class User extends Entity implements IUser {
   phone?: IUser['phone']
 }
 
-export const options: RepoOptionsDTO = {
+const options: RepoOptionsDTO<IUser> = {
+  cache: { collection: [] },
   mingo: {},
-  qbuilder: {},
+  parser: {},
   validation: {
     enabled: true,
     transformer: {},
