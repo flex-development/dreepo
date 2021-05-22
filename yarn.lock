@@ -1157,6 +1157,29 @@
     lodash.isplainobject latest
     lodash.omit latest
 
+"@flex-development/mango@1.0.0":
+  version "1.0.0"
+  resolved "https://npm.pkg.github.com/download/@flex-development/mango/1.0.0/11334215c0b09c74baf21d517a81b4f876ca1958e2a8449fd3b790852822f09b#b5d917a313eafa92ca96874dd84fd7c7da1d05b2"
+  integrity sha512-pQjVbcnUjERTyqBBxQTERqtoBWzqEJ7/ik9aA56TcKAXNmYYg4OpM+bIXPVhq/m4HnDFdGcN6X1CpaXHoxtBuQ==
+  dependencies:
+    "@flex-development/exceptions" "2.0.0"
+    "@flex-development/tutils" "1.0.0"
+    "@types/debug" "4.1.5"
+    "@types/lodash.isempty" "4.4.6"
+    "@types/lodash.merge" "4.6.6"
+    "@types/node" "15.3.1"
+    "@types/qs" "6.9.6"
+    debug "4.3.1"
+    lodash.isempty "4.4.0"
+    lodash.merge "4.6.2"
+    mingo "4.1.2"
+    qs-to-mongo "2.0.0"
+
+"@flex-development/tutils@1.0.0":
+  version "1.0.0"
+  resolved "https://npm.pkg.github.com/download/@flex-development/tutils/1.0.0/5e3844ce29f5a3f9af7fe5d24b0c2494d0234335072be07cfd784155b586c096#43597960862e8645b27da1895ad719b271eb2707"
+  integrity sha512-tVW+GA2evwaFnK3ZAr4ZhiU6gabdCRfxLoQOODFM6gTVqBgYw8jGZgOFSPw68K7cCdzK9ux9dfD1ieNHrUyE5w==
+
 "@istanbuljs/load-nyc-config@^1.0.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@istanbuljs/load-nyc-config/-/load-nyc-config-1.1.0.tgz#fd3db1d59ecf7cf121e80650bb86712f9b55eced"
@@ -1678,10 +1701,10 @@
   resolved "https://registry.yarnpkg.com/@types/node/-/node-15.0.2.tgz#51e9c0920d1b45936ea04341aa3e2e58d339fb67"
   integrity sha512-p68+a+KoxpoB47015IeYZYRrdqMUcpbK8re/zpFB8Ld46LHC1lPEbp3EXgkEhAYEcPvjJF6ZO+869SQ0aH1dcA==
 
-"@types/node@15.0.1":
-  version "15.0.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.0.1.tgz#ef34dea0881028d11398be5bf4e856743e3dc35a"
-  integrity sha512-TMkXt0Ck1y0KKsGr9gJtWGjttxlZnnvDtphxUOSd0bfaR6Q1jle+sPvrzNR1urqYTWMinoKvjKfXUGsumaO1PA==
+"@types/node@15.3.1":
+  version "15.3.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-15.3.1.tgz#23a06b87eedb524016616e886b116b8fdcb180af"
+  integrity sha512-weaeiP4UF4XgF++3rpQhpIJWsCTS4QJw5gvBhQu6cFIxTwyxWIe3xbnrY/o2lTCQ0lsdb8YIUDUvLR4Vuz5rbw==
 
 "@types/normalize-package-data@^2.4.0":
   version "2.4.0"
