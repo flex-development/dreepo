@@ -4,5 +4,3 @@
  */
 
 export { default as Repository } from './repository'
-
-/* eslint-disable prettier/prettier */

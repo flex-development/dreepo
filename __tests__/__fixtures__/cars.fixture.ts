@@ -16,7 +16,6 @@ export interface ICar extends IEntity {
 }
 
 export type CarParams = RepoSearchParams<ICar>
-
 export type CarQuery = RepoParsedUrlQuery<ICar>
 
 export class Car extends Entity implements ICar {

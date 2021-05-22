@@ -1,6 +1,7 @@
+import type { RepoHttpClient } from '@/types'
+import type { NullishString } from '@flex-development/tutils'
 import { JWT } from 'google-auth-library'
 import type { IsURLOptions } from 'validator/lib/isURL'
-import type { NullishString, RepoHttpClient } from '../types'
 import type { DBRequestConfig } from './db-request-config.interface'
 
 /**

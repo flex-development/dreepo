@@ -1,6 +1,6 @@
-import type { NullishString } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import type { NullishString } from '@flex-development/tutils'
 import { REPO_PATH_CARS } from '@tests/fixtures/cars.fixture'
 import CLIENT_EMAIL from '@tests/fixtures/client-email.fixture'
 import DATABASE_URL from '@tests/fixtures/database-url.fixture'

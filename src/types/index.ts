@@ -3,10 +3,6 @@
  * @module types
  */
 
-export * from './global.types'
-export * from './mingo.types'
-export * from './qs-mongo.types'
+export * from './entity.types'
 export * from './repository.types'
 export * from './validation.types'
-
-/* eslint-disable prettier/prettier */

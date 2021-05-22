@@ -1,41 +1,35 @@
 import logger from '@/config/logger'
-import mingo from '@/config/mingo'
 import type { EntityDTO, RepoOptionsDTO } from '@/dto'
 import type {
-  AggregationStages,
   IEntity,
   IRepoDBConnection,
-  IRepoSearchParamsBuilder,
   IRepository,
   IRepoValidator,
-  MingoOptions,
-  QSMongoParsedOptions,
+  RepoCache,
   RepoOptions,
   RepoValidatorOptions
 } from '@/interfaces'
-import { RepoSearchParamsBuilder, RepoValidator } from '@/mixins'
+import { RepoValidator } from '@/mixins'
 import type {
   EntityClass,
-  EntityEnhanced,
-  OneOrMany,
-  PartialEntity,
-  PartialOr,
-  ProjectStage,
-  RepoCache,
+  EUID,
   RepoParsedUrlQuery,
   RepoRoot,
-  RepoSearchParams,
-  RepoSearchParamsBuilderOptions as QBuilderOptions,
-  RepoSort
+  RepoSearchParams
 } from '@/types'
 import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
+import { Mango } from '@flex-development/mango'
+import type {
+  MangoParserOptions,
+  MingoOptions
+} from '@flex-development/mango/interfaces'
+import type { OneOrMany, OrPartial } from '@flex-development/tutils'
 import type { Debugger } from 'debug'
 import isEmpty from 'lodash.isempty'
 import merge from 'lodash.merge'
 import omit from 'lodash.omit'
 import uniq from 'lodash.uniq'
-import type { RawArray, RawObject } from 'mingo/util'
 import { v4 as uuid } from 'uuid'
 
 /**
@@ -50,17 +44,19 @@ import { v4 as uuid } from 'uuid'
  * A Realtime Database repository is a JSON object located at a database path.
  *
  * @template E - Entity
- * @template P - Repository search parameters
- * @template Q - URL query parameters
+ * @template P - Repository search parameters (query criteria and options)
+ * @template Q - Parsed URL query object
  *
  * @class Repository
  * @implements {IRepository<E, P, Q>}
  */
 export default class Repository<
-  E extends IEntity = IEntity,
-  P extends RepoSearchParams<E> = RepoSearchParams<E>,
-  Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
-> implements IRepository<E, P, Q> {
+    E extends IEntity = IEntity,
+    P extends RepoSearchParams<E> = RepoSearchParams<E>,
+    Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
+  >
+  extends Mango<E, EUID, P, Q>
+  implements IRepository<E, P, Q> {
   /**
    * @readonly
    * @instance
@@ -85,13 +81,6 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {typeof mingo} mingo - MongoDB query language client
-   */
-  readonly mingo: typeof mingo = mingo
-
-  /**
-   * @readonly
-   * @instance
    * @property {EntityClass<E>} model - Entity model
    */
   readonly model: EntityClass<E>
@@ -99,16 +88,9 @@ export default class Repository<
   /**
    * @readonly
    * @instance
-   * @property {RepoOptions} options - Repository options
+   * @property {RepoOptions<E>} options - Repository options
    */
-  readonly options: RepoOptions
-
-  /**
-   * @readonly
-   * @instance
-   * @property {IRepoSearchParamsBuilder<E>} qbuilder - Search params builder
-   */
-  readonly qbuilder: IRepoSearchParamsBuilder<E>
+  readonly options: RepoOptions<E>
 
   /**
    * @readonly
@@ -122,68 +104,34 @@ export default class Repository<
    *
    * See:
    *
+   * - https://github.com/flex-development/mango
    * - https://github.com/pleerock/class-validator
    * - https://github.com/typestack/class-transformer
    * - https://github.com/MichalLytek/class-transformer-validator
-   * - https://github.com/kofrasa/mingo
    *
    * @param {IRepoDBConnection} dbconn - Database connection provider
    * @param {EntityClass<E>} model - Entity model
-   * @param {RepoOptionsDTO} [options] - Repository options
-   * @param {Partial<MingoOptions>} [options.mingo] - Global mingo options
-   * @param {QBuilderOptions} [options.qbuilder] - Search params builder options
+   * @param {RepoOptionsDTO<E>} [options] - Repository options
+   * @param {MingoOptions<E, EUID>} [options.mingo] - Global mingo options
+   * @param {MangoParserOptions} [options.parser] - MangoParser options
    * @param {RepoValidatorOptions} [options.validation] - Validation API options
    */
   constructor(
     dbconn: IRepoDBConnection,
     model: EntityClass<E>,
-    options: RepoOptionsDTO = {}
+    options: RepoOptionsDTO<E> = {}
   ) {
-    this.cache = { collection: [], root: {} }
+    super(options)
+
+    this.cache = Object.freeze(merge(this.cache, { root: {} }))
     this.dbconn = dbconn
     this.model = model
     this.validator = new RepoValidator(this.model, options.validation)
 
-    this.options = merge(options, {
-      mingo: { idKey: 'id' },
+    this.options = merge(this.options, {
+      mingo: { idKey: 'id' as EUID },
       validation: this.validator.tvo
     })
-
-    this.qbuilder = new RepoSearchParamsBuilder<E>(this.options.qbuilder)
-  }
-
-  /**
-   * Runs an aggregation pipeline for `this.cache.collection`.
-   *
-   * If the cache is empty, a warning will be logged to the console instructing
-   * developers to call {@method Repository#refreshCache}.
-   *
-   * @param {OneOrMany<AggregationStages<E>>} pipeline - Aggregation stage(s)
-   * @return {Array<PartialOr<EntityEnhanced<E>>> | RawArray} Pipeline results
-   * @throws {Exception}
-   */
-  aggregate(
-    pipeline: OneOrMany<AggregationStages<E>> = []
-  ): PartialOr<EntityEnhanced<E>>[] | RawArray {
-    const { collection } = this.cache
-
-    if (!collection.length) {
-      this.logger(`Repository at path "${this.dbconn.path}" empty.`)
-      this.logger('Consider calling #refreshCache before running pipeline.')
-
-      return collection
-    }
-
-    let _pipeline = pipeline as RawObject[]
-    if (!Array.isArray(_pipeline)) _pipeline = [_pipeline]
-
-    try {
-      return this.mingo.aggregate(collection, _pipeline, this.options.mingo)
-    } catch ({ message, stack }) {
-      const data = { pipeline: _pipeline }
-
-      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
-    }
   }
 
   /**
@@ -328,153 +276,6 @@ export default class Repository<
   }
 
   /**
-   * Executes a search against `this.cache.collection`.
-   *
-   * If the cache is empty, a warning will be logged to the console instructing
-   * developers to call {@method Repository#refreshCache}.
-   *
-   * @param {P} [params] - Repository search parameters
-   * @param {QSMongoParsedOptions} [params.options] - Repository search options
-   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
-   * @param {number} [params.options.limit] - Limit number of results
-   * @param {number} [params.options.skip] - Skips the first n entities
-   * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialEntity<E>[]} Search results
-   * @throws {Exception}
-   */
-  find(params: P = {} as P): PartialEntity<E>[] {
-    const { options = {}, ...criteria } = params
-    const { $project = {}, limit, skip, sort } = options
-
-    if (!this.cache.collection.length) {
-      this.logger(`Repository at path "${this.dbconn.path}" empty.`)
-      this.logger('Consider calling #refreshCache before performing search.')
-
-      return this.cache.collection
-    }
-
-    let source = Object.assign([], this.cache.collection) as PartialEntity<E>[]
-
-    try {
-      // Pick fields from each entity
-      if ($project && !isEmpty($project)) {
-        source = this.aggregate({ $project }) as PartialEntity<E>[]
-      }
-
-      // Handle query criteria
-      let cursor = this.mingo.find(source, criteria, {}, this.options.mingo)
-
-      // Apply sorting rules
-      if (sort && !isEmpty(sort)) cursor = cursor.sort(sort)
-
-      // Apply offset
-      if (typeof skip === 'number') cursor = cursor.skip(skip)
-
-      // Limit results
-      if (typeof limit === 'number') cursor = cursor.limit(limit)
-
-      // Return search results
-      return cursor.all() as PartialEntity<E>[]
-    } catch (error) {
-      const { message, stack } = error
-      const data = { params }
-
-      if (error.constructor.name === 'Exception') {
-        error.data = merge(error.data, data)
-        throw error
-      }
-
-      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
-    }
-  }
-
-  /**
-   * Finds multiple entities by id.
-   *
-   * @param {string[]} [ids] - Array of entity IDs
-   * @param {P} [params] - Repository search parameters
-   * @param {QSMongoParsedOptions} [params.options] - Repository search options
-   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
-   * @param {number} [params.options.limit] - Limit number of results
-   * @param {number} [params.options.skip] - Skips the first n entities
-   * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialEntity<E>[]} Entities
-   * @throws {Exception}
-   */
-  findByIds(ids: E['id'][] = [], params: P = {} as P): PartialEntity<E>[] {
-    try {
-      // Perform search
-      const entities = this.find(params)
-
-      // Get specified entities
-      return entities.filter(entity => ids.includes(entity.id as string))
-    } catch (error) {
-      const data = { ids, params }
-
-      if (error.constructor.name === 'Exception') {
-        error.data = merge(error.data, data)
-        throw error
-      }
-
-      const { message, stack } = error
-
-      throw new Exception(ExceptionStatusCode.BAD_REQUEST, message, data, stack)
-    }
-  }
-
-  /**
-   * Finds an entity by ID.
-   *
-   * Returns `null` if the entity isn't found.
-   *
-   * @param {string} id - ID of entity to find
-   * @param {P} [params] - Repository search parameters
-   * @param {QSMongoParsedOptions} [params.options] - Repository search options
-   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
-   * @param {number} [params.options.limit] - Limit number of results
-   * @param {number} [params.options.skip] - Skips the first n entities
-   * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialEntity<E> | null} Entity or null
-   * @throws {Exception}
-   */
-  findOne(id: E['id'], params: P = {} as P): PartialEntity<E> | null {
-    // Perform search
-    const entities = this.find({ ...params, id })
-    const entity = entities[0]
-
-    // Return entity or null if not found
-    return entity?.id === id ? entity : null
-  }
-
-  /**
-   * Finds an entity by ID.
-   *
-   * Throws an error if the entity isn't found.
-   *
-   * @param {string} id - ID of entity to find
-   * @param {P} [params] - Repository search parameters
-   * @param {QSMongoParsedOptions} [params.options] - Repository search options
-   * @param {ProjectStage<E>} [params.options.$project] - Fields to include
-   * @param {number} [params.options.limit] - Limit number of results
-   * @param {number} [params.options.skip] - Skips the first n entities
-   * @param {RepoSort} [params.options.sort] - Sorting rules
-   * @return {PartialEntity<E>} Entity
-   * @throws {Exception}
-   */
-  findOneOrFail(id: E['id'], params: P = {} as P): PartialEntity<E> {
-    const entity = this.findOne(id, params)
-
-    if (!entity) {
-      const message = `Entity with id "${id}" does not exist`
-      const data = { errors: { id }, params }
-
-      throw new Exception(ExceptionStatusCode.NOT_FOUND, message, data)
-    }
-
-    return entity
-  }
-
-  /**
    * Partially updates an entity.
    *
    * The entity's `created_at` and `id` properties cannot be patched.
@@ -529,56 +330,6 @@ export default class Repository<
   }
 
   /**
-   * Queries `this.cache.collection`.
-   *
-   * If the cache is empty, a warning will be logged to the console instructing
-   * developers to call {@method Repository#refreshCache}.
-   *
-   * @param {Q | string} [query] - Entity query object or string
-   * @return {PartialEntity<E>[]} Search results
-   */
-  query(query?: Q | string): PartialEntity<E>[] {
-    return this.find(this.qbuilder.params(query) as P)
-  }
-
-  /**
-   * Queries multiple entities by id.
-   *
-   * @param {string[]} [ids] - Array of entity IDs
-   * @param {Q | string} [query] - Entity query object or string
-   * @return {PartialEntity<E>[]} Entities
-   */
-  queryByIds(ids: E['id'][] = [], query?: Q | string): PartialEntity<E>[] {
-    return this.findByIds(ids, this.qbuilder.params(query) as P)
-  }
-
-  /**
-   * Queries an entity by ID.
-   *
-   * Returns `null` if the entity isn't found.
-   *
-   * @param {string} id - ID of entity to find
-   * @param {Q | string} [query] - Entity query object or string
-   * @return {PartialEntity<E> | null} Entity or null
-   */
-  queryOne(id: E['id'], query?: Q | string): PartialEntity<E> | null {
-    return this.findOne(id, this.qbuilder.params(query) as P)
-  }
-
-  /**
-   * Queries an entity by ID.
-   *
-   * Throws an error if the entity isn't found.
-   *
-   * @param {string} id - ID of entity to find
-   * @param {Q | string} [query] - Entity query object or string
-   * @return {PartialEntity<E>} Entity
-   */
-  queryOneOrFail(id: E['id'], query?: Q | string): PartialEntity<E> {
-    return this.findOneOrFail(id, this.qbuilder.params(query) as P)
-  }
-
-  /**
    * Refreshes the repository data cache.
    *
    * Should be called when a repository is first instantiated, or when an entity
@@ -593,11 +344,11 @@ export default class Repository<
       // Require repository root data
       const root = await this.dbconn.send<RepoRoot<E>>()
 
-      // Get entities
-      const collection = Object.values(root)
+      // Get entities and update mango plugin cache
+      const collection: E[] = Object.values(root)
 
-      // Update cache
-      Object.assign(this.cache, { collection, root })
+      // @ts-expect-error updating caches (mango plugin and repository)
+      this.cache = Object.freeze(merge(this.resetCache(collection), { root }))
 
       return this.cache
     } catch (error) {
@@ -617,10 +368,10 @@ export default class Repository<
    * If the entity does not exist in the database, it will be inserted.
    *
    * @async
-   * @param {OneOrMany<PartialOr<EntityDTO<E>>>} dto - Entities to upsert
+   * @param {OneOrMany<OrPartial<EntityDTO<E>>>} dto - Entities to upsert
    * @return {Promise<E[]>} Promise containing new or updated entities
    */
-  async save(dto: OneOrMany<PartialOr<EntityDTO<E>>>): Promise<E[]> {
+  async save(dto: OneOrMany<OrPartial<EntityDTO<E>>>): Promise<E[]> {
     /**
      * Creates or updates a single entity.
      *
@@ -628,10 +379,10 @@ export default class Repository<
      * If the entity does not exist in the database, it will be inserted.
      *
      * @async
-     * @param {PartialOr<EntityDTO<E>>} dto - Data to upsert entity
+     * @param {OrPartial<EntityDTO<E>>} dto - Data to upsert entity
      * @return {Promise<E>} Promise containing new or updated entiy
      */
-    const upsert = async (dto: PartialOr<EntityDTO<E>>): Promise<E> => {
+    const upsert = async (dto: OrPartial<EntityDTO<E>>): Promise<E> => {
       const { id = '' } = dto
 
       const exists = this.findOne(id)
