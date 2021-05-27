@@ -2,13 +2,13 @@ import type { IEntity } from '@/interfaces'
 import type {
   MangoParsedUrlQuery,
   MangoSearchParams
-} from '@flex-development/mango'
-import type { EmptyObject } from '@flex-development/tutils'
+} from '@flex-development/mango/types'
+import type { ObjectPlain } from '@flex-development/tutils'
 import type { AxiosRequestConfig } from 'axios'
 
 /**
  * @file Type Definitions - Repositories
- * @module types.repository
+ * @module types/repository
  */
 
 /**
@@ -36,7 +36,7 @@ export type RepoParsedUrlQuery<
  */
 export type RepoRoot<E extends IEntity = IEntity> =
   | Record<E['id'], E>
-  | EmptyObject
+  | ObjectPlain
 
 /**
  * Search parameters (query criteria and options) for repository collections.

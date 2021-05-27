@@ -76,6 +76,7 @@ module.exports = {
     ],
     'jsdoc/require-hyphen-before-param-description': 1,
     'jsdoc/require-throws': 1,
+    'jsdoc/tag-lines': 0,
     'no-ex-assign': 0,
     'prefer-arrow-callback': 2,
     'prettier/prettier': [
@@ -125,6 +126,7 @@ module.exports = {
           'commitlint',
           'dbconn',
           'dreepo',
+          'dtos',
           'dto',
           'enums',
           'enum',

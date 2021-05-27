@@ -1,3 +1,5 @@
+import type { JSONObject } from '@flex-development/tutils'
+
 /**
  * @file Interface - IEntity
  * @module interfaces/Entity
@@ -8,7 +10,7 @@
  *
  * [1]: https://github.com/flex-development/mango#documents
  */
-export interface IEntity {
+export interface IEntity extends JSONObject {
   /**
    * Date and time entity was created.
    *

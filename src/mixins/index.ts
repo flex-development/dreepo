@@ -3,4 +3,4 @@
  * @module mixins
  */
 
-export { default as RepoValidator } from './repo-validator.mixin'
+export default {}

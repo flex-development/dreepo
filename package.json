@@ -47,21 +47,11 @@
     "release:github": "node scripts/js/release-github"
   },
   "dependencies": {
-    "@flex-development/mango": "1.0.0",
-    "@types/lodash.isboolean": "3.0.6",
+    "@flex-development/mango": "4.0.0",
     "@types/lodash.pick": "4.4.6",
-    "@types/lodash.uniq": "4.5.6",
-    "@types/uuid": "8.3.0",
     "axios": "0.21.1",
-    "class-transformer": "0.4.0",
-    "class-transformer-validator": "0.9.1",
-    "class-validator": "0.13.1",
     "google-auth-library": "7.0.4",
-    "lodash.isboolean": "3.0.3",
-    "lodash.pick": "4.4.0",
-    "lodash.uniq": "4.5.0",
-    "reflect-metadata": "0.1.13",
-    "uuid": "8.3.2"
+    "lodash.pick": "4.4.0"
   },
   "devDependencies": {
     "@babel/eslint-parser": "latest",

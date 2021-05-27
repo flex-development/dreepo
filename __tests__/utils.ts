@@ -1,6 +1,6 @@
 import type { IEntity } from '@/interfaces'
 import type { RepoRoot } from '@/types'
-import type { EmptyObject } from '@flex-development/tutils'
+import type { ObjectPlain } from '@flex-development/tutils'
 import DBConnection from './__fixtures__/repo-db-connection.fixture'
 
 /**
@@ -16,7 +16,7 @@ import DBConnection from './__fixtures__/repo-db-connection.fixture'
  * @return {Promise<void>} Empty promise when complete
  */
 export const clearRepository = async (path: string): Promise<void> => {
-  await DBConnection.request<EmptyObject>(path, { data: {}, method: 'put' })
+  await DBConnection.request<ObjectPlain>(path, { data: {}, method: 'put' })
   return
 }
 
@@ -24,7 +24,6 @@ export const clearRepository = async (path: string): Promise<void> => {
  * Loads data into a repository.
  *
  * @template E - Entity
- *
  * @async
  * @param {string} path - Repository database path
  * @param {RepoRoot<E>} data - Repository root data

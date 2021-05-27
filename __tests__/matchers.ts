@@ -1,4 +1,4 @@
-import type { UnknownObject as UObject } from '@flex-development/tutils'
+import type { ObjectUnknown as UObject } from '@flex-development/tutils'
 import M from 'expect/build/matchers'
 import isPlainObject from 'lodash.isplainobject'
 

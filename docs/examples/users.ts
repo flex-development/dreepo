@@ -1,7 +1,7 @@
 import { Entity, RepoDBConnection, Repository } from '@dreepo'
-import type { RepoOptionsDTO } from '@dreepo/dto'
 import type { IEntity } from '@dreepo/interfaces'
 import type { RepoParsedUrlQuery, RepoSearchParams } from '@dreepo/types'
+import type { MangoRepoOptionsDTO } from '@flex-development/mango/dtos'
 import {
   IsEmail,
   IsNotEmpty,
@@ -49,7 +49,7 @@ export class User extends Entity implements IUser {
   phone?: IUser['phone']
 }
 
-const options: RepoOptionsDTO<IUser> = {
+const options: MangoRepoOptionsDTO<IUser> = {
   cache: { collection: [] },
   mingo: {},
   parser: {},
@@ -68,13 +68,13 @@ export const Users = new Repository<IUser, UserParams, UserQuery>(
 
 /**
  * After instantiation, before calling any repository methods, the cache must be
- * refreshed to keep the database and repository cache in sync.
+ * initialized to keep the database and repository cache in sync.
  *
  * If the cache is empty before running an aggregation pipeline or executing a
  * search, a warning will be logged to the console.
  *
- * Not refreshing the cache before a write operation (`create`, `patch`, or
+ * Not initializing the cache before a write operation (`create`, `patch`, or
  * `save`) could lead to accidental overwrites or other database
  * inconsistencies.
  */
-await Users.refreshCache()
+await Users.cacheInit()

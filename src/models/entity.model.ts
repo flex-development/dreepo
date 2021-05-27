@@ -1,6 +1,7 @@
 import type { IEntity } from '@/interfaces'
+import { IsUnixTimestamp } from '@flex-development/mango/decorators'
+import type { JSONValue } from '@flex-development/tutils'
 import { IsOptional, IsString } from 'class-validator'
-import IsUnixTimestamp from '../decorators/is-unix-timestamp.decorator'
 
 /**
  * @file Model - Entity
@@ -8,6 +9,9 @@ import IsUnixTimestamp from '../decorators/is-unix-timestamp.decorator'
  */
 
 export default class Entity implements IEntity {
+  // Firebase Realtime Database is a JSON database
+  [x: string]: JSONValue | undefined
+
   @IsUnixTimestamp()
   created_at: IEntity['created_at']
 
