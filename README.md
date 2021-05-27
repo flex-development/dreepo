@@ -67,8 +67,10 @@ are used to authenticate requests.
 #### Mango
 
 The `Repository` class integrates with [mango][8], a plugin for [mingo][9] and
-[qs-to-mongo][10]. This allows for aggregation pipelines and performing searches
-with query criteria and options, as well as URL query handling.
+[qs-to-mongo][10] and repository API for in-memory object collections.
+
+This allows for aggregation pipelines, executing searches, and performing CRUD
+operations on object collections.
 
 [mingo][9] operators loaded by [mango][8] can be viewed in the [config][14]
 file. If additional operators are needed, you'll need to load them on your own
@@ -161,17 +163,15 @@ export class User extends Entity implements IUser {
 For more information about validation decorators, see the [class-validator][6]
 package.
 
-Dreepo also exposes a set of [custom decorators](src/decorators/index.ts).
-
 ### Repository Options
 
 The `Repository` class accepts an `options` object that passes additional
-options to [mango][8], and [class-transformer-validator][4].
+options to the [mango][8] module.
 
 ```typescript
-import type { RepoOptionsDTO } from '@dreepo/dto'
+import type { MangoRepoOptionsDTO } from '@flex-development/mango/dtos'
 
-const options: RepoOptionsDTO<IUser> = {
+const options: MangoRepoOptionsDTO<IUser> = {
   cache: { collection: [] },
   mingo: {},
   parser: {},
@@ -185,30 +185,9 @@ const options: RepoOptionsDTO<IUser> = {
 
 Note that all properties are optional.
 
-For more information about the `cache`, `mingo`, and `parser` options, see
-[Plugin][15] from the [mango][8] documentation. `options.mingo.idKey` will be
-overridden and always have the value `'id'`.
-
-Validation options will be merged with the following object:
-
-```typescript
-import type { TVODefaults } from '@dreepo/types'
-
-/**
- * @property {TVODefaults} TVO_DEFAULTS - `class-transformer-validator` options
- * @see https://github.com/MichalLytek/class-transformer-validator
- */
-export const TVO_DEFAULTS: TVODefaults = Object.freeze({
-  transformer: {},
-  validator: {
-    enableDebugMessages: true,
-    forbidNonWhitelisted: true,
-    stopAtFirstError: false,
-    validationError: { target: false, value: true },
-    whitelist: true
-  }
-})
-```
+For more information about the repository options, see the [mango][8]
+documentation. `options.mingo.idKey` will be overridden and always have the
+value `'id'`.
 
 ### Creating a New Repository
 
@@ -225,16 +204,16 @@ export const Users = new Repository<IUser, UserParams, UserQuery>(
 ### Repository Cache
 
 After instantiation, before calling any repository methods, the repository's
-cache must be refreshed to keep the database and repository cache in sync.
+cache must be initialized to keep the database and repository cache in sync.
 
 If the cache is empty before running an aggregation pipeline or executing a
 search, a warning will be logged to the console.
 
-Not refreshing the cache before a write operation (`create`, `patch`, or `save`)
-could lead to accidental overwrites or other database inconsistencies.
+Not initializing the cache before a write operation (`create`, `patch`, or
+`save`) could lead to accidental overwrites or other database inconsistencies.
 
 ```typescript
-await Users.refreshCache()
+await Users.cacheInit()
 ```
 
 ### Repository Class API
@@ -248,35 +227,27 @@ Documentation can be viewed [here](src/repositories/repository.ts).
 /**
  * `Repository` class interface.
  *
- * - https://github.com/flex-development/mango
- * - https://github.com/fox1t/qs-to-mongo
- * - https://github.com/kofrasa/mingo
+ * - https://github.com/flex-development/mango#mango-repository
  *
  * @template E - Entity
  * @template P - Repository search parameters (query criteria and options)
  * @template Q - Parsed URL query object
+ *
+ * @extends IMangoRepositoryAsync
  */
 export interface IRepository<
   E extends IEntity = IEntity,
   P extends RepoSearchParams<E> = RepoSearchParams<E>,
   Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
-> extends IMango<E, EUID, P, Q> {
-  readonly cache: RepoCache<E>
+> extends IMangoRepositoryAsync<E, DUID, P, Q> {
   readonly dbconn: IRepoDBConnection
-  readonly model: EntityClass<E>
-  readonly options: RepoOptions<E>
-  readonly validator: IRepoValidator<E>
 
-  clear(): Promise<boolean>
-  create(dto: EntityDTO<E>): Promise<E>
-  delete(id: OneOrMany<E['id']>, should_exist?: boolean): Promise<typeof id>
-  patch(id: E['id'], dto: Partial<EntityDTO<E>>, rfields?: string[]): Promise<E>
-  refreshCache(): Promise<RepoCache<E>>
-  save(dto: OneOrMany<OrPartial<EntityDTO<E>>>): Promise<E[]>
+  cacheInit(): Promise<MangoCacheRepo<E>>
+  cacheSync(): Promise<RepoRoot<E>>
 }
 ```
 
-Looking for the `Mango` plugin docs? [See here][16].
+Looking for the `MangoRepositoryAsync` docs? [See here][15].
 
 ## Built With
 
@@ -302,7 +273,6 @@ Looking for the `Mango` plugin docs? [See here][16].
 [12]: https://developers.google.com/identity/protocols/oauth2
 [13]:
   https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk
-[14]: https://github.com/flex-development/mango/blob/next/src/config/mingo.ts
-[15]: https://github.com/flex-development/mango#plugin
-[16]:
-  https://github.com/flex-development/mango/blob/next/src/plugins/mango.plugin.ts
+[14]: https://github.com/flex-development/mango/blob/v4.0.0/src/config/mingo.ts
+[15]:
+  https://github.com/flex-development/mango/blob/v4.0.0/src/repositories/mango-async.repository.ts

@@ -1,6 +1,7 @@
-import { IEntity } from '@/interfaces'
+import type { IEntity } from '@/interfaces'
 import { Entity } from '@/models'
 import type { RepoParsedUrlQuery, RepoSearchParams } from '@/types'
+import type { MangoRepoOptionsDTO } from '@flex-development/mango'
 import { IsNotEmpty, IsNumber, IsString } from 'class-validator'
 import ROOT from './cars-root.fixture.json'
 
@@ -41,3 +42,7 @@ export const CARS_MOCK_CACHE = Object.freeze({
   collection: CARS,
   root: CARS_ROOT
 })
+
+export const CARS_OPTIONS: MangoRepoOptionsDTO<ICar> = {
+  cache: { collection: CARS }
+}

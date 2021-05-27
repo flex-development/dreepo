@@ -152,6 +152,7 @@ module.exports = {
           'tutils',
           'tvo',
           'typeof',
+          'uids',
           'unix',
           'upsert',
           'utf8',

@@ -7,4 +7,4 @@
 # 3. Run Jest with e2e config + global flags and allow for additional arguments
 BABEL_ENV=jest
 jest --clearCache
-jest --config=jest.config.e2e.ts --detectOpenHandles --passWithNoTests $@
+jest --config=jest.config.e2e.ts --passWithNoTests $@

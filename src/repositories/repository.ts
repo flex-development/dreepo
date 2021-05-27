@@ -1,36 +1,25 @@
 import logger from '@/config/logger'
-import type { EntityDTO, RepoOptionsDTO } from '@/dto'
-import type {
-  IEntity,
-  IRepoDBConnection,
-  IRepository,
-  IRepoValidator,
-  RepoCache,
-  RepoOptions,
-  RepoValidatorOptions
-} from '@/interfaces'
-import { RepoValidator } from '@/mixins'
-import type {
-  EntityClass,
-  EUID,
-  RepoParsedUrlQuery,
-  RepoRoot,
-  RepoSearchParams
-} from '@/types'
-import { ExceptionStatusCode } from '@flex-development/exceptions/enums'
+import type { IEntity, IRepoDBConnection, IRepository } from '@/interfaces'
+import type { RepoParsedUrlQuery, RepoRoot, RepoSearchParams } from '@/types'
 import Exception from '@flex-development/exceptions/exceptions/base.exception'
-import { Mango } from '@flex-development/mango'
+import { MangoRepositoryAsync } from '@flex-development/mango'
 import type {
+  CreateEntityDTO,
+  EntityDTO,
+  MangoRepoOptionsDTO,
+  PatchEntityDTO
+} from '@flex-development/mango/dtos'
+import type {
+  MangoCacheRepo,
   MangoParserOptions,
+  MangoValidatorOptions,
   MingoOptions
 } from '@flex-development/mango/interfaces'
-import type { OneOrMany, OrPartial } from '@flex-development/tutils'
+import type { DUID } from '@flex-development/mango/types'
+import type { OneOrMany, Path } from '@flex-development/tutils'
+import type { ClassType } from 'class-transformer-validator'
 import type { Debugger } from 'debug'
-import isEmpty from 'lodash.isempty'
-import merge from 'lodash.merge'
-import omit from 'lodash.omit'
-import uniq from 'lodash.uniq'
-import { v4 as uuid } from 'uuid'
+import pick from 'lodash.pick'
 
 /**
  * @file Repositories - Repository
@@ -45,9 +34,10 @@ import { v4 as uuid } from 'uuid'
  *
  * @template E - Entity
  * @template P - Repository search parameters (query criteria and options)
- * @template Q - Parsed URL query object
+ * @template Q - ParsedURL query object
  *
- * @class Repository
+ * @class
+ * @extends MangoRepositoryAsync
  * @implements {IRepository<E, P, Q>}
  */
 export default class Repository<
@@ -55,15 +45,8 @@ export default class Repository<
     P extends RepoSearchParams<E> = RepoSearchParams<E>,
     Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
   >
-  extends Mango<E, EUID, P, Q>
+  extends MangoRepositoryAsync<E, DUID, P, Q>
   implements IRepository<E, P, Q> {
-  /**
-   * @readonly
-   * @instance
-   * @property {RepoCache} cache - Repository data cache
-   */
-  readonly cache: RepoCache<E>
-
   /**
    * @readonly
    * @instance
@@ -76,28 +59,7 @@ export default class Repository<
    * @instance
    * @property {Debugger} logger - Internal logger
    */
-  readonly logger: Debugger = logger.extend('Repository')
-
-  /**
-   * @readonly
-   * @instance
-   * @property {EntityClass<E>} model - Entity model
-   */
-  readonly model: EntityClass<E>
-
-  /**
-   * @readonly
-   * @instance
-   * @property {RepoOptions<E>} options - Repository options
-   */
-  readonly options: RepoOptions<E>
-
-  /**
-   * @readonly
-   * @instance
-   * @property {IRepoValidator<E>} validator - Repository Validation API client
-   */
-  readonly validator: IRepoValidator<E>
+  readonly logger: Debugger = logger.extend('repo')
 
   /**
    * Instantiates a new Realtime Database repository.
@@ -105,32 +67,55 @@ export default class Repository<
    * See:
    *
    * - https://github.com/flex-development/mango
-   * - https://github.com/pleerock/class-validator
-   * - https://github.com/typestack/class-transformer
-   * - https://github.com/MichalLytek/class-transformer-validator
    *
    * @param {IRepoDBConnection} dbconn - Database connection provider
-   * @param {EntityClass<E>} model - Entity model
-   * @param {RepoOptionsDTO<E>} [options] - Repository options
-   * @param {MingoOptions<E, EUID>} [options.mingo] - Global mingo options
-   * @param {MangoParserOptions} [options.parser] - MangoParser options
-   * @param {RepoValidatorOptions} [options.validation] - Validation API options
+   * @param {ClassType<E>} model - Entity model
+   * @param {MangoRepoOptionsDTO<E, DUID>} [options] - Repository options
+   * @param {MingoOptions<DUID>} [options.mingo] - Global mingo options
+   * @param {MangoParserOptions<E>} [options.parser] - MangoParser options
+   * @param {MangoValidatorOptions} [options.validation] - Validation options
    */
   constructor(
     dbconn: IRepoDBConnection,
-    model: EntityClass<E>,
-    options: RepoOptionsDTO<E> = {}
+    model: ClassType<E>,
+    options: MangoRepoOptionsDTO<E> = {}
   ) {
-    super(options)
-
-    this.cache = Object.freeze(merge(this.cache, { root: {} }))
+    super(model, options)
     this.dbconn = dbconn
-    this.model = model
-    this.validator = new RepoValidator(this.model, options.validation)
+  }
 
-    this.options = merge(this.options, {
-      mingo: { idKey: 'id' as EUID },
-      validation: this.validator.tvo
+  /**
+   * Initializes the cache with data from the repository root.
+   * Should be called when a repository is first instantiated.
+   *
+   * @async
+   * @return {Promise<MangoCacheRepo<E>>} Initialized repository cache
+   */
+  async cacheInit(): Promise<MangoCacheRepo<E>> {
+    // Require repository root data
+    const root = await this.dbconn.send<RepoRoot<E>>()
+
+    // Reset cache
+    await this.setCache(Object.values(root))
+
+    return this.cache
+  }
+
+  /**
+   * Pushes data from the repository cache into the database repository.
+   * Any data in the repository will be overwritten.
+   *
+   * References:
+   *
+   * - https://firebase.google.com/docs/reference/rest/database#section-put
+   *
+   * @async
+   * @return {Promise<RepoRoot<E>>} Promise containing updated repository root
+   */
+  async cacheSync(): Promise<RepoRoot<E>> {
+    return await this.dbconn.send<RepoRoot<E>>({
+      data: this.cache.root,
+      method: 'put'
     })
   }
 
@@ -139,31 +124,13 @@ export default class Repository<
    *
    * @async
    * @return {Promise<true>} Promise containing `true`
-   * @throws {Exception}
    */
   async clear(): Promise<true> {
-    try {
-      // ! Update cache
-      Object.assign(this.cache, { collection: [], root: {} })
+    // Clear mango repository
+    await super.clear()
 
-      // ! Clear database
-      await this.dbconn.send<RepoRoot<E>>({
-        data: this.cache.root,
-        method: 'put'
-      })
-    } catch (error) {
-      const data = { cache: this.cache }
-
-      if (error.constructor.name === 'Exception') {
-        error.data = merge(error.data, data)
-        throw error
-      }
-
-      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      const { message, stack } = error
-
-      throw new Exception(code, message, data, stack)
-    }
+    // Clear database repository
+    await this.cacheSync()
 
     return true
   }
@@ -171,55 +138,36 @@ export default class Repository<
   /**
    * Creates a new entity.
    *
-   * The entity will be timestamped and assigned an UUID if {@param dto.id} is
-   * nullable or an empty string.
+   * The entity will be timestamped and assigned a unique identifier (uid) if
+   * {@param dto.id} is nullable or an empty string.
    *
    * Throws a `400 BAD_REQUEST` error if schema validation is enabled and fails.
    * Throws a `409 CONFLICT` error if an entity with the same `id` exists.
    *
-   * References:
-   *
-   * - https://firebase.google.com/docs/reference/rest/database#section-put
-   * - https://github.com/uuidjs/uuid
+   * @template F - Object field paths of `dto`
    *
    * @async
-   * @param {EntityDTO<E>} dto - Data to create new entity
+   * @param {CreateEntityDTO<E, F>} dto - Data to create new entity
    * @return {Promise<E>} Promise containing new entity
    * @throws {Exception}
    */
-  async create(dto: EntityDTO<E>): Promise<E> {
+  async create<F extends Path<E>>(dto: CreateEntityDTO<E, F>): Promise<E> {
     try {
-      let data = merge(Object.assign({}, dto), {
+      // Add timestamps to dto and attempt to insert data into mango repository
+      const entity = await super.create<F>({
+        ...dto,
         created_at: Date.now(),
-        id: isEmpty(dto.id) ? uuid() : `${dto.id}`.trim(),
         updated_at: undefined
-      }) as E
+      })
 
-      // Check if another entity with the same `id` already exists
-      if (this.findOne(data.id)) {
-        const message = `Entity with id "${data.id}" already exists`
-        const edata = { dto: data, errors: { id: data.id } }
-
-        throw new Exception(ExceptionStatusCode.CONFLICT, message, edata)
-      }
-
-      // Validate DTO schema
-      data = await this.validator.check<E>(data)
-
-      // Create new entity
-      data = await this.dbconn.send<E>({ data, method: 'put', url: data.id })
-
-      // ! Refresh cache
-      await this.refreshCache()
-
-      return data
+      // Create new entity in database repository and return new entity
+      return (await this.cacheSync())[entity.id]
     } catch (error) {
-      if (error.constructor.name === 'Exception') throw error
+      const exception = error as Exception
 
-      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      const { message, stack } = error
+      exception.data.dto = dto
 
-      throw new Exception(code, message, { dto }, stack)
+      throw exception
     }
   }
 
@@ -230,171 +178,70 @@ export default class Repository<
    * if the entity or one of the entities doesn't exist.
    *
    * @async
-   * @param {OneOrMany<string>} id - Entity ID or array of IDs
+   * @param {OneOrMany<string>} uid - Entity id or array of entity ids
    * @param {boolean} [should_exist] - Throw if any entities don't exist
-   * @return {Promise<string[]>} Promise containing array of deleted entity IDs
-   * @throws {Exception}
+   * @return {Promise<string[]>} Promise containing array of deleted entity ids
    */
   async delete(
-    id: OneOrMany<E['id']>,
+    uid: OneOrMany<E['id']>,
     should_exist: boolean = false
   ): Promise<string[]> {
-    let _ids = Array.isArray(id) ? id : [id]
+    // Remove entities from mango repository
+    const entities = await super.delete(uid, should_exist)
 
-    try {
-      // Check if all entities exist or filter our non-existent entities
-      if (should_exist) _ids.forEach(id => this.findOneOrFail(id))
-      else _ids = _ids.filter(id => this.findOne(id))
+    // Remove entities from database repository
+    await this.cacheSync()
 
-      // Get repository root data from cache
-      let root = Object.assign({}, this.cache.root)
-
-      // ! Remove entities and update cache
-      root = omit(root, _ids)
-      Object.assign(this.cache, { collection: Object.values(root), root })
-
-      // ! Remove entities from database
-      await this.dbconn.send<RepoRoot<E>>({
-        data: this.cache.root,
-        method: 'put'
-      })
-
-      return _ids
-    } catch (error) {
-      const data = { ids: _ids, should_exist }
-
-      if (error.constructor.name === 'Exception') {
-        error.data = merge(error.data, data)
-        throw error
-      }
-
-      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      const { message, stack } = error
-
-      throw new Exception(code, message, data, stack)
-    }
+    return entities as string[]
   }
 
   /**
-   * Partially updates an entity.
-   *
-   * The entity's `created_at` and `id` properties cannot be patched.
+   * Partially updates an entity; `created_at` and `id`  cannot be patched.
    *
    * Throws an error if the entity isn't found, or if schema validation is
    * enabled and fails.
    *
+   * @template F - Object field paths of `dto`
+   *
    * @async
-   * @param {string} id - ID of resource to update
-   * @param {Partial<EntityDTO<E>>} dto - Data to patch entity
+   * @param {string} uid - ID of resource to update
+   * @param {PatchEntityDTO<E, F>} dto - Data to patch entity
    * @param {string[]} [rfields] - Additional readonly fields
    * @return {Promise<E>} Promise containing updated entity
-   * @throws {Exception}
    */
-  async patch(
-    id: E['id'],
-    dto: Partial<EntityDTO<E>>,
-    rfields: string[] = []
+  async patch<F extends Path<E>>(
+    uid: E['id'],
+    dto: PatchEntityDTO<E, F>,
+    rfields?: string[]
   ): Promise<E> {
-    // Make sure entity exists
-    const entity = this.findOneOrFail(id)
+    // Get all readonly fields
+    rfields = ['created_at', 'updated_at'].concat(rfields || [])
 
-    try {
-      // Get readonly properties
-      const _rfields = uniq(['created_at', 'id', 'updated_at'].concat(rfields))
+    // Patch entity in mango repository and push additional readonly props
+    await super.patch<F>(uid, { ...dto, updated_at: Date.now() }, rfields)
 
-      // Remove readonly properties from dto
-      dto = omit(dto, _rfields)
-
-      // Merge existing data and update `updated_at` timestamp
-      let data = merge(entity, { ...dto, updated_at: Date.now() }) as E
-
-      // Validate DTO schema
-      data = await this.validator.check<E>(data)
-
-      // Update entity
-      data = await this.dbconn.send<E>({ data, method: 'put', url: data.id })
-
-      // ! Refresh cache
-      await this.refreshCache()
-
-      return data
-    } catch (error) {
-      if (error.constructor.name === 'Exception') throw error
-
-      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      const { message, stack } = error
-
-      /* eslint-disable-next-line sort-keys */
-      throw new Exception(code, message, { id, dto, rfields }, stack)
-    }
+    // Patch entity in database repository and return updated entity
+    return (await this.cacheSync())[uid as string]
   }
 
   /**
-   * Refreshes the repository data cache.
+   * Creates or patches a single entity or array of entities.
+   * If any entity already exists, it will be patched; otherwise inserted.
    *
-   * Should be called when a repository is first instantiated, or when an entity
-   * is created or updated.
-   *
-   * @async
-   * @return {Promise<RepoCache<E>>} Updated repository cache
-   * @throws {Exception}
-   */
-  async refreshCache(): Promise<RepoCache<E>> {
-    try {
-      // Require repository root data
-      const root = await this.dbconn.send<RepoRoot<E>>()
-
-      // Get entities and update mango plugin cache
-      const collection: E[] = Object.values(root)
-
-      // @ts-expect-error updating caches (mango plugin and repository)
-      this.cache = Object.freeze(merge(this.resetCache(collection), { root }))
-
-      return this.cache
-    } catch (error) {
-      if (error.constructor.name === 'Exception') throw error
-
-      const code = ExceptionStatusCode.INTERNAL_SERVER_ERROR
-      const { message, stack } = error
-
-      throw new Exception(code, message, {}, stack)
-    }
-  }
-
-  /**
-   * Creates or updates a single entity or array of entities.
-   *
-   * If the entity already exists in the database, it will be updated.
-   * If the entity does not exist in the database, it will be inserted.
+   * @template F - Object field paths of `dto`
    *
    * @async
-   * @param {OneOrMany<OrPartial<EntityDTO<E>>>} dto - Entities to upsert
-   * @return {Promise<E[]>} Promise containing new or updated entities
+   * @param {OneOrMany<EntityDTO<E, F>>} dto - Entities to upsert
+   * @return {Promise<E[]>} Promise containing new or patched entities
    */
-  async save(dto: OneOrMany<OrPartial<EntityDTO<E>>>): Promise<E[]> {
-    /**
-     * Creates or updates a single entity.
-     *
-     * If the entity already exists in the database, it will be updated.
-     * If the entity does not exist in the database, it will be inserted.
-     *
-     * @async
-     * @param {OrPartial<EntityDTO<E>>} dto - Data to upsert entity
-     * @return {Promise<E>} Promise containing new or updated entiy
-     */
-    const upsert = async (dto: OrPartial<EntityDTO<E>>): Promise<E> => {
-      const { id = '' } = dto
+  async save<F extends Path<E>>(dto: OneOrMany<EntityDTO<E, F>>): Promise<E[]> {
+    // Upsert entities into mango repository
+    const entities = await super.save<F>(dto)
 
-      const exists = this.findOne(id)
+    // Get entity uids
+    const uids = entities.map(e => e.id)
 
-      if (!exists) return await this.create(dto as EntityDTO<E>)
-      return await this.patch(id, dto)
-    }
-
-    // Convert into array of DTOs
-    const dtos = Array.isArray(dto) ? dto : [dto]
-
-    // Perform upsert
-    return await Promise.all(dtos.map(async d => upsert(d)))
+    // Upsert entities in database repository
+    return Object.values(pick(await this.cacheSync(), uids))
   }
 }

@@ -9,6 +9,8 @@ import TestSubject from '../repo-db-connection.provider'
  * @module providers/tests/RepoDBConnection
  */
 
+jest.mock('../db-connection.provider')
+
 describe('unit:providers/RepoDBConnection', () => {
   const mockConstructorParams: ConstructorParameters<typeof TestSubject> = [
     REPO_PATH_CARS,
@@ -21,8 +23,10 @@ describe('unit:providers/RepoDBConnection', () => {
 
   describe('constructor', () => {
     it('should initialize instance properties', () => {
+      // Act
       const ThisSubject = new TestSubject(...mockConstructorParams)
 
+      // Expect
       expect(typeof ThisSubject.path === 'string').toBeTruthy()
     })
   })

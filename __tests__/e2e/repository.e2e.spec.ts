@@ -1,13 +1,16 @@
 import { Repository as TestSubject } from '@dreepo'
-import { EntityDTO } from '@dreepo/dto'
-import type { CarParams, CarQuery, ICar } from '@tests/fixtures/cars.fixture'
+import type { EntityDTO } from '@flex-development/mango/dtos'
+import type { ICar } from '@tests/fixtures/cars.fixture'
 import {
   Car,
-  CARS_MOCK_CACHE as mockCache,
+  CARS,
+  CARS_MOCK_CACHE,
+  CARS_OPTIONS as OPTIONS,
   REPO_PATH_CARS
 } from '@tests/fixtures/cars.fixture'
 import DBCONN from '@tests/fixtures/repo-db-connection.fixture'
 import { clearRepository, loadRepository } from '@tests/utils'
+import merge from 'lodash.merge'
 
 /**
  * @file E2E Tests - Repository
@@ -15,26 +18,24 @@ import { clearRepository, loadRepository } from '@tests/utils'
  */
 
 jest.unmock('axios')
-jest.unmock('lodash.merge')
-jest.unmock('lodash.omit')
 
 describe('e2e:Repository', () => {
   /**
    * Returns a test repository.
    *
    * @param {boolean} [cache] - If `true`, return with mock cache initialized
-   * @return {TestSubject<ICar, CarParams, CarQuery>} Test repo
+   * @return {TestSubject<ICar>} Test repo
    */
-  const getSubject = (
-    cache: boolean = true
-  ): TestSubject<ICar, CarParams, CarQuery> => {
-    const Subject = new TestSubject<ICar, CarParams, CarQuery>(DBCONN, Car)
+  const getSubject = (cache: boolean = true): TestSubject<ICar> => {
+    const options = Object.assign({}, OPTIONS)
+    if (!cache) options.cache = { collection: [] }
 
-    // @ts-expect-error mocking
-    if (cache) Subject.cache = Object.assign({}, mockCache)
-
-    return Subject
+    return new TestSubject<ICar>(DBCONN, Car, options)
   }
+
+  const ENTITY = CARS[0]
+  const ENTITY_1 = CARS[1]
+  const ENTITY_2 = CARS[2]
 
   const DTO: Readonly<EntityDTO<ICar>> = Object.freeze({
     make: 'MAKE',
@@ -47,43 +48,75 @@ describe('e2e:Repository', () => {
     model: 'BEST MODEL'
   })
 
-  describe('#clear', () => {
-    const Subject = getSubject()
+  describe('#cacheInit', () => {
+    const cache = false
+    const Subject = getSubject(cache)
 
-    it('should clear database', async () => {
-      const cleared = await Subject.clear()
+    beforeAll(async () => {
+      await loadRepository(REPO_PATH_CARS, CARS_MOCK_CACHE.root)
+    })
 
-      expect(cleared).toBeTruthy()
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
 
-      expect(Subject.cache.collection).toBeArray({ length: 0 })
-      expect(Subject.cache.root).toBePlainObject({ keys_length: 0 })
+    it('should fetch repository root data and initialize cache', async () => {
+      // Act
+      await Subject.cacheInit()
+
+      // Expect
+      expect(Subject.cache).toMatchObject(CARS_MOCK_CACHE)
     })
   })
 
-  describe('#create', () => {
+  describe('#cacheSync', () => {
     const Subject = getSubject()
 
     afterAll(async () => {
       await clearRepository(REPO_PATH_CARS)
     })
 
+    it('should copy #cache.root to database', async () => {
+      // Act
+      const result = await Subject.cacheSync()
+
+      // Expect
+      expect(result).toMatchObject(Subject.cache.root)
+    })
+  })
+
+  describe('#clear', () => {
+    const Subject = getSubject()
+    it('should clear database', async () => {
+      // Act
+      const result = await Subject.clear()
+
+      // Expect
+      expect(result).toBeTruthy()
+      expect(Subject.cache.collection).toBeArrayOfSize(0)
+      expect(Subject.cache.root).toContainAllKeys([])
+    })
+  })
+
+  describe('#create', () => {
+    const Subject = getSubject()
+    afterAll(async () => {
+      await clearRepository(REPO_PATH_CARS)
+    })
+
     it('should create new entity', async () => {
-      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
+      // Act
+      const result = await Subject.create(Object.assign({}, DTO))
 
-      const entity = await Subject.create(dto)
-
-      expect(entity).toMatchObject(dto)
-
-      expect(Subject.cache.collection).toBeArray({ length: 1 })
-      expect(Subject.cache.root).toBePlainObject({ keys_length: 1 })
+      // Expect
+      expect(Subject.cache.root[result.id]).toMatchObject(result)
     })
   })
 
   describe('#delete', () => {
     const Subject = getSubject()
-
     beforeAll(async () => {
-      await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+      await loadRepository(REPO_PATH_CARS, CARS_MOCK_CACHE.root)
     })
 
     afterAll(async () => {
@@ -91,30 +124,29 @@ describe('e2e:Repository', () => {
     })
 
     it('should remove one entity', async () => {
-      const id = Subject.cache.collection[0].id
+      // Act
+      const result = await Subject.delete(ENTITY.id)
 
-      const deleted = await Subject.delete(id)
-
-      expect(deleted[0]).toBe(id)
+      // Expected
+      expect(result).toIncludeSameMembers([ENTITY.id])
     })
 
     it('should remove a group of entities', async () => {
-      const ids = [
-        Subject.cache.collection[1].id,
-        Subject.cache.collection[2].id
-      ]
+      // Arrange
+      const uids = [ENTITY_1.id, ENTITY_2.id]
 
-      const deleted = await Subject.delete(ids)
+      // Act
+      const result = await Subject.delete(uids)
 
-      expect(deleted).toEqual(expect.arrayContaining(ids))
+      // Expect
+      expect(result).toEqual(expect.arrayContaining(uids))
     })
   })
 
   describe('#patch', () => {
     const Subject = getSubject()
-
     beforeAll(async () => {
-      await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+      await loadRepository(REPO_PATH_CARS, CARS_MOCK_CACHE.root)
     })
 
     afterAll(async () => {
@@ -122,32 +154,11 @@ describe('e2e:Repository', () => {
     })
 
     it('should update an entity', async () => {
-      const id = Subject.cache.collection[0].id
+      // Act
+      const result = await Subject.patch(ENTITY.id, Object.assign({}, DTO))
 
-      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
-
-      const entity = await Subject.patch(id, dto)
-
-      expect(entity).toMatchObject(dto)
-    })
-  })
-
-  describe('#refreshCache', () => {
-    const cache = false
-    const Subject = getSubject(cache)
-
-    beforeAll(async () => {
-      await loadRepository(REPO_PATH_CARS, mockCache.root)
-    })
-
-    afterAll(async () => {
-      await clearRepository(REPO_PATH_CARS)
-    })
-
-    it('should update repository cache', async () => {
-      await Subject.refreshCache()
-
-      expect(Subject.cache).toMatchObject(mockCache)
+      // Expect
+      expect(result).toMatchObject(DTO)
     })
   })
 
@@ -155,35 +166,35 @@ describe('e2e:Repository', () => {
     describe('should create', () => {
       const cache = false
       const Subject = getSubject(cache)
-
-      const dto: EntityDTO<ICar> = Object.assign({}, DTO)
-      const dto2: EntityDTO<ICar> = Object.assign({}, DTO2)
-
       afterAll(async () => {
         await clearRepository(REPO_PATH_CARS)
       })
 
       it('should create one entity', async () => {
-        const entities = await Subject.save(dto)
+        // Act
+        const result = await Subject.save(Object.assign({}, DTO))
 
-        expect(entities[0]).toMatchObject(dto)
+        // Expect
+        expect(result[0]).toMatchObject(DTO)
       })
 
       it('should create a group of entities', async () => {
-        const dtos = [dto, dto2]
+        // Arrange
+        const dtos = [Object.assign({}, DTO), Object.assign({}, DTO2)]
 
-        const entities = await Subject.save(dtos)
+        // Act
+        const result = await Subject.save(dtos)
 
-        expect(entities[0]).toMatchObject(dtos[0])
-        expect(entities[1]).toMatchObject(dtos[1])
+        // Expect
+        expect(result[0]).toMatchObject(dtos[0])
+        expect(result[1]).toMatchObject(dtos[1])
       })
     })
 
     describe('should patch', () => {
       const Subject = getSubject()
-
       beforeAll(async () => {
-        await loadRepository(REPO_PATH_CARS, Subject.cache.root)
+        await loadRepository(REPO_PATH_CARS, CARS_MOCK_CACHE.root)
       })
 
       afterAll(async () => {
@@ -191,25 +202,30 @@ describe('e2e:Repository', () => {
       })
 
       it('should patch one entity', async () => {
-        const id = Subject.cache.collection[2].id
-        const dto: EntityDTO<ICar> = Object.assign({}, { ...DTO, id })
+        // Arrange
+        const dto: EntityDTO<ICar> = merge({}, DTO, { id: ENTITY_2.id })
 
-        const entities = await Subject.save(dto)
+        // Act
+        const result = await Subject.save(dto)
 
-        expect(entities[0]).toMatchObject(dto)
+        // Expect
+        expect(result).toBeArrayOfSize(1)
+        expect(result[0]).toMatchObject(dto)
       })
 
       it('should patch a group of entities', async () => {
-        const id = Subject.cache.collection[0].id
-        const id1 = Subject.cache.collection[1].id
+        // Arrange
+        const dto = [
+          merge({}, DTO, { id: ENTITY_1.id }),
+          merge({}, DTO2, { id: ENTITY_2.id })
+        ]
 
-        const dto: EntityDTO<ICar> = Object.assign({}, { ...DTO, id: id })
-        const dto1: EntityDTO<ICar> = Object.assign({}, { ...DTO, id: id1 })
+        // Act
+        const result = await Subject.save(dto)
 
-        const entities = await Subject.save([dto, dto1])
-
-        expect(entities[0]).toMatchObject(dto)
-        expect(entities[1]).toMatchObject(dto1)
+        // Expect
+        expect(result[0]).toMatchObject(dto[0])
+        expect(result[1]).toMatchObject(dto[1])
       })
     })
   })
