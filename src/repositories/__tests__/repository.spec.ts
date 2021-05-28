@@ -21,8 +21,6 @@ import TestSubject from '../repository'
 jest.mock('@/providers/db-connection.provider')
 
 describe('unit:repositories/Repository', () => {
-  type DTOFields = 'make' | 'model' | 'model_year'
-
   const Subject = new TestSubject<ICar>(DBCONN, Car, OPTIONS)
 
   const UID_FIELD = Subject.options.mingo.idKey
@@ -99,7 +97,7 @@ describe('unit:repositories/Repository', () => {
     const spy_super_create = jest.spyOn(Super.prototype, 'create')
     const spy_cacheSync = jest.spyOn(Subject, 'cacheSync')
 
-    const dto: CreateEntityDTO<ICar, DTOFields> = {
+    const dto: CreateEntityDTO<ICar> = {
       [UID_FIELD]: 'DTO_UID',
       make: 'MAKE',
       model: 'MODEL',
@@ -109,7 +107,7 @@ describe('unit:repositories/Repository', () => {
     beforeEach(async () => {
       // @ts-expect-error manually resetting cache
       Subject.cache = CARS_MOCK_CACHE
-      await Subject.create<DTOFields>(dto)
+      await Subject.create(dto)
     })
 
     it('should call super.create', () => {
@@ -127,7 +125,7 @@ describe('unit:repositories/Repository', () => {
     const spy_cacheSync = jest.spyOn(Subject, 'cacheSync')
 
     beforeEach(async () => {
-      await Subject.delete([])
+      await Subject.delete()
     })
 
     it('should call super.delete', () => {
@@ -143,7 +141,7 @@ describe('unit:repositories/Repository', () => {
     const spy_super_patch = jest.spyOn(Super.prototype, 'patch')
     const spy_cacheSync = jest.spyOn(Subject, 'cacheSync')
 
-    const dto: PatchEntityDTO<ICar, DTOFields> = {}
+    const dto: PatchEntityDTO<ICar> = {}
 
     beforeEach(async () => {
       await Subject.patch(ENTITY_UID, dto)
@@ -171,7 +169,7 @@ describe('unit:repositories/Repository', () => {
     const spy_cacheSync = jest.spyOn(Subject, 'cacheSync')
 
     beforeEach(async () => {
-      await Subject.save<DTOFields>([])
+      await Subject.save([])
     })
 
     it('should call super.save', () => {

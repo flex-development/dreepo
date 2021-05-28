@@ -1,4 +1,4 @@
-# dreepo
+# :fire: dreepo
 
 Repository Pattern implementation for Firebase Realtime Database
 
@@ -239,11 +239,34 @@ export interface IRepository<
   E extends IEntity = IEntity,
   P extends RepoSearchParams<E> = RepoSearchParams<E>,
   Q extends RepoParsedUrlQuery<E> = RepoParsedUrlQuery<E>
-> extends IMangoRepositoryAsync<E, DUID, P, Q> {
+> extends IMangoRepositoryAsync<E, 'id', P, Q> {
+  readonly cache: MangoCacheRepo<E>
   readonly dbconn: IRepoDBConnection
+  readonly logger: Debugger
+  readonly mparser: IMangoParser<E>
+  readonly mingo: typeof mingo
+  readonly options: MangoRepoOptions<E>
+  readonly validator: IMangoValidator<E>
 
+  aggregate(
+    pipeline?: OneOrMany<AggregationStages<E>>
+  ): Promise<AggregationPipelineResult<E>>
   cacheInit(): Promise<MangoCacheRepo<E>>
   cacheSync(): Promise<RepoRoot<E>>
+  clear(): Promise<boolean>
+  create(dto: CreateEntityDTO<E>): Promise<E>
+  delete(uid?: OneOrMany<string>, should_exist?: boolean): Promise<string[]>
+  find(params?: P): Promise<DocumentPartial<E>[]>
+  findByIds(uids?: string[], params?: P): Promise<DocumentPartial<E>[]>
+  findOne(uid: string, params?: P): Promise<DocumentPartial<E> | null>
+  findOneOrFail(uid: string, params?: P): Promise<DocumentPartial<E>>
+  patch(uid: string, dto?: PatchEntityDTO<E>, rfields?: string[]): Promise<E>
+  query(query?: Q | string): Promise<DocumentPartial<E>[]>
+  queryByIds(uids?: string[], query?: Q | string): Promise<DocumentPartial<E>[]>
+  queryOne(uid: string, query?: Q | string): Promise<DocumentPartial<E> | null>
+  queryOneOrFail(uid: string, query?: Q | string): Promise<DocumentPartial<E>>
+  save(dto?: OneOrMany<EntityDTO<E>>): Promise<E[]>
+  setCache(collection?: E[]): Promise<MangoCacheRepo<E>>
 }
 ```
 
@@ -273,6 +296,6 @@ Looking for the `MangoRepositoryAsync` docs? [See here][15].
 [12]: https://developers.google.com/identity/protocols/oauth2
 [13]:
   https://console.firebase.google.com/project/_/settings/serviceaccounts/adminsdk
-[14]: https://github.com/flex-development/mango/blob/v4.0.0/src/config/mingo.ts
+[14]: https://github.com/flex-development/mango/blob/v5.1.0/src/config/mingo.ts
 [15]:
-  https://github.com/flex-development/mango/blob/v4.0.0/src/repositories/mango-async.repository.ts
+  https://github.com/flex-development/mango/blob/v5.1.0/src/repositories/mango-async.repository.ts

@@ -6,4 +6,4 @@
 # 2. Run Jest with global flags and allow for additional arguments
 clear
 BABEL_ENV=jest
-jest --detectOpenHandles --passWithNoTests $@
+jest --passWithNoTests $@

@@ -16,9 +16,10 @@ import type {
   MingoOptions
 } from '@flex-development/mango/interfaces'
 import type { DUID } from '@flex-development/mango/types'
-import type { OneOrMany, Path } from '@flex-development/tutils'
+import type { OneOrMany } from '@flex-development/tutils'
 import type { ClassType } from 'class-transformer-validator'
 import type { Debugger } from 'debug'
+import merge from 'lodash.merge'
 import pick from 'lodash.pick'
 
 /**
@@ -126,7 +127,7 @@ export default class Repository<
    * @return {Promise<true>} Promise containing `true`
    */
   async clear(): Promise<true> {
-    // Clear mango repository
+    // Clear in-memory repository
     await super.clear()
 
     // Clear database repository
@@ -144,17 +145,15 @@ export default class Repository<
    * Throws a `400 BAD_REQUEST` error if schema validation is enabled and fails.
    * Throws a `409 CONFLICT` error if an entity with the same `id` exists.
    *
-   * @template F - Object field paths of `dto`
-   *
    * @async
-   * @param {CreateEntityDTO<E, F>} dto - Data to create new entity
+   * @param {CreateEntityDTO<E>} dto - Data to create new entity
    * @return {Promise<E>} Promise containing new entity
    * @throws {Exception}
    */
-  async create<F extends Path<E>>(dto: CreateEntityDTO<E, F>): Promise<E> {
+  async create(dto: CreateEntityDTO<E>): Promise<E> {
     try {
-      // Add timestamps to dto and attempt to insert data into mango repository
-      const entity = await super.create<F>({
+      // Add timestamps to dto and attempt insert into in-memory repository
+      const entity = await super.create({
         ...dto,
         created_at: Date.now(),
         updated_at: undefined
@@ -178,15 +177,15 @@ export default class Repository<
    * if the entity or one of the entities doesn't exist.
    *
    * @async
-   * @param {OneOrMany<string>} uid - Entity id or array of entity ids
+   * @param {OneOrMany<string>} [uid] - Entity id or array of entity ids
    * @param {boolean} [should_exist] - Throw if any entities don't exist
    * @return {Promise<string[]>} Promise containing array of deleted entity ids
    */
   async delete(
-    uid: OneOrMany<E['id']>,
-    should_exist: boolean = false
+    uid?: OneOrMany<E['id']>,
+    should_exist?: boolean
   ): Promise<string[]> {
-    // Remove entities from mango repository
+    // Remove entities from in-memory repository
     const entities = await super.delete(uid, should_exist)
 
     // Remove entities from database repository
@@ -201,24 +200,22 @@ export default class Repository<
    * Throws an error if the entity isn't found, or if schema validation is
    * enabled and fails.
    *
-   * @template F - Object field paths of `dto`
-   *
    * @async
    * @param {string} uid - ID of resource to update
-   * @param {PatchEntityDTO<E, F>} dto - Data to patch entity
+   * @param {PatchEntityDTO<E>} [dto] - Data to patch entity
    * @param {string[]} [rfields] - Additional readonly fields
    * @return {Promise<E>} Promise containing updated entity
    */
-  async patch<F extends Path<E>>(
+  async patch(
     uid: E['id'],
-    dto: PatchEntityDTO<E, F>,
+    dto: PatchEntityDTO<E> = {} as PatchEntityDTO<E>,
     rfields?: string[]
   ): Promise<E> {
     // Get all readonly fields
     rfields = ['created_at', 'updated_at'].concat(rfields || [])
 
-    // Patch entity in mango repository and push additional readonly props
-    await super.patch<F>(uid, { ...dto, updated_at: Date.now() }, rfields)
+    // Patch entity in in-memory repository and push additional readonly props
+    await super.patch(uid, merge({}, dto, { updated_at: Date.now() }), rfields)
 
     // Patch entity in database repository and return updated entity
     return (await this.cacheSync())[uid as string]
@@ -228,15 +225,13 @@ export default class Repository<
    * Creates or patches a single entity or array of entities.
    * If any entity already exists, it will be patched; otherwise inserted.
    *
-   * @template F - Object field paths of `dto`
-   *
    * @async
-   * @param {OneOrMany<EntityDTO<E, F>>} dto - Entities to upsert
+   * @param {OneOrMany<EntityDTO<E>>} dto - Entities to upsert
    * @return {Promise<E[]>} Promise containing new or patched entities
    */
-  async save<F extends Path<E>>(dto: OneOrMany<EntityDTO<E, F>>): Promise<E[]> {
-    // Upsert entities into mango repository
-    const entities = await super.save<F>(dto)
+  async save(dto: OneOrMany<EntityDTO<E>>): Promise<E[]> {
+    // Upsert entities into in-memory repository
+    const entities = await super.save(dto)
 
     // Get entity uids
     const uids = entities.map(e => e.id)
